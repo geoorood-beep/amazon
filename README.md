@@ -1,14 +1,14 @@
 # Amz Listing
 
-Amazon Listing 智能体规则仓库。
+Listing 智能体规则仓库。
 
-本仓库固定保存 `listing智能体` 项目的 AGENTS 规则，用于指导 Codex 按多类目架构生成 Amazon Listing：
+本仓库固定保存 Amazon 与 Walmart Listing 的 AGENTS 规则，用于指导 Codex 按平台、类目、关键词库和风险库生成合规 Listing。
 
-- `rug`
-- `chair`
-- `pet_water_fountain`
+## 已支持平台
 
-入口文件：
+### Amazon
+
+Amazon AGENTS 入口：
 
 - `AGENTS.md`
 - `agents/listing-generation.md`
@@ -17,5 +17,36 @@ Amazon Listing 智能体规则仓库。
 - `agents/risk-cdq-audit.md`
 - `agents/categories/*.md`
 
-注意：本仓库只保存 AGENTS 规则文档，不保存 `.env.local`、OpenAI API Key、`node_modules`、Next.js build 产物或完整词库数据。
+当前 Amazon 类目：
 
+- `rug`
+- `chair`
+- `pet_water_fountain`
+
+### Walmart
+
+Walmart AGENTS 入口：
+
+- `agents/walmart/index.md`
+- `agents/walmart/category-routing.md`
+- `agents/walmart/knowledge-base-contract.md`
+- `agents/walmart/generation-workflow.md`
+- `agents/walmart/risk-audit.md`
+- `agents/walmart/categories/*.md`
+
+当前 Walmart 已沉淀类目：
+
+- `rug`
+
+后续新增 Walmart 类目时，只要按 `agents/walmart/knowledge-base-contract.md` 准备该类目的关键词表 / 风险词表 / 条件规则表，并增加对应类目说明，就可以让同一套流程生成不同类目的 Walmart Listing。
+
+## 仓库边界
+
+本仓库只保存 AGENTS 规则文档，不保存：
+
+- `.env.local`
+- OpenAI API Key
+- `node_modules`
+- Next.js build 产物
+- 完整生产词库数据
+- 客户敏感数据
