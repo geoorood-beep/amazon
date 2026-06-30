@@ -11,6 +11,8 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 node_modules/
+node_modules
+**/node_modules
 
 # Generated outputs and local backups
 outputs/
