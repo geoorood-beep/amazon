@@ -2,7 +2,7 @@
 
 Listing 智能体规则仓库。
 
-本仓库固定保存 Amazon 与 Walmart Listing 的 AGENTS 规则，用于指导 Codex 按平台、类目、关键词库和风险库生成合规 Listing。
+本仓库固定保存 Amazon、Walmart 与 Wayfair Listing 的 AGENTS 规则，用于指导 Codex 按平台、类目、关键词库和风险库生成合规 Listing。
 
 ## 已支持平台
 
@@ -40,6 +40,17 @@ Walmart AGENTS 入口：
 
 后续新增 Walmart 类目时，只要按 `agents/walmart/knowledge-base-contract.md` 准备该类目的关键词表 / 风险词表 / 条件规则表，并增加对应类目说明，就可以让同一套流程生成不同类目的 Walmart Listing。
 
+### Wayfair
+
+Wayfair AGENTS 入口：
+
+- `agents/wayfair/AGENTS.md`
+- `agents/wayfair/references/rules.md`
+- `agents/wayfair/scripts/wayfair_kb.py`
+- `agents/wayfair/assets/wayfair_listing_knowledge_base.xlsx`
+
+Wayfair 规则固定输出 `Title1`、`Title2`、`Title3`、`Marketing Copy`、`Feature Bullets`、`Keyword / Attribute Usage Summary: Pattern&Colors`、`Blocked Input / Risk Screening`、`Wayfair Audit`。标题结构必须是 `Machine Washable + Pattern + Color + Doormat/Hallway Runner/Area Rug + With Non-Slip Backing`，且 `With Non-Slip Backing` 后不能再加词。
+
 ## 仓库边界
 
 本仓库只保存 AGENTS 规则文档，不保存：
@@ -48,5 +59,7 @@ Walmart AGENTS 入口：
 - OpenAI API Key
 - `node_modules`
 - Next.js build 产物
-- 完整生产词库数据
+- Amazon / Walmart 完整生产词库数据
 - 客户敏感数据
+
+Wayfair 例外：`agents/wayfair/assets/wayfair_listing_knowledge_base.xlsx` 是 Wayfair 生成器运行必需的规则和关键词 workbook，已随仓库保存，避免依赖任何本机 skill 安装路径。
