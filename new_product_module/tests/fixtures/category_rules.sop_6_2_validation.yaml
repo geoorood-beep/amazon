@@ -1,0 +1,122 @@
+version: "2026-06-25-sop-6-2-validation"
+site: "US"
+category: "Rugs"
+effective_date: "2026-06-25"
+owner: "SOP 6.2 validation fixture"
+
+rug_type_baselines:
+  area_rug:
+    ctr_baseline: null
+    cvr_baseline: 0.043
+    cpa_normal_line: null
+    cpa_high_risk_line: null
+    acos_target: null
+    min_click_sample: 20
+    min_order_sample: 2
+  runner:
+    ctr_baseline: null
+    cvr_baseline: null
+    cpa_normal_line: null
+    cpa_high_risk_line: null
+    acos_target: null
+    min_click_sample: null
+    min_order_sample: null
+  doormat:
+    ctr_baseline: null
+    cvr_baseline: null
+    cpa_normal_line: null
+    cpa_high_risk_line: null
+    acos_target: null
+    min_click_sample: null
+    min_order_sample: null
+  round:
+    ctr_baseline: null
+    cvr_baseline: null
+    cpa_normal_line: null
+    cpa_high_risk_line: null
+    acos_target: null
+    min_click_sample: null
+    min_order_sample: null
+
+global_ctr_baseline: null
+
+order_stage_aba_table:
+  - stage: "0-10单/日"
+    min_daily_orders: 0
+    max_daily_orders: 15
+    area_rug_aba_range: [25000, 500000]
+    runner_aba_range: [50000, 800000]
+    keyword_types: ["长尾词", "尺寸词", "场景词", "属性组合词"]
+    min_match_score: 90
+    max_keyword_count: 5
+
+candidate_pool_thresholds:
+  min_independent_order_dates: 3
+  min_click_sample: null
+  min_order_sample: null
+
+scoring_weights:
+  transaction_data: 0.60
+  region_match: 0.15
+  spec_match: 0.15
+  style_match: 0.05
+  color_match: 0.05
+  cvr_score_multiplier: 2
+
+attribute_scoring:
+  region:
+    partial_match_score: 60
+    hard_conflict_terms: []
+    known_terms: ["living room", "bedroom", "hallway"]
+  spec:
+    partial_match_score: 50
+    hard_conflict_terms: []
+    known_terms: []
+  style:
+    partial_match_score: 50
+    hard_conflict_terms: []
+    known_terms: ["vintage", "modern"]
+  color:
+    partial_match_score: 50
+    neutral_score: 50
+    hard_conflict_terms: []
+    known_terms: ["blue", "red", "green", "black", "white", "gray", "grey"]
+  keyword_score_overrides:
+    5x8 vintage blue area rug:
+      transaction_data_score: 100
+      region_score: 100
+      spec_score: 100
+      style_score: 100
+      color_score: 100
+    modern large rug:
+      transaction_data_score: 100
+      region_score: 60
+      spec_score: 50
+      style_score: 0
+      color_score: 50
+      total_match_score: 69.5
+
+budget_formula:
+  product_coefficient_by_stage:
+    new_test: 0.8
+    scaling: 1.2
+    default: 1.0
+
+strategy_rules:
+  phrase_priority_aba_rank: 50000
+  category_big_word_terms: ["rug", "rugs", "area rug", "area rugs"]
+
+bid_defaults:
+  词组: 0.95
+  广泛: 0.6
+  default: 0.8
+
+placement_defaults:
+  词组: "TOS 20%; ROS保持; PP保持"
+  广泛: "TOS 0%; ROS保持; PP保持"
+  default: "保持"
+
+risk_constraints:
+  inventory_redline: null
+  profit_redline: null
+  max_test_spend: 1000
