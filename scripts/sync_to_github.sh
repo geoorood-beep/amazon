@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_NAME="${GITHUB_REPO_NAME:-亚马逊广告智能体}"
+REPO_NAME="${GITHUB_REPO_NAME:-amazon-ads-agents}"
 VISIBILITY="${GITHUB_VISIBILITY:-private}"
 COMMIT_MESSAGE="${1:-更新广告智能体规则}"
 
@@ -74,4 +74,3 @@ fi
 
 git push -u origin main
 echo "同步完成: https://github.com/$REPO_FULL"
-

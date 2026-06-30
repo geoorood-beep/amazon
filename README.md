@@ -48,7 +48,7 @@ gh auth login
 脚本会：
 
 1. 检查 GitHub CLI 和登录状态。
-2. 自动创建私有仓库 `亚马逊广告智能体`，如果仓库已存在则复用。
+2. 自动创建私有仓库 `amazon-ads-agents`，如果仓库已存在则复用。
 3. 自动提交本地变更。
 4. 推送到 GitHub `main` 分支。
 
@@ -64,4 +64,3 @@ gh auth login
 cd new_product_module
 python3 -m unittest discover -s tests -v
 ```
-
