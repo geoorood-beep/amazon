@@ -4,16 +4,17 @@
 
 ## 读取顺序
 
-处理任何亚马逊广告、新品推广、老品推广、搜索词、词根、ABA、广告位、预算、Bid、否词或新广告搭建任务时，先读本文件，再按任务读取对应子 AGENTS：
+处理任何亚马逊广告、新品推广、老品推广、搜索词、词根、ABA、类目流量结构、广告位、预算、Bid、否词或新广告搭建任务时，先读本文件，再按任务读取对应子 AGENTS：
 
 1. 新品推广选词与广告架构搭建：读 `agents/new-product-promotion.md`
 2. 老品推广总诊断：读 `agents/old-product-promotion.md`
 3. 搜索词再投放 / 词根聚合 / ABA 匹配：读 `agents/search-term-reinvestment.md`
-4. 类目历史出单词数据管理：读 `agents/category-history-data.md`
-5. 品类阈值标准，包括喂水器和地毯：读 `agents/category data thresholds.md`
-6. 输出表格、老广告优化、新广告设置：读 `agents/promo-output-templates.md`
+4. ABA 类目流量结构与打法判断：读 `agents/category-traffic-strategy.md`
+5. 类目历史出单词数据管理：读 `agents/category-history-data.md`
+6. 品类阈值标准，包括喂水器和地毯：读 `agents/category data thresholds.md`
+7. 输出表格、老广告优化、新广告设置：读 `agents/promo-output-templates.md`
 
-如果任务同时涉及多个模块，按上面顺序合并判断。新品推广和老品推广先判断数据阶段，再选择对应 AGENT。搜索词再投放规则是老品推广 SOP 的子模块，不是总入口。
+如果任务同时涉及多个模块，按上面顺序合并判断。新品推广和老品推广先判断数据阶段，再选择对应 AGENT。搜索词再投放规则是老品推广 SOP 的子模块，不是总入口。只用 ABA 判断类目流量结构或打法时，先读 `agents/category-traffic-strategy.md`；如果要进一步判断某个具体产品如何投放，再进入新品推广或搜索词模块。
 
 ## 默认数据源
 
@@ -47,5 +48,6 @@
 - 老品推广必须同时考虑：老广告如何优化、新广告是否需要新增/并入/重建。
 - 老品推广输入报表名称必须按 `agents/old-product-promotion.md` 的“老品输入报表命名标准”输出，不要使用泛化报表名替代。
 - 搜索词投放优先从历史出单搜索词和词根表现出发，ABA 主要用于判断市场容量、稳定流量和长期排名机会。
+- ABA 类目流量结构判断只回答入口数量、头部集中度和打法方向，不等于具体产品选词；产品级承接必须结合产品属性、阶段和历史出单证据。
 - 当前链接自己的搜索词数据优先级最高；类目历史出单词数据只作为同类历史参考，不能覆盖当前链接真实表现。
 - 类目历史出单词数据不得作为老品方案的数据源报表；只能作为“选词参考 / 新增词候选 / 可复用词池”使用。

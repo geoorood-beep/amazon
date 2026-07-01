@@ -18,6 +18,7 @@ scripts/
 - `agents/new-product-promotion.md`：新品推广选词与广告架构搭建。
 - `agents/old-product-promotion.md`：老品推广优化主流程。
 - `agents/search-term-reinvestment.md`：搜索词再投放、词根聚合、ABA 匹配。
+- `agents/category-traffic-strategy.md`：通过 ABA 判断类目流量入口结构和适合打法。
 - `agents/category-history-data.md`：类目历史出单词数据管理，只做选词参考。
 - `agents/category data thresholds.md`：品类阈值标准。
 - `agents/promo-output-templates.md`：输出表格模板。
