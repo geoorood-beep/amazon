@@ -15,6 +15,7 @@ scripts/
 
 ## 子 AGENTS
 
+- `agents/agents-directory.md`：AGENTS 目录与标准输入清单；用户输入 `AGENTS 目录` 时展示。
 - `agents/new-product-promotion.md`：新品推广选词与广告架构搭建。
 - `agents/old-product-promotion.md`：老品推广优化主流程。
 - `agents/search-term-reinvestment.md`：搜索词再投放、词根聚合、ABA 匹配。
