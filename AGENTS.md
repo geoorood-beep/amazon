@@ -44,6 +44,14 @@
 
 `/Users/leo/Documents/广告智能体 2/reference/category-history/`
 
+类目流量结构数据固定目录：
+
+`/Users/leo/Documents/广告智能体 2/reference/category-traffic/`
+
+已固定类目流量数据：
+
+- 办公椅 / 人体工程学办公椅：`reference/category-traffic/office_chair/`
+
 当用户提供历史搜索词、历史出单词、同类历史数据，或任务需要判断“同类历史成交证据”时，读取 `agents/category-history-data.md`。ABA 表和历史出单词表必须分开管理，不能把 ABA 词库当作历史出单词数据。
 
 类目历史出单词数据只用于选词中的历史参考、同类可复用词推荐和新品/新广告候选词补充。它不是老品推广方案的数据源报表。老品推广诊断、预算、Bid、广告位、否词、暂停、放量等动作，必须使用当前链接 / 当前 Campaign / 当前广告组的真实报表。

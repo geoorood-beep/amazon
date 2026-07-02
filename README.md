@@ -29,8 +29,11 @@ scripts/
 - `reference/ABA喂水器.xlsx`
 - `reference/通用地毯类目ABA关键词库_202605_v2.xlsx`
 - `reference/category-history/pet_water_fountain/`
+- `reference/category-traffic/office_chair/`
 
 注意：类目历史出单词数据只用于选词参考、新品选词和新广告候选词，不是老品推广方案的数据源报表。
+
+注意：类目流量结构数据只用于判断 ABA 流量入口、竞对共用词和类目打法，不是老品当前广告诊断报表。
 
 ## 半自动同步到 GitHub
 

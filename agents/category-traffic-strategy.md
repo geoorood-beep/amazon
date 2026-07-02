@@ -22,6 +22,22 @@
 
 ## 输入要求
 
+## 固定数据源
+
+类目流量结构数据固定放在：
+
+`/Users/leo/Documents/广告智能体 2/reference/category-traffic/`
+
+已固定类目：
+
+| 类目 | 目录 | 数据内容 | 使用规则 |
+|---|---|---|---|
+| 办公椅 / 人体工程学办公椅 | `reference/category-traffic/office_chair/` | ABA 词库、冷启动词库、5 个竞品 ASIN 关键词表、竞对关键词覆盖度聚合表 | 判断办公椅类目流量入口、头部集中度、竞对共用词和 L1-L5 流量层 |
+
+当用户要求判断办公椅、人体工程学办公椅、`office chair`、`ergonomic office chair`、`desk chair` 流量结构或打法，且没有提供新的 ABA / 竞对词表时，默认读取 `reference/category-traffic/office_chair/`。
+
+如果用户在当前任务中提供新的办公椅 ABA 或竞对词表，以用户新表优先，不要继续使用旧默认表做最终判断。
+
 ### 只做类目级判断
 
 至少需要：
