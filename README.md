@@ -1,6 +1,10 @@
-# 亚马逊广告智能体
+# 亚马逊广告智能体 V1.1
 
 本仓库用于管理 Amazon 广告智能体的 AGENTS 规则、固定参考数据、类目历史选词数据和新品推广辅助模块。
+
+当前版本：`V1.1`
+
+V1.1 重点升级：广告命名和 CPA 预算统一、Rug 输入字段收敛、动物图案关键词强匹配、Rug 历史出单词库入库、高流量核心否词隔离、老品优质出单词跨 SPV / SB / SBV 拓量。
 
 ## 核心结构
 
@@ -27,8 +31,9 @@ scripts/
 ## 固定参考数据
 
 - `reference/ABA喂水器.xlsx`
-- `reference/通用地毯类目ABA关键词库_202605_v2.xlsx`
+- `reference/rug-aba/`
 - `reference/category-history/pet_water_fountain/`
+- `reference/category-history/rug/`
 - `reference/category-traffic/office_chair/`
 
 注意：类目历史出单词数据只用于选词参考、新品选词和新广告候选词，不是老品推广方案的数据源报表。
@@ -61,6 +66,20 @@ gh auth login
 
 ```bash
 ./scripts/sync_to_github.sh "更新老品输入表命名标准"
+```
+
+## 每周 Amazon 报表自动导入
+
+自动导入入口：
+
+```bash
+python3 scripts/weekly_amazon_report_ingest.py --dry-run
+```
+
+说明见：
+
+```text
+docs/weekly-amazon-report-automation.md
 ```
 
 ## 本地验证

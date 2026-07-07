@@ -16,6 +16,7 @@ node_modules
 
 # Generated outputs and local backups
 outputs/
+imports/
 .agents-backup/
 
 # Temporary SOP extraction artifacts

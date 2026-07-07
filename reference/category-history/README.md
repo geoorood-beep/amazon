@@ -19,6 +19,7 @@
 | 类目 | 当前标准化文件 | 状态 |
 |---|---|---|
 | `pet_water_fountain` | `pet_water_fountain/normalized/20260629_pet_water_fountain_historical_search_terms_normalized.xlsx` | 已入库：10L / 5L 无线不锈钢喂水器历史搜索词 |
+| `rug` | `rug/normalized/20260707_rug_historical_search_terms_normalized.xlsx` | 已入库：冬豚 / 岚风 Rug 关键词分析历史出单词与效果词 |
 
 详细入库、字段和调用规则见：
 

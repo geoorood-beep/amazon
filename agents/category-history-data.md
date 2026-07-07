@@ -28,6 +28,13 @@
 - `normalized/`：标准化后的历史出单词表。
 - `metadata.md`：类目说明、数据来源、时间范围、适用边界。
 
+当前已固定数据：
+
+| 类目 | 标准化文件 | 数据来源 | 使用边界 |
+|---|---|---|---|
+| `pet_water_fountain` | `reference/category-history/pet_water_fountain/normalized/20260629_pet_water_fountain_historical_search_terms_normalized.xlsx` | 10L / 5L 无线不锈钢喂水器历史搜索词 | 只做喂水器类目选词参考 |
+| `rug` | `reference/category-history/rug/normalized/20260707_rug_historical_search_terms_normalized.xlsx` | 冬豚 / 岚风 Rug 关键词分析汇总，905 条出单词明细，818 个聚合词 | 只做 Rug 新品选词、新广告候选词和搜索词复用参考；不得替代当前链接真实报表 |
+
 ## 标准文件命名
 
 原始文件命名：
@@ -130,6 +137,7 @@
 4. 历史出单词不能直接变成当前新品的 CPA / CVR / ACOS 阈值，只能作为同类参考。
 5. 当前新品没有自己的稳定数据时，不得用历史类目 ACOS 直接判定暂停或否词。
 6. 如果历史词与当前产品属性冲突，即使历史出单，也不能投。
+7. Rug 类目调用 `reference/category-history/rug/` 时，必须继续执行 `agents/new-product-promotion.md` 中的地毯区域、尺寸、风格、颜色、材质和 `图案动物类型` 强匹配规则。
 
 新品调用结论必须写清：
 
