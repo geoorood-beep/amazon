@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "job_id",
+    "intent",
+    "category",
+    "status",
+    "title",
+    "executive_summary",
+    "primary_issue",
+    "recommendations",
+    "missing_inputs",
+    "artifacts",
+    "safety",
+    "next_steps"
+  ],
+  "properties": {
+    "schema_version": {"type": "string", "const": "1.0"},
+    "job_id": {"type": "string", "minLength": 8},
+    "intent": {
+      "enum": ["NEW_PRODUCT_PROMOTION", "OLD_PRODUCT_OPTIMIZATION", "AGGREGATE_REPORTS", "WEEKLY_REVIEW"]
+    },
+    "category": {"type": "string", "const": "rug"},
+    "status": {
+      "enum": ["READY_FOR_HUMAN_REVIEW", "DATA_REQUIRED", "VALIDATOR_BLOCKED", "CODEX_UNAVAILABLE"]
+    },
+    "title": {"type": "string", "minLength": 1},
+    "executive_summary": {"type": "string", "minLength": 1},
+    "primary_issue": {"type": ["string", "null"]},
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["priority", "action", "reason", "evidence", "risk", "approval_required"],
+        "properties": {
+          "priority": {"enum": ["P0", "P1", "P2", "OBSERVE"]},
+          "action": {"type": "string"},
+          "reason": {"type": "string"},
+          "evidence": {"type": "string"},
+          "risk": {"type": "string"},
+          "approval_required": {"type": "boolean", "const": true}
+        }
+      }
+    },
+    "missing_inputs": {"type": "array", "items": {"type": "string"}},
+    "artifacts": {"type": "array", "items": {"type": "string"}},
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["execution_allowed", "auto_apply", "human_approval_required", "validator_status"],
+      "properties": {
+        "execution_allowed": {"type": "boolean", "const": false},
+        "auto_apply": {"type": "boolean", "const": false},
+        "human_approval_required": {"type": "boolean", "const": true},
+        "validator_status": {"enum": ["CANDIDATE_ONLY", "DATA_BLOCKED", "CODEX_UNAVAILABLE"]}
+      }
+    },
+    "next_steps": {"type": "array", "items": {"type": "string"}}
+  }
+}

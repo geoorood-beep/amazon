@@ -14,7 +14,13 @@ IGNORED_DIRECTORIES = {
     ".pytest_cache",
     "__pycache__",
     "imports",
+    "runtime",
     "outputs",
+    "node_modules",
+    "dist",
+    ".wrangler",
+    ".vinext",
+    ".next",
 }
 
 

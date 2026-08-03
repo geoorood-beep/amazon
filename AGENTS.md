@@ -1,6 +1,6 @@
 # 陆遥广告智能体 V2.0 — 八层总入口
 
-本文件只负责最高优先级边界和路由。当前规则正文位于 [rules/](rules/README.md)，数值位于 [thresholds/](thresholds/README.md)，输入输出字段位于 [contracts/](contracts/README.md)，数据源位于 [knowledge/](knowledge/README.md)。第 05 层本地六表聚合工具位于 [广告报表聚合工具](tools/ad_report_aggregator/README.md)，状态为 `ACTIVE_LOCAL_TOOL`；外部服务器/MCP/API 接入位于 [外部接入网关正文](integrations/external-integration-gateway.md)，仍全部为占位状态。不要把具体规则或阈值重新堆回本文件。
+本文件只负责最高优先级边界和路由。当前规则正文位于 [rules/](rules/README.md)，数值位于 [thresholds/](thresholds/README.md)，输入输出字段位于 [contracts/](contracts/README.md)，数据源位于 [knowledge/](knowledge/README.md)。第 05 层本地六表聚合工具位于 [广告报表聚合工具](tools/ad_report_aggregator/README.md)，本地四入口运营网页位于 [运营任务合同](contracts/operator-job.md)，两者均已启用；外部服务器/MCP/API 接入位于 [外部接入网关正文](integrations/external-integration-gateway.md)，仍全部为占位状态。不要把具体规则或阈值重新堆回本文件。
 
 当前状态：`V2.0_FROZEN`；`HUMAN_EXECUTION_ONLY`；`ai_ads/` 为 `TEST_ONLY`；Amazon 后台自动执行关闭。冻结文件清单见 [V2.0 Release](releases/v2.0/RELEASE.md)。
 
@@ -37,6 +37,7 @@
 | 类目流量 | [输入](rules/domains/category-traffic/scope-and-input.md)、[分层](rules/domains/category-traffic/relevance-and-segmentation.md)、[打法](rules/domains/category-traffic/structure-and-playbook.md)、[输出](rules/domains/category-traffic/output-and-confidence.md) | [流量结构阈值](thresholds/rug/traffic-and-scoring.md) |
 | 历史效果数据 | [字段与入库](rules/domains/history-data/schema-and-ingest.md)、[使用边界](rules/domains/history-data/usage-boundaries.md) | 不适用 |
 | 历史阈值校准 / 每周达标提醒 | [校准字段合同](contracts/threshold-calibration.md)、[累积与提醒](docs/v2/候选阈值自动累积与提醒.md)、[便携监控配置](config/threshold_monitoring.json) | [校准资格门](thresholds/rug/calibration-eligibility.md) |
+| 本地运营网页 | [运营任务合同](contracts/operator-job.md)、[第 05 层工具入口](architecture/layers/05-tool-augmented.md) | 按新品、老品或阈值任务引用；网页不保存阈值 |
 | 聚合六张广告报表 | [本地聚合工具](tools/ad_report_aggregator/README.md)、[聚合字段合同](contracts/ad-report-aggregation.md) | 不适用；技术舍入容差见工具配置，不是业务阈值 |
 | 外部服务器 / MCP / API / 云存储 | [第 05 层接入占位](integrations/external-integration-gateway.md)、[阈值云端接入位](integrations/cloud/threshold-monitoring-cloud-slot.md)、[外部数据接入合同](contracts/external-ingest.md) | 不适用；当前 `PLACEHOLDER_NOT_ACTIVE` |
 | 输出表格 | [输出规则正文](rules/output/output-rules.md) | 按主任务引用 |
@@ -99,6 +100,8 @@
 .venv/bin/python scripts/validate_threshold_calibration.py
 .venv/bin/python scripts/stress_test_threshold_calibration.py
 .venv/bin/python -m pytest new_product_module/tests ai_ads/tests -q
+.venv/bin/python -m unittest discover operator_console/backend/tests -v
+cd operator_console && npm run lint && npm test && npm audit --omit=dev && cd ..
 .venv/bin/python scripts/stress_test_ad_report_aggregator.py
 .venv/bin/python scripts/stress_test_v20.py
 .venv/bin/python scripts/v20_release_manifest.py

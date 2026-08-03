@@ -22,6 +22,7 @@
 - `new_product_module/`：新品人工架构辅助；
 - `ai_ads/`：V2 `TEST_ONLY` 合同、仲裁和 Validator；
 - [广告报表聚合工具](../../tools/ad_report_aggregator/README.md)：六类 SP 报表本地聚合，状态为 `ACTIVE_LOCAL_TOOL`；
+- [本地运营网页](../../operator_console/README.md)：新品、老品、报表更新和本周建议四入口，状态为 `ACTIVE_LOCAL_UI_V1`；
 - [历史阈值校准合同](../../contracts/threshold-calibration.md)：本地累计日粒度历史数据、生成候选阈值和一次性提醒，状态为 `CANDIDATE_ONLY`；
 - `scripts/`：数据导入、聚合入口与项目校验；
 - `contracts/README.md`：工具必须遵守的字段合同。
@@ -53,6 +54,12 @@
 该入口固定以 30 天每日明细为历史事实源，7/14 天和汇总文件只做一致性校验；店铺口径与广告归因口径分离。名称哈希不能替代 Amazon ID，因此输出只允许分析，执行状态固定阻断。
 
 本地聚合工具与外部接入网关是两件事：本地聚合已经启用；MCP、API、Webhook 和外部服务器仍未启用。
+
+## 本地运营网页（第一版已启用）
+
+双击项目根目录的 `运行广告运营台.command`，打开 `http://localhost:3000/`。网页只收集意图和本机路径；Python 先执行确定性预处理，Codex 通过只读子进程读取本项目 AGENTS、规则和阈值，最后由独立 Validator 校验。任务和结果保存在被 Git 忽略的 `runtime/operator-jobs/`。
+
+四个入口及其规则/阈值路由登记在 `config/operator_intents.json`，字段与状态读取[运营任务合同](../../contracts/operator-job.md)。网页不得复制或维护业务阈值，不得把 `PASS_CANDIDATE_ONLY` 解释为已经执行。后台只监听本机 `127.0.0.1:8766`，不属于外部 API 接入激活。
 
 ## 本地候选阈值监控（已启用）
 

@@ -19,6 +19,8 @@
 
 候选阈值监控默认周期固定为每周一 09:00、安装设备本地时区，不再使用每日检查。周期、唯一调度器策略和相对输入路径保存在可移植配置中；云存储与云端 Scheduler 已预留只读接入位，当前仍为 `PLACEHOLDER_NOT_ACTIVE`。
 
+本次冻结增量加入本地运营网页第一版：新品推广、老品优化、更新广告数据、查看本周建议四个入口；网页只负责收集任务与展示结果，本地 Python 负责聚合，Codex Worker 使用只读沙箱按 V2.0 规则分析，独立 Validator 固定阻断执行权限。后台仅监听本机回环地址，任务文件不进入 Git，未接通 Amazon 或任何外部服务器。
+
 无需业务定值即可确定的结构缺口已经进入合同与 Validator：预算类型/计算依据、流量角色/重叠意图、拓量执行对象、设置变更切段、赢家迁移、低置信度执行阻断、混合广告位/商品结构隔离。小时理想花费曲线因缺逐小时样本已撤下，不再输出过快/过慢标签。
 
 冻结不代表启用Amazon后台自动执行。圆形Rug性能阈值、低样本强收缩Threshold ID和生产机器ACTIVE规则包仍保持阻断。MCP、HTTP API、Webhook 和其他外部服务器连接器当前均为 `PLACEHOLDER_NOT_ACTIVE`，没有真实 Endpoint 或运行服务。
@@ -32,6 +34,10 @@ V2.0规则一致性校验                   PASS
 第05层外部接入占位校验                PASS
 Python接口Schema重新导出              PASS（12份）
 单元/回归测试                         PASS（114项，含阈值校准15项）
+运营网页前端构建/渲染/Lint             PASS（2项页面测试）
+运营网页独立Validator对抗测试           PASS（4项）
+运营网页真实周检端到端                   PASS（NO_INPUT → DATA_REQUIRED → PASS_CANDIDATE_ONLY）
+运营网页生产依赖审计                     PASS（0项漏洞）
 候选阈值自动生成                      PASS（资格门、候选值、来源SHA-256）
 历史留出更优证明                      PASS（正向证明、反向拒绝、证据不足阻断）
 阈值校准压力测试                      PASS（6,000行、200分组、20次重放）
@@ -59,6 +65,8 @@ Data Quality确定性重放               PASS（5,000次，0.0382秒）
 .venv/bin/python scripts/validate_threshold_calibration.py
 .venv/bin/python scripts/stress_test_threshold_calibration.py
 .venv/bin/python -m pytest new_product_module/tests ai_ads/tests -q
+.venv/bin/python -m unittest discover operator_console/backend/tests -v
+cd operator_console && npm run lint && npm test && npm audit --omit=dev && cd ..
 .venv/bin/python scripts/stress_test_ad_report_aggregator.py
 .venv/bin/python scripts/stress_test_v20.py
 .venv/bin/python scripts/v20_release_manifest.py

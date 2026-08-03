@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "version": "V2.0",
+  "category": "rug",
+  "execution_boundary": "HUMAN_EXECUTION_ONLY",
+  "intents": {
+    "NEW_PRODUCT_PROMOTION": {
+      "label": "新品推广",
+      "required_fields": ["asin", "size_spec", "marketplace", "order_target_daily", "business_goal"],
+      "preprocessor": "NEW_PRODUCT_MODULE",
+      "rule_entry": "rules/domains/new-product/scope-input-sources.md",
+      "threshold_entry": "thresholds/rug/new-product-stage.md",
+      "output_contract": "contracts/new-product-output.md"
+    },
+    "OLD_PRODUCT_OPTIMIZATION": {
+      "label": "老品优化",
+      "required_fields": ["asin", "marketplace", "report_source_path", "business_goal"],
+      "preprocessor": "AD_REPORT_AGGREGATOR",
+      "rule_entry": "rules/domains/old-product/input-and-modes.md",
+      "threshold_entry": "thresholds/rug/performance.md",
+      "output_contract": "contracts/old-product-output.md"
+    },
+    "AGGREGATE_REPORTS": {
+      "label": "更新广告数据",
+      "required_fields": ["asin", "marketplace", "report_source_path"],
+      "preprocessor": "AD_REPORT_AGGREGATOR",
+      "rule_entry": "rules/core/data-quality.md",
+      "threshold_entry": null,
+      "output_contract": "contracts/ad-report-aggregation.md"
+    },
+    "WEEKLY_REVIEW": {
+      "label": "查看本周建议",
+      "required_fields": [],
+      "preprocessor": "WEEKLY_THRESHOLD_MONITOR",
+      "rule_entry": "contracts/review.md",
+      "threshold_entry": "thresholds/rug/calibration-eligibility.md",
+      "output_contract": "contracts/review.md"
+    }
+  }
+}

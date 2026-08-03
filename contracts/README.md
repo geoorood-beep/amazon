@@ -14,6 +14,7 @@
 | [广告报表聚合](ad-report-aggregation.md) | 六表输入、标准化粒度、聚合工作簿和数据质量状态 |
 | [外部数据接入](external-ingest.md) | 第 05 层 MCP/API/服务器输入信封与隔离边界；当前仅占位 |
 | [历史阈值校准](threshold-calibration.md) | 日粒度累积、候选包、时间留出证据和人工批准字段 |
+| [本地运营任务](operator-job.md) | 四个网页入口、任务状态、Codex Worker 与 Validator 安全边界 |
 | `../ai_ads/schemas/` | 机器可读 JSON Schema |
 
 机器 Schema 与本目录语义不一致时必须阻断并修复，不得由模型猜测哪一份正确。
