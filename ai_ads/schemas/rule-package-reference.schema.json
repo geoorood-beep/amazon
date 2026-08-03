@@ -1,0 +1,84 @@
+{
+  "$defs": {
+    "RuleSourceStatus": {
+      "enum": [
+        "UNDECIDED",
+        "PROVIDED_FOR_TEST",
+        "ACTIVE"
+      ],
+      "title": "RuleSourceStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "resolution_trace": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Resolution Trace",
+      "type": "array"
+    },
+    "rule_file_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Rule File Sha256"
+    },
+    "rule_package_checksum": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Rule Package Checksum",
+      "type": "string"
+    },
+    "rule_package_version": {
+      "title": "Rule Package Version",
+      "type": "string"
+    },
+    "rule_source_status": {
+      "$ref": "#/$defs/RuleSourceStatus"
+    },
+    "source_descriptor": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Descriptor"
+    },
+    "threshold_file_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Threshold File Sha256"
+    },
+    "threshold_source_status": {
+      "$ref": "#/$defs/RuleSourceStatus"
+    }
+  },
+  "required": [
+    "rule_package_version",
+    "rule_package_checksum",
+    "rule_source_status",
+    "threshold_source_status"
+  ],
+  "title": "RulePackageReference",
+  "type": "object"
+}

@@ -1,0 +1,16 @@
+# 数据与输出合同
+
+当前规则版本：`V2.0`
+
+合同定义“必须有哪些字段和状态”，不决定业务阈值。
+
+| 文件 | 内容 |
+|---|---|
+| [数据输入](data-input.md) | AdContext、数据快照、报表和对象映射 |
+| [动作与方案](action-and-plan.md) | 候选动作、最终方案和执行确认 |
+| [新品输出](new-product-output.md) | Rug 新品两张核心表的必备字段 |
+| [老品输出](old-product-output.md) | 老品完整/有限模式的可见字段 |
+| [复盘合同](review.md) | 复盘资格、证据和 CANDIDATE 输出 |
+| `../ai_ads/schemas/` | 机器可读 JSON Schema |
+
+机器 Schema 与本目录语义不一致时必须阻断并修复，不得由模型猜测哪一份正确。

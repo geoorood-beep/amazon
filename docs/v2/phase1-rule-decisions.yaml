@@ -1,0 +1,288 @@
+registry:
+  id: PHASE1-P0-DECISIONS
+  version: 0.2.0
+  status: DRAFT_REVIEW_ONLY
+  created_at: "2026-07-30"
+  scope: SP_STANDARD_OPTIMIZATION
+  execution_mode: HUMAN_EXECUTION_ONLY
+  baseline_commit: e5ccb9b
+  baseline_tag: v1.3-working-baseline-20260730
+  active_document_version: V2.0
+  activation_rule: >-
+    CONFIRMED_RULE entries L-001 through L-011 are incorporated into V2.0
+    human-execution documentation after regression tests. This registry remains
+    DRAFT_REVIEW_ONLY as a machine package because the unique production rule
+    source, remaining category thresholds and independent production validator
+    gate are not complete.
+
+sources:
+  - path: docs/v2/source/AI广告Agent完整架构与实施方案_V2.0.md
+    sha256: 432a8610f6945371545b3a4dcfc3668fddd081ec3bfb0b98cbd93e6840014d28
+  - path: docs/v2/source/老品广告Agent逻辑漏洞定位清单.md
+    sha256: bf45d047d5ff51272dfa95df501c59daf8fc661b007a106e746e0c42b9c706a4
+  - path: reference/category-threshold/confirmed/20260731_V1.4_人工阈值回填原件.xlsx
+    sha256: f2419724adc24ffe4ed6c134a08ab18355d06dc8151c9f81c00c23e007688387
+
+confirmed_threshold_inputs:
+  - threshold_id: THR-001
+    status: CONFIRMED_RULE
+    confirmed_at: "2026-07-31"
+    decision: CVR、ACOS、CPA 四档必须连续、互斥并明确开闭区间。
+  - threshold_ids:
+      - THR-030
+      - THR-031
+      - THR-032
+      - THR-040
+      - THR-041
+      - THR-042
+      - THR-050
+      - THR-051
+      - THR-052
+      - THR-060
+      - THR-061
+      - THR-062
+    status: CONFIRMED_RULE
+    confirmed_at: "2026-07-31"
+    decision: Rug 门垫、长条、小区域和大区域的 CVR、ACOS、CPA 使用回填表中的连续四档区间。
+  - threshold_id: THR-301
+    status: CONFIRMED_RULE
+    confirmed_at: "2026-07-31"
+    value: 7
+    unit: calendar_days
+    decision: V2.0 人工执行流程最低归因成熟等待期为观察期结束后 7 个完整自然日。
+  - threshold_ids:
+      - THR-100
+      - THR-111
+      - THR-112
+      - THR-113
+      - THR-114
+      - THR-115
+      - THR-121
+      - THR-122
+      - THR-123
+      - THR-124
+      - THR-125
+      - THR-131
+      - THR-132
+      - THR-133
+      - THR-134
+      - THR-135
+    status: CONFIRMED_RULE
+    confirmed_at: "2026-07-31"
+    active: false
+    decision: 圆形 Rug 阈值暂缓；重复填入的 45 不构成合法阈值，不得使用。
+
+status_definitions:
+  DRAFT_REVIEW_ONLY: 已形成推荐裁决，但尚未获得用户确认，不得进入 ACTIVE。
+  CONFIRMED_RULE: 用户已确认，可以进入实现和测试，但尚不可执行。
+  TESTED_ACTIVE: 已通过回归、Validator 和试运行，可由 manifest 指向为 ACTIVE。
+  DEPRECATED: 已停用，只保留版本与审计记录。
+
+decisions:
+  - issue_id: L-001
+    title: 阈值区间连续且互斥
+    status: CONFIRMED_RULE
+    decision: >-
+      CVR、ACOS、CPA 的优质、正常、警戒、高风险必须使用明确的开闭区间；
+      任意合法值必须且只能命中一个档位。不得依赖规则书写顺序选择档位。
+    precedence: DATA_QUALITY_THEN_THRESHOLD_UNIQUENESS
+    implementation:
+      - 阈值保存 lower、upper、lower_inclusive、upper_inclusive、unit。
+      - 阈值解析器启动时检查空档、重叠和不可达区间。
+      - 未确认品类仍按空档或重叠阻断；不得套用已确认 Rug 区间。
+    tests:
+      - 每个边界值及边界两侧最小单位只能命中一个档位。
+      - 负值、空值、非数值和单位错误必须 BLOCK。
+
+  - issue_id: L-002
+    title: Rug CVR 空档归入正常档
+    status: CONFIRMED_RULE
+    decision: >-
+      保持原优质线不变，将优质线与原正常线上限之间的空档并入正常档；
+      不用默认档位静默补齐。
+    proposed_ranges:
+      door_mat:
+        quality: "CVR >= 7.5%"
+        normal: "5% <= CVR < 7.5%"
+        warning: "3.5% <= CVR < 5%"
+        high_risk: "CVR < 3.5%"
+      runner:
+        quality: "CVR >= 8%"
+        normal: "5.5% <= CVR < 8%"
+        warning: "3.5% <= CVR < 5.5%"
+        high_risk: "CVR < 3.5%"
+      area_small:
+        quality: "CVR >= 5.5%"
+        normal: "3.5% <= CVR < 5.5%"
+        warning: "2.5% <= CVR < 3.5%"
+        high_risk: "CVR < 2.5%"
+      area_large:
+        quality: "CVR >= 5%"
+        normal: "3% <= CVR < 5%"
+        warning: "2% <= CVR < 3%"
+        high_risk: "CVR < 2%"
+    activation_gate: IMPLEMENTATION_AND_REGRESSION_TESTS_REQUIRED
+    tests:
+      - 从 0% 到测试上限连续取值，不得出现空档或多重命中。
+
+  - issue_id: L-003
+    title: O小于2的观察规则与唯一停止例外
+    status: CONFIRMED_RULE
+    decision: >-
+      O<2 默认 DATA_INSUFFICIENT，只允许观察。唯一例外为 O=0、
+      归因窗口成熟、达到当前品类停止线、投放对象映射完成且 DQ_PASS；
+      该例外只能生成 APPROVAL_REQUIRED 的强收缩候选，不得自动执行。
+    exception_preconditions:
+      orders: 0
+      attribution_mature: true
+      category_stop_line_hit: true
+      target_mapping_complete: true
+      data_quality: DQ_PASS
+    prohibited:
+      - O=1 时按停止例外生成强动作。
+      - 有限数据模式生成实施动作。
+      - 同时输出观察与强收缩主动作。
+    activation_gate: IMPLEMENTATION_AND_REGRESSION_TESTS_REQUIRED
+
+  - issue_id: L-004
+    title: 删除15点击0单的独立精否权限
+    status: CONFIRMED_RULE
+    decision: >-
+      15点击0单只能作为风险信号，不能绕过品类停止线。Negative Exact
+      必须同时满足完整报表模式、唯一Target映射、成熟归因窗口和当前品类停止线；
+      否则只能输出待映射候选。
+    risk_level: HIGH
+    approval: APPROVAL_REQUIRED
+    tests:
+      - 未达到品类停止线时不得输出可执行精否动作。
+      - 缺Target映射或有限数据模式时必须降级为候选。
+
+  - issue_id: L-005
+    title: 历史词根优化分唯一等级
+    status: CONFIRMED_RULE
+    decision: >-
+      固定为85-100、65-84、50-64、0-49四个互斥区间；
+      删除原50-69与65-84的重叠。
+    tests:
+      - 0到100每个整数恰好命中一个等级。
+      - 小于0、大于100和非整数输入必须由Schema拒绝或BLOCK。
+
+  - issue_id: L-006
+    title: 用户目标线与品类风险线冲突
+    status: CONFIRMED_RULE
+    decision: >-
+      用户目标线是经营目标，品类高风险线是风险护栏。若用户目标宽于品类
+      高风险线且实际值位于两者之间，状态固定为
+      TARGET_CATEGORY_RISK_CONFLICT，禁止自动选择扩量或收缩动作，
+      只能进入高影响审批。
+    precedence: CATEGORY_RISK_GUARDRAIL_BEFORE_OBJECTIVE_ACTION
+    activation_gate: IMPLEMENTATION_AND_REGRESSION_TESTS_REQUIRED
+
+  - issue_id: L-007
+    title: 整体状态完整且互斥
+    status: CONFIRMED_RULE
+    decision: >-
+      整体状态按固定优先级计算，先处理数据、样本和目标冲突，再处理品类
+      高风险，最后按目标达成、订单达成和结构风险分类。禁止实现者自定义兜底。
+    state_priority:
+      - DATA_BLOCKED
+      - DATA_INSUFFICIENT
+      - TARGET_CATEGORY_RISK_CONFLICT
+      - HIGH_RISK_WITH_VOLUME
+      - HIGH_RISK_WITHOUT_VOLUME
+      - EFFICIENT_AT_TARGET
+      - EFFICIENT_STRUCTURE_RISK
+      - EFFICIENT_UNDERSCALE
+      - VOLUME_ACHIEVED_COST_ABOVE_TARGET
+      - COST_ABOVE_TARGET_UNDERSCALE
+      - INCONCLUSIVE
+    state_inputs:
+      - data_quality
+      - sample_status
+      - objective_metric
+      - objective_met
+      - category_risk_tier
+      - volume_target_met
+      - winner_spend_share_met
+    activation_gate: IMPLEMENTATION_AND_REGRESSION_TESTS_REQUIRED
+    tests:
+      - 所有布尔条件组合恰好命中一个状态。
+
+  - issue_id: L-008
+    title: 广告位模块采用状态路由
+    status: CONFIRMED_RULE
+    decision: >-
+      EFFICIENT_AT_TARGET 默认不进入广告位优劣分析；预算是否提前耗尽作为
+      独立只读检查。高效量少、成本超目标或高风险状态可以进入广告位诊断，
+      但必须先通过广告位数据同口径校验。
+    placement_route:
+      EFFICIENT_AT_TARGET: false
+      EFFICIENT_STRUCTURE_RISK: false
+      EFFICIENT_UNDERSCALE: true
+      VOLUME_ACHIEVED_COST_ABOVE_TARGET: true
+      COST_ABOVE_TARGET_UNDERSCALE: true
+      HIGH_RISK_WITH_VOLUME: true
+      HIGH_RISK_WITHOUT_VOLUME: true
+    budget_pressure_check: READ_ONLY_INDEPENDENT_FLAG
+    activation_gate: IMPLEMENTATION_AND_REGRESSION_TESTS_REQUIRED
+
+  - issue_id: L-009
+    title: 趋势混合信号不触发动作
+    status: CONFIRMED_RULE
+    decision: >-
+      primary_efficiency_metric 必须来自AdContext中的用户目标指标；
+      趋势动作要求主指标与至少一个辅助指标同向。改善与恶化同时出现时，
+      状态固定为 MIXED_SIGNAL，只观察。动作判断使用不重叠窗口，
+      滚动3/7/14/30天只描述当前水平。
+    action_windows:
+      - D0_3
+      - D4_7
+      - D8_14
+      - D15_30
+    activation_gate: IMPLEMENTATION_AND_REGRESSION_TESTS_REQUIRED
+
+  - issue_id: L-010
+    title: 可执行动作必须唯一定位并可回滚
+    status: CONFIRMED_RULE
+    decision: >-
+      完整模式的每条执行动作必须保存不可变对象ID、Action_ID、当前值、
+      目标值、单位、前置条件、快照、有效期和回滚值。只有方向或百分比
+      而没有当前值与目标值的行不得进入执行表。
+    required_fields:
+      - Action_ID
+      - Campaign_ID
+      - Ad_Group_ID
+      - Target_ID_or_Keyword_ID
+      - action_level
+      - current_value
+      - proposed_value
+      - unit
+      - precondition
+      - rollback_value
+      - input_snapshot_id
+      - expected_current_value
+      - generated_at
+      - expires_at
+      - Rule_ID
+      - Threshold_ID
+    tests:
+      - 任一执行字段缺失必须BLOCK。
+      - expected_current_value与后台当前值不一致必须BLOCK。
+
+  - issue_id: L-011
+    title: 独立Validator作为最终验收门
+    status: CONFIRMED_RULE
+    decision: >-
+      候选动作生成后必须由独立Validator检查数据对账、阈值唯一性、
+      状态唯一性、对象映射、动作冲突、字段完整性、批次风险和审批要求。
+      BLOCKED不得进入执行文件，WARNING只能作为候选或等待审批。
+    validator_outcomes:
+      - AUTO_PASS
+      - APPROVAL_REQUIRED
+      - BLOCKED
+    tests:
+      - 金额不平时BLOCK。
+      - 阈值多重命中或空档时BLOCK。
+      - 同一对象相反动作时BLOCK。
+      - Campaign与Ad Group不是一对一时BLOCK。
+      - 缺不可变ID、当前值或回滚值时BLOCK。

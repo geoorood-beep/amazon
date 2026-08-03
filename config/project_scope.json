@@ -1,0 +1,152 @@
+{
+  "project_name": "陆遥广告智能体",
+  "ruleset_version": "V2.0",
+  "allowed_categories": [
+    "rug"
+  ],
+  "blocked_categories": [
+    "pet_water_fountain",
+    "office_chair"
+  ],
+  "compatibility_agent_paths": [
+    "agents/rug-category.md",
+    "agents/new-product-promotion.md",
+    "agents/old-product-promotion.md",
+    "agents/search-term-reinvestment.md",
+    "agents/category-traffic-strategy.md",
+    "agents/category-history-data.md",
+    "agents/category data thresholds.md",
+    "agents/promo-output-templates.md",
+    "agents/agents-directory.md"
+  ],
+  "required_architecture_paths": [
+    "architecture/README.md",
+    "architecture/layers/01-react-router.md",
+    "architecture/layers/02-plan-execute.md",
+    "architecture/layers/03-domain-agents.md",
+    "architecture/layers/04-reflective-validator.md",
+    "architecture/layers/05-tool-augmented.md",
+    "architecture/layers/06-memory-state.md",
+    "architecture/layers/07-rag-knowledge.md",
+    "architecture/layers/08-autonomous-loop.md"
+  ],
+  "required_rule_paths": [
+    "rules/README.md",
+    "rules/core/scope-and-capability.md",
+    "rules/core/data-quality.md",
+    "rules/core/sample-and-attribution.md",
+    "rules/core/overall-state.md",
+    "rules/core/trend-placement-budget.md",
+    "rules/core/action-arbitration-validator.md",
+    "rules/domains/rug-category.md",
+    "rules/domains/new-product/README.md",
+    "rules/domains/new-product/scope-input-sources.md",
+    "rules/domains/new-product/attribute-and-selection.md",
+    "rules/domains/new-product/architecture.md",
+    "rules/domains/new-product/negative-isolation.md",
+    "rules/domains/old-product/README.md",
+    "rules/domains/old-product/input-and-modes.md",
+    "rules/domains/old-product/diagnosis.md",
+    "rules/domains/old-product/budget-bid-placement.md",
+    "rules/domains/old-product/product-and-trend.md",
+    "rules/domains/old-product/growth-and-structure.md",
+    "rules/domains/search-term/README.md",
+    "rules/domains/search-term/semantic-aggregation.md",
+    "rules/domains/search-term/scoring-and-actions.md",
+    "rules/domains/category-traffic/README.md",
+    "rules/domains/category-traffic/scope-and-input.md",
+    "rules/domains/category-traffic/relevance-and-segmentation.md",
+    "rules/domains/category-traffic/structure-and-playbook.md",
+    "rules/domains/category-traffic/output-and-confidence.md",
+    "rules/domains/history-data/README.md",
+    "rules/domains/history-data/schema-and-ingest.md",
+    "rules/domains/history-data/usage-boundaries.md",
+    "rules/output/README.md",
+    "rules/output/output-rules.md"
+  ],
+  "required_threshold_paths": [
+    "thresholds/README.md",
+    "thresholds/rug/source-manifest.md",
+    "thresholds/rug/governance.md",
+    "thresholds/rug/size-routing.md",
+    "thresholds/rug/performance.md",
+    "thresholds/rug/new-product-stage.md",
+    "thresholds/rug/budget-and-isolation.md",
+    "thresholds/rug/traffic-and-scoring.md",
+    "thresholds/rug/pending.md"
+  ],
+  "required_contract_paths": [
+    "contracts/README.md",
+    "contracts/data-input.md",
+    "contracts/action-and-plan.md",
+    "contracts/new-product-output.md",
+    "contracts/old-product-output.md",
+    "contracts/review.md"
+  ],
+  "required_knowledge_paths": [
+    "knowledge/README.md"
+  ],
+  "required_history_paths": [
+    "history/README.md",
+    "history/v1.4-pre-8layer/MANIFEST.md",
+    "history/v1.4-pre-8layer/MIGRATION_MAP.md",
+    "history/v1.4-pre-8layer/AGENTS.md"
+  ],
+  "required_runtime_paths": [
+    "new_product_module/src/reference_adapter.py",
+    "ai_ads/validator.py",
+    "scripts/validate_v20_rules.py",
+    "scripts/validate_v14_rules.py",
+    "scripts/stress_test_v20.py",
+    "scripts/v20_release_manifest.py"
+  ],
+  "required_release_paths": [
+    "releases/v2.0/RELEASE.md",
+    "releases/v2.0/MANIFEST.sha256"
+  ],
+  "required_reference_paths": [
+    "reference/rug-aba",
+    "reference/category-history/rug",
+    "reference/category-threshold/confirmed/20260731_V1.4_人工阈值回填原件.xlsx"
+  ],
+  "forbidden_reference_paths": [
+    "reference/ABA喂水器.xlsx",
+    "reference/category-history/pet_water_fountain",
+    "reference/category-traffic/office_chair"
+  ],
+  "category_data_map": {
+    "rug": {
+      "aba": "reference/rug-aba/",
+      "history": "reference/category-history/rug/",
+      "thresholds": "thresholds/README.md",
+      "new_product_module": "new_product_module/"
+    }
+  },
+  "human_single_source": {
+    "architecture": "architecture/README.md",
+    "rules": "rules/README.md",
+    "thresholds": "thresholds/README.md",
+    "contracts": "contracts/README.md",
+    "knowledge": "knowledge/README.md",
+    "history": "history/README.md"
+  },
+  "derived_machine_config": {
+    "path": "new_product_module/config/category_rules.example.yaml",
+    "status": "TEST_ONLY",
+    "maintenance_source": "thresholds/README.md"
+  },
+  "legacy_compatibility_map": {
+    "agents/rug-category.md": "rules/domains/rug-category.md",
+    "agents/new-product-promotion.md": "rules/domains/new-product/README.md",
+    "agents/old-product-promotion.md": "rules/domains/old-product/README.md",
+    "agents/search-term-reinvestment.md": "rules/domains/search-term/README.md",
+    "agents/category-traffic-strategy.md": "rules/domains/category-traffic/README.md",
+    "agents/category-history-data.md": "rules/domains/history-data/README.md",
+    "agents/category data thresholds.md": "thresholds/README.md",
+    "agents/promo-output-templates.md": "rules/output/output-rules.md"
+  },
+  "architecture_source": {
+    "path": "docs/v2/source/AI广告Agent完整架构与实施方案_V2.0.md",
+    "sha256": "432a8610f6945371545b3a4dcfc3668fddd081ec3bfb0b98cbd93e6840014d28"
+  }
+}

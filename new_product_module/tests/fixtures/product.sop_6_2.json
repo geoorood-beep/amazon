@@ -1,0 +1,16 @@
+{
+  "asin": "B0XXXX",
+  "sku": "B0XXXX",
+  "category": "Rugs",
+  "rug_type": "area_rug",
+  "scene_tags": ["living room", "bedroom"],
+  "order_target_daily": 10,
+  "region_tags": ["living room", "bedroom"],
+  "size_spec": "5x8",
+  "material": null,
+  "style": "vintage",
+  "color": "blue",
+  "target_cpa": 3.75,
+  "business_goal": "新品验证",
+  "product_stage": "new_test"
+}

@@ -1,0 +1,57 @@
+# AGENT: 陆遥广告智能体 V2.0 目录
+
+当用户输入 `AGENTS 目录` 时展示本页。本页是当前电脑的人工点击入口，使用绝对路径直接打开规则正文、阈值数字或数据文件；不保存规则正文或阈值数字。
+
+## 核心信息直达
+
+- 边界与安全：[Rug 范围和能力](/Users/leo/Documents/陆遥广告智能体/rules/core/scope-and-capability.md)、[数据质量门](/Users/leo/Documents/陆遥广告智能体/rules/core/data-quality.md)、[动作仲裁和 Validator](/Users/leo/Documents/陆遥广告智能体/rules/core/action-arbitration-validator.md)
+- 具体数字：[CVR / ACOS / CPA](/Users/leo/Documents/陆遥广告智能体/thresholds/rug/performance.md)、[新品阶段和 ABA 区间](/Users/leo/Documents/陆遥广告智能体/thresholds/rug/new-product-stage.md)、[预算和隔离门](/Users/leo/Documents/陆遥广告智能体/thresholds/rug/budget-and-isolation.md)
+- 固定数据：[Area ABA Excel](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/area_rug_ABA关键词库_202605_v8.xlsx)、[Bathroom ABA Excel](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/bathroom_rugs_ABA关键词库_202605.xlsx)、[Kitchen ABA Excel](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/kitchen_rugs_ABA关键词库_202605_v2.xlsx)、[Outdoor ABA Excel](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/outdoor_rug_ABA关键词库_202605_v2.xlsx)
+- 历史效果：[Rug 标准化历史效果词 Excel](/Users/leo/Documents/陆遥广告智能体/reference/category-history/rug/normalized/20260707_rug_historical_search_terms_normalized.xlsx)
+- 字段正文：[数据输入字段](/Users/leo/Documents/陆遥广告智能体/contracts/data-input.md)、[新品输出字段](/Users/leo/Documents/陆遥广告智能体/contracts/new-product-output.md)、[老品输出字段](/Users/leo/Documents/陆遥广告智能体/contracts/old-product-output.md)、[动作与回滚字段](/Users/leo/Documents/陆遥广告智能体/contracts/action-and-plan.md)
+
+## 八层架构
+
+| 层 | 直达说明 | 能带来的结果 | 用户需要输入 | 缺失影响 |
+|---|---|---|---|---|
+| 01 ReAct | [路由与边界](/Users/leo/Documents/陆遥广告智能体/architecture/layers/01-react-router.md) | 确认 Rug 边界和正确任务入口 | 类目、任务目标 | 类目或任务不明时停止路由 |
+| 02 Plan-and-Execute | [规划与执行阶段](/Users/leo/Documents/陆遥广告智能体/architecture/layers/02-plan-execute.md) | 分开数据、候选、校验和人工执行 | 数据范围、目标、执行意图 | 无法判断当前停在哪一阶段 |
+| 03 Multi-Agent | [领域模块分工](/Users/leo/Documents/陆遥广告智能体/architecture/layers/03-domain-agents.md) | 分配新品、老品、搜索词、流量和历史模块 | 任务类型和产品对象 | 多模块职责冲突 |
+| 04 Reflective | [Validator 与复盘](/Users/leo/Documents/陆遥广告智能体/architecture/layers/04-reflective-validator.md) | 动作校验、执行确认和复盘 | 冻结方案、实际执行、前后快照 | 动作不能安全进入执行或复盘 |
+| 05 Tool-Augmented | [工具和 Schema](/Users/leo/Documents/陆遥广告智能体/architecture/layers/05-tool-augmented.md) | 预处理、确定性计算和测试 | 原始文件或结构化数据 | 只能人工整理，不能复现 |
+| 06 Memory-Augmented | [状态和证据记忆](/Users/leo/Documents/陆遥广告智能体/architecture/layers/06-memory-state.md) | 批次、版本和证据可追溯 | 快照、版本、执行记录 | 结论无法追溯 |
+| 07 RAG | [Rug 知识检索](/Users/leo/Documents/陆遥广告智能体/architecture/layers/07-rag-knowledge.md) | 读取正确 ABA、历史、阈值和当前报表 | 当前报表、产品属性 | 只能输出缺失数据影响 |
+| 08 Autonomous Loop | [受控闭环](/Users/leo/Documents/陆遥广告智能体/architecture/layers/08-autonomous-loop.md) | 审批、停止条件和生产启用门 | 人工审批和复盘结果 | 保持人工执行，禁止自动化 |
+
+## 按任务进入具体规则、阈值和数据
+
+| 任务 | 结果 | 用户主要输入 | 具体规则 | 具体阈值 | 数据源 | 输出/字段合同 | 缺失影响 |
+|---|---|---|---|---|---|---|---|
+| Rug 类型与尺寸 | Rug 类型、区域档案和任务路由 | 目标尺寸、形状、场景 | [类目边界正文](/Users/leo/Documents/陆遥广告智能体/rules/domains/rug-category.md) | [尺寸路由数字](/Users/leo/Documents/陆遥广告智能体/thresholds/rug/size-routing.md)<br>[性能阈值数字](/Users/leo/Documents/陆遥广告智能体/thresholds/rug/performance.md) | [Area ABA Excel](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/area_rug_ABA关键词库_202605_v8.xlsx)<br>[Bathroom ABA Excel](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/bathroom_rugs_ABA关键词库_202605.xlsx)<br>[Kitchen ABA Excel](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/kitchen_rugs_ABA关键词库_202605_v2.xlsx)<br>[Outdoor ABA Excel](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/outdoor_rug_ABA关键词库_202605_v2.xlsx) | [数据输入字段正文](/Users/leo/Documents/陆遥广告智能体/contracts/data-input.md) | 类型不明时性能阈值和强动作阻断 |
+| 新品选词/新广告 | ABA 选词表和新广告设置表 | Rug 模板字段、目标阶段、预算 | [输入和数据规则](/Users/leo/Documents/陆遥广告智能体/rules/domains/new-product/scope-input-sources.md)<br>[属性与选词规则](/Users/leo/Documents/陆遥广告智能体/rules/domains/new-product/attribute-and-selection.md)<br>[广告架构规则](/Users/leo/Documents/陆遥广告智能体/rules/domains/new-product/architecture.md)<br>[否定与隔离规则](/Users/leo/Documents/陆遥广告智能体/rules/domains/new-product/negative-isolation.md) | [新品阶段数字](/Users/leo/Documents/陆遥广告智能体/thresholds/rug/new-product-stage.md)<br>[预算与隔离数字](/Users/leo/Documents/陆遥广告智能体/thresholds/rug/budget-and-isolation.md)<br>[尺寸路由数字](/Users/leo/Documents/陆遥广告智能体/thresholds/rug/size-routing.md) | [Area ABA Excel](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/area_rug_ABA关键词库_202605_v8.xlsx)<br>[Bathroom ABA Excel](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/bathroom_rugs_ABA关键词库_202605.xlsx)<br>[Kitchen ABA Excel](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/kitchen_rugs_ABA关键词库_202605_v2.xlsx)<br>[Outdoor ABA Excel](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/outdoor_rug_ABA关键词库_202605_v2.xlsx)<br>[历史效果词 Excel](/Users/leo/Documents/陆遥广告智能体/reference/category-history/rug/normalized/20260707_rug_historical_search_terms_normalized.xlsx) | [新品输出字段正文](/Users/leo/Documents/陆遥广告智能体/contracts/new-product-output.md) | 属性缺失进待确认；圆形预算和强动作阻断 |
+| 老品优化 | 老广告诊断、候选动作和新结构 | 当前链接真实报表、经营目标 | [输入与模式规则](/Users/leo/Documents/陆遥广告智能体/rules/domains/old-product/input-and-modes.md)<br>[诊断规则](/Users/leo/Documents/陆遥广告智能体/rules/domains/old-product/diagnosis.md)<br>[预算/Bid/广告位规则](/Users/leo/Documents/陆遥广告智能体/rules/domains/old-product/budget-bid-placement.md)<br>[商品与趋势规则](/Users/leo/Documents/陆遥广告智能体/rules/domains/old-product/product-and-trend.md)<br>[拓量与结构规则](/Users/leo/Documents/陆遥广告智能体/rules/domains/old-product/growth-and-structure.md) | [性能阈值数字](/Users/leo/Documents/陆遥广告智能体/thresholds/rug/performance.md)<br>[归因与趋势数字](/Users/leo/Documents/陆遥广告智能体/thresholds/rug/governance.md)<br>[待确认参数正文](/Users/leo/Documents/陆遥广告智能体/thresholds/rug/pending.md) | 用户本次真实报表；[报表名称、字段和快照要求](/Users/leo/Documents/陆遥广告智能体/contracts/data-input.md) | [老品输出字段正文](/Users/leo/Documents/陆遥广告智能体/contracts/old-product-output.md)<br>[动作与回滚字段正文](/Users/leo/Documents/陆遥广告智能体/contracts/action-and-plan.md) | 关键报表、不可变 ID 或对账缺失时 `DQ_BLOCKED` |
+| 搜索词/词根 | ABA 多词根归属、评分和复投候选 | 当前搜索词、Targeting 数据 | [语义聚合规则](/Users/leo/Documents/陆遥广告智能体/rules/domains/search-term/semantic-aggregation.md)<br>[评分与动作规则](/Users/leo/Documents/陆遥广告智能体/rules/domains/search-term/scoring-and-actions.md)<br>[低样本权限规则](/Users/leo/Documents/陆遥广告智能体/rules/core/sample-and-attribution.md) | [评分与拓量数字](/Users/leo/Documents/陆遥广告智能体/thresholds/rug/traffic-and-scoring.md)<br>[低样本与成本数字](/Users/leo/Documents/陆遥广告智能体/thresholds/rug/performance.md) | [Area ABA Excel](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/area_rug_ABA关键词库_202605_v8.xlsx)<br>[Bathroom ABA Excel](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/bathroom_rugs_ABA关键词库_202605.xlsx)<br>[Kitchen ABA Excel](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/kitchen_rugs_ABA关键词库_202605_v2.xlsx)<br>[Outdoor ABA Excel](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/outdoor_rug_ABA关键词库_202605_v2.xlsx)<br>[当前报表字段要求](/Users/leo/Documents/陆遥广告智能体/contracts/data-input.md) | [有限/完整模式输出字段](/Users/leo/Documents/陆遥广告智能体/contracts/old-product-output.md) | 无 Target 不执行否词；无 ABA 不编造排名 |
+| 类目流量结构 | 入口数量、梯度、集中度和打法 | Rug ABA、核心词、可选竞对词表 | [输入规则](/Users/leo/Documents/陆遥广告智能体/rules/domains/category-traffic/scope-and-input.md)<br>[相关性与分层规则](/Users/leo/Documents/陆遥广告智能体/rules/domains/category-traffic/relevance-and-segmentation.md)<br>[结构打法规则](/Users/leo/Documents/陆遥广告智能体/rules/domains/category-traffic/structure-and-playbook.md)<br>[输出与置信度规则](/Users/leo/Documents/陆遥广告智能体/rules/domains/category-traffic/output-and-confidence.md) | [N、G 和机会分数字](/Users/leo/Documents/陆遥广告智能体/thresholds/rug/traffic-and-scoring.md) | [Area ABA Excel](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/area_rug_ABA关键词库_202605_v8.xlsx)<br>[Bathroom ABA Excel](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/bathroom_rugs_ABA关键词库_202605.xlsx)<br>[Kitchen ABA Excel](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/kitchen_rugs_ABA关键词库_202605_v2.xlsx)<br>[Outdoor ABA Excel](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/outdoor_rug_ABA关键词库_202605_v2.xlsx) | [数据输入字段正文](/Users/leo/Documents/陆遥广告智能体/contracts/data-input.md) | 缺 ABA 不能判断类目结构 |
+| 历史效果数据 | 证据粒度、可复用词和入库边界 | Rug 历史文件 | [字段和入库规则](/Users/leo/Documents/陆遥广告智能体/rules/domains/history-data/schema-and-ingest.md)<br>[使用边界规则](/Users/leo/Documents/陆遥广告智能体/rules/domains/history-data/usage-boundaries.md) | 不适用 | [标准化历史效果词 Excel](/Users/leo/Documents/陆遥广告智能体/reference/category-history/rug/normalized/20260707_rug_historical_search_terms_normalized.xlsx) | [证据粒度正文](/Users/leo/Documents/陆遥广告智能体/rules/domains/history-data/schema-and-ingest.md) | 不能使用历史证据，只能走 ABA |
+| 阈值维护 | 查询或修改具体数值和状态 | Rug 类型、尺寸、指标 | [来源和确认状态](/Users/leo/Documents/陆遥广告智能体/thresholds/rug/source-manifest.md)<br>[归因与趋势治理](/Users/leo/Documents/陆遥广告智能体/thresholds/rug/governance.md) | [性能具体数字](/Users/leo/Documents/陆遥广告智能体/thresholds/rug/performance.md)<br>[新品阶段具体数字](/Users/leo/Documents/陆遥广告智能体/thresholds/rug/new-product-stage.md)<br>[预算隔离具体数字](/Users/leo/Documents/陆遥广告智能体/thresholds/rug/budget-and-isolation.md)<br>[流量评分具体数字](/Users/leo/Documents/陆遥广告智能体/thresholds/rug/traffic-and-scoring.md)<br>[尺寸路由具体数字](/Users/leo/Documents/陆遥广告智能体/thresholds/rug/size-routing.md)<br>[待补阈值](/Users/leo/Documents/陆遥广告智能体/thresholds/rug/pending.md) | [人工确认阈值原件 Excel](/Users/leo/Documents/陆遥广告智能体/reference/category-threshold/confirmed/20260731_V1.4_人工阈值回填原件.xlsx) | [待回填字段正文](/Users/leo/Documents/陆遥广告智能体/thresholds/rug/pending.md) | 未确认项不得推算，相关强动作阻断 |
+| 输出表格 | 人工可读核心表和安全执行字段 | 上游判断结果 | [输出规则正文](/Users/leo/Documents/陆遥广告智能体/rules/output/output-rules.md)<br>[广告组结构与命名规则](/Users/leo/Documents/陆遥广告智能体/rules/domains/new-product/architecture.md)<br>[动作校验规则](/Users/leo/Documents/陆遥广告智能体/rules/core/action-arbitration-validator.md) | 按任务直接点击本表对应阈值文件 | 直接点击本表对应 Excel 或使用用户本次真实报表 | [新品输出字段正文](/Users/leo/Documents/陆遥广告智能体/contracts/new-product-output.md)<br>[老品输出字段正文](/Users/leo/Documents/陆遥广告智能体/contracts/old-product-output.md)<br>[动作与回滚字段正文](/Users/leo/Documents/陆遥广告智能体/contracts/action-and-plan.md) | 缺上游证据时只输出缺失影响或候选 |
+
+## 固定数据源直达
+
+| 数据 | 直接打开 | 允许用途 |
+|---|---|---|
+| Area Rug ABA | [area_rug ABA 工作簿](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/area_rug_ABA关键词库_202605_v8.xlsx) | Area、Runner、Entry、Round 词池，只读 `广告词库` |
+| Bathroom Rug ABA | [bathroom_rugs ABA 工作簿](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/bathroom_rugs_ABA关键词库_202605.xlsx) | Bathroom Rug 场景，只读 `广告词库` |
+| Kitchen Rug ABA | [kitchen_rugs ABA 工作簿](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/kitchen_rugs_ABA关键词库_202605_v2.xlsx) | Kitchen Rug 场景，只读 `广告词库` |
+| Outdoor Rug ABA | [outdoor_rug ABA 工作簿](/Users/leo/Documents/陆遥广告智能体/reference/rug-aba/outdoor_rug_ABA关键词库_202605_v2.xlsx) | Outdoor Rug 场景，只读 `广告词库` |
+| Rug 历史效果词 | [标准化工作簿](/Users/leo/Documents/陆遥广告智能体/reference/category-history/rug/normalized/20260707_rug_historical_search_terms_normalized.xlsx) | 选词和新广告候选，不替代当前链接报表 |
+| Rug 阈值原件 | [20260731 人工阈值回填原件](/Users/leo/Documents/陆遥广告智能体/reference/category-threshold/confirmed/20260731_V1.4_人工阈值回填原件.xlsx) | 来源审计，当前可读数值仍以 `thresholds/` 为准 |
+| V2 架构来源 | [AI 广告 Agent V2.0](/Users/leo/Documents/陆遥广告智能体/docs/v2/source/AI广告Agent完整架构与实施方案_V2.0.md) | 架构来源，不是自动生效规则包 |
+
+## 历史和兼容
+
+- [拆分前原文 SHA-256](/Users/leo/Documents/陆遥广告智能体/history/v1.4-pre-8layer/MANIFEST.md)
+- [旧章节 → 当前文件映射](/Users/leo/Documents/陆遥广告智能体/history/v1.4-pre-8layer/MIGRATION_MAP.md)
+- [八层拆分实施记录](/Users/leo/Documents/陆遥广告智能体/docs/v2/八层架构拆分记录_20260803.md)
+
+旧路径仅保留给历史调用，不作为人工点击入口：`rug-category.md`、`new-product-promotion.md`、`old-product-promotion.md`、`search-term-reinvestment.md`、`category-traffic-strategy.md`、`category-history-data.md`、`category data thresholds.md`、`promo-output-templates.md`。

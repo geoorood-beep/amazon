@@ -1,0 +1,54 @@
+{
+  "$defs": {
+    "DataQualityStatus": {
+      "enum": [
+        "DQ_PASS",
+        "DQ_WARNING",
+        "DQ_BLOCKED"
+      ],
+      "title": "DataQualityStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "category_high_risk": {
+      "title": "Category High Risk",
+      "type": "boolean"
+    },
+    "data_quality": {
+      "$ref": "#/$defs/DataQualityStatus"
+    },
+    "objective_met": {
+      "title": "Objective Met",
+      "type": "boolean"
+    },
+    "sample_sufficient": {
+      "title": "Sample Sufficient",
+      "type": "boolean"
+    },
+    "target_category_risk_conflict": {
+      "title": "Target Category Risk Conflict",
+      "type": "boolean"
+    },
+    "volume_target_met": {
+      "title": "Volume Target Met",
+      "type": "boolean"
+    },
+    "winner_spend_share_met": {
+      "title": "Winner Spend Share Met",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "data_quality",
+    "sample_sufficient",
+    "target_category_risk_conflict",
+    "category_high_risk",
+    "objective_met",
+    "volume_target_met",
+    "winner_spend_share_met"
+  ],
+  "title": "OverallStateInput",
+  "type": "object"
+}

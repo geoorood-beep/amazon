@@ -1,0 +1,97 @@
+{
+  "$defs": {
+    "FindingLevel": {
+      "enum": [
+        "INFO",
+        "APPROVAL",
+        "BLOCK"
+      ],
+      "title": "FindingLevel",
+      "type": "string"
+    },
+    "ValidationFinding": {
+      "additionalProperties": false,
+      "properties": {
+        "action_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Action Id"
+        },
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "level": {
+          "$ref": "#/$defs/FindingLevel"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "object_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Object Id"
+        }
+      },
+      "required": [
+        "code",
+        "level",
+        "message"
+      ],
+      "title": "ValidationFinding",
+      "type": "object"
+    },
+    "ValidationOutcome": {
+      "enum": [
+        "AUTO_PASS",
+        "APPROVAL_REQUIRED",
+        "BLOCKED"
+      ],
+      "title": "ValidationOutcome",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "batch_id": {
+      "title": "Batch Id",
+      "type": "string"
+    },
+    "findings": {
+      "items": {
+        "$ref": "#/$defs/ValidationFinding"
+      },
+      "title": "Findings",
+      "type": "array"
+    },
+    "outcome": {
+      "$ref": "#/$defs/ValidationOutcome"
+    },
+    "plan_id": {
+      "title": "Plan Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "plan_id",
+    "batch_id",
+    "outcome"
+  ],
+  "title": "ValidationReport",
+  "type": "object"
+}
