@@ -25,6 +25,46 @@
       "title": "AdProductType",
       "type": "string"
     },
+    "BudgetType": {
+      "enum": [
+        "STANDARD_MINIMUM",
+        "OBSERVATION",
+        "EXPANSION",
+        "COPY_VALIDATION",
+        "RISK_CAP"
+      ],
+      "title": "BudgetType",
+      "type": "string"
+    },
+    "DecisionConfidence": {
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW"
+      ],
+      "title": "DecisionConfidence",
+      "type": "string"
+    },
+    "ExpansionExecutionObject": {
+      "enum": [
+        "VERIFIED_SEARCH_TERM",
+        "REAL_TARGET",
+        "ROOT_AGGREGATE"
+      ],
+      "title": "ExpansionExecutionObject",
+      "type": "string"
+    },
+    "MigrationState": {
+      "enum": [
+        "NOT_APPLICABLE",
+        "WINNERS_EXTRACTED",
+        "RECEIVER_CREATED",
+        "RECEIVER_ENABLED",
+        "LEGACY_REMAINDER_READY_TO_CLOSE"
+      ],
+      "title": "MigrationState",
+      "type": "string"
+    },
     "ObjectType": {
       "enum": [
         "CAMPAIGN",
@@ -36,6 +76,16 @@
         "STRUCTURE"
       ],
       "title": "ObjectType",
+      "type": "string"
+    },
+    "OverlapIntent": {
+      "enum": [
+        "NO_OVERLAP",
+        "INTENTIONAL_DISTINCT_ROLE",
+        "UNINTENTIONAL_DUPLICATE",
+        "UNKNOWN"
+      ],
+      "title": "OverlapIntent",
       "type": "string"
     },
     "PriorityTier": {
@@ -68,6 +118,18 @@
       ],
       "title": "StrategyProfile",
       "type": "string"
+    },
+    "TrafficRole": {
+      "enum": [
+        "HARVEST",
+        "DISCOVERY",
+        "RANKING",
+        "DEFENSE",
+        "ISOLATION",
+        "OBSERVE"
+      ],
+      "title": "TrafficRole",
+      "type": "string"
     }
   },
   "additionalProperties": false,
@@ -98,9 +160,49 @@
       "title": "Batch Id",
       "type": "string"
     },
+    "budget_purpose": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Budget Purpose"
+    },
+    "budget_type": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BudgetType"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "calculation_basis": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Calculation Basis"
+    },
     "candidate_action_id": {
       "title": "Candidate Action Id",
       "type": "string"
+    },
+    "confidence": {
+      "$ref": "#/$defs/DecisionConfidence"
     },
     "current_value": {
       "anyOf": [
@@ -138,6 +240,17 @@
       "title": "Evidence Refs",
       "type": "array"
     },
+    "expansion_execution_object": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExpansionExecutionObject"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "expected_current_value": {
       "anyOf": [
         {
@@ -169,6 +282,17 @@
       "title": "Is Primary",
       "type": "boolean"
     },
+    "migrated_winner_object_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Migrated Winner Object Ids",
+      "type": "array"
+    },
+    "migration_state": {
+      "$ref": "#/$defs/MigrationState",
+      "default": "NOT_APPLICABLE"
+    },
     "object_id": {
       "title": "Object Id",
       "type": "string"
@@ -180,6 +304,17 @@
       "minimum": 0,
       "title": "Observation Days",
       "type": "integer"
+    },
+    "overlap_intent": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/OverlapIntent"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "preconditions": {
       "additionalProperties": true,
@@ -251,12 +386,54 @@
       "title": "Rule Id",
       "type": "string"
     },
+    "setting_change_point_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Setting Change Point Id"
+    },
     "source_module": {
       "title": "Source Module",
       "type": "string"
     },
     "strategy_profile": {
       "$ref": "#/$defs/StrategyProfile"
+    },
+    "strategy_stage": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Strategy Stage"
+    },
+    "target_orders_per_day": {
+      "anyOf": [
+        {
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Target Orders Per Day"
     },
     "threshold_id": {
       "anyOf": [
@@ -269,6 +446,17 @@
       ],
       "default": null,
       "title": "Threshold Id"
+    },
+    "traffic_role": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TrafficRole"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "unit": {
       "anyOf": [
@@ -300,6 +488,7 @@
     "priority_tier",
     "source_module",
     "rule_id",
+    "confidence",
     "expected_impact",
     "risk_level",
     "reversible",

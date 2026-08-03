@@ -13,8 +13,10 @@ from ai_ads.contracts import (
     AdPlanCandidate,
     AdProductType,
     BusinessMode,
+    BudgetType,
     CampaignFact,
     CandidateAction,
+    DecisionConfidence,
     DataMode,
     InventoryState,
     PlanMetadata,
@@ -209,6 +211,27 @@ def action(
         rule_id="RULE-TEST",
         threshold_id="THRESHOLD-TEST",
         evidence_refs=["SNAP-001/T-001"],
+        confidence=DecisionConfidence.HIGH,
+        budget_type=(
+            BudgetType.EXPANSION
+            if action_type in {ActionType.INCREASE_BUDGET, ActionType.DECREASE_BUDGET}
+            else None
+        ),
+        calculation_basis=(
+            "synthetic test basis"
+            if action_type in {ActionType.INCREASE_BUDGET, ActionType.DECREASE_BUDGET}
+            else None
+        ),
+        target_orders_per_day=(
+            Decimal("1")
+            if action_type in {ActionType.INCREASE_BUDGET, ActionType.DECREASE_BUDGET}
+            else None
+        ),
+        budget_purpose=(
+            "synthetic validation"
+            if action_type in {ActionType.INCREASE_BUDGET, ActionType.DECREASE_BUDGET}
+            else None
+        ),
         expected_impact="test",
         risk_level=risk,
         reversible=True,

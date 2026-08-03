@@ -40,3 +40,5 @@
 ## 修改要求
 
 每次修改必须同时记录：值、单位、开闭边界、适用类目/类型、来源、确认人、确认日期、状态和是否允许机器使用。不能只改 Markdown 数字而不改来源与状态。
+
+每套机器可用阈值还必须声明 `applicable_grain`。允许枚举：`SKU_SIZE`、`ADVERTISED_PRODUCT`、`TARGET`、`SEARCH_TERM`、`PLACEMENT`、`CAMPAIGN`、`ACCOUNT`。没有声明或跨粒度套用时固定阻断；上层聚合必须先汇总原始分子分母，再应用明确属于该层的阈值。

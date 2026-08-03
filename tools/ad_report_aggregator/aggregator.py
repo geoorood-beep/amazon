@@ -238,6 +238,12 @@ def read_xlsx(path: Path) -> list[tuple[str, list[list[Any]]]]:
     candidates: list[tuple[str, list[list[Any]]]] = []
     try:
         for worksheet in workbook.worksheets:
+            # Some Amazon/ERP exports declare ``<dimension ref="A1"/>`` even
+            # though the sheet contains tens of thousands of populated cells.
+            # WPS exports can have the opposite problem and declare the full
+            # 1,048,576-row grid.  In read-only mode openpyxl trusts that
+            # metadata, so reset it and stream the actual XML row records.
+            worksheet.reset_dimensions()
             rows = [list(row) for row in worksheet.iter_rows(values_only=True)]
             candidates.append((worksheet.title, rows))
     finally:

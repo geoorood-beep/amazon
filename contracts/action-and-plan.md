@@ -11,6 +11,12 @@
 - current value、proposed value、expected current value、unit；
 - source module、Rule ID、Threshold ID；
 - evidence refs、sample status；
+- `confidence`；
+- `traffic_role`、`overlap_intent`（结构动作）；
+- `expansion_execution_object`（拓量动作）；
+- `budget_type`、`calculation_basis`、`target_orders_per_day`、`budget_purpose`（预算动作）；
+- `setting_change_point_id`、`strategy_stage`（趋势动作）；
+- `migration_state`、`migrated_winner_object_ids`（关闭旧流量前）；
 - expected impact、risk、reversible；
 - rollback value、valid until；
 - preconditions、dependencies；
@@ -25,6 +31,12 @@
 - 预算动作只能定位 Campaign，Bid 动作只能定位 Ad Group / Target，广告位动作必须定位快照中真实存在的 Placement；
 - `valid_until` 必须包含时区；
 - 主动作、辅助动作和依赖动作一起参与相反动作及暂停冲突检查。
+- 低置信度不得生成执行动作；中置信度只能进入人工审批。
+- `CREATE_STRUCTURE` 必须声明流量角色和重叠意图；Phrase 承接与 Broad 拓词只有角色明确不同才可视为有意重叠。
+- 拓量默认只允许已验证完整搜索词或真实 Target；词根聚合只有订单集中度门通过后才可作为执行对象。
+- 预算动作必须区分标准最低、观察、拓量、复制验证和风险上限，不得只输出一个无语义的金额。
+- 趋势动作必须按设置变更点切段；跨 Bid、预算或状态变化的数据不得当作同一策略阶段。
+- 关闭 Broad、Phrase、Target、Ad Group 或 Campaign 旧流量前，迁移状态必须到 `LEGACY_REMAINDER_READY_TO_CLOSE`，且保存已迁移赢家的真实对象 ID；否则 Validator 阻断。
 
 ## 最终方案头部
 

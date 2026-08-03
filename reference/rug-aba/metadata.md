@@ -2,6 +2,14 @@
 
 更新时间：2026-07-07
 
+版本生命周期：
+
+- `generated_at`: `2026-07-07`
+- `effective_from`: `2026-07-07`
+- `expires_at`: `null`（未设置固定失效日；源哈希变化时立即失效）
+- `superseded_by`: `null`
+- `lifecycle_status`: `ACTIVE_REFERENCE`
+
 本目录替代旧默认地毯通用 ABA 表 `reference/通用地毯类目ABA关键词库_202605_v2.xlsx`，作为 Rug 新品推广、地毯新广告搭建和 ABA 选词的默认数据源。
 
 ## 固定文件
@@ -12,6 +20,17 @@
 | Bathroom Rugs / 浴室垫 | [打开 Bathroom ABA](bathroom_rugs_ABA关键词库_202605.xlsx) | `广告词库` | 985 | 浴室地垫、淋浴浴缸垫、马桶轮廓垫、浴室长条、浴室套装 |
 | Kitchen Rugs / 厨房垫 | [打开 Kitchen ABA](kitchen_rugs_ABA关键词库_202605_v2.xlsx) | `广告词库` | 331 | 厨房垫、under sink、anti fatigue 等厨房场景 |
 | Outdoor Rug / 户外地毯 | [打开 Outdoor ABA](outdoor_rug_ABA关键词库_202605_v2.xlsx) | `广告词库` | 1223 | outdoor 区域和长条场景 |
+
+## 来源哈希
+
+| 文件 | SHA-256 |
+|---|---|
+| `area_rug_ABA关键词库_202605_v8.xlsx` | `07f51899cc947609fe88eace72e3136278b7ce2cfa8b7d4247eadd5d914fde36` |
+| `bathroom_rugs_ABA关键词库_202605.xlsx` | `aac64ea8043eaa5ceefc8992c4ab80ae14b8a554d69d5787a868d8b994437aa8` |
+| `kitchen_rugs_ABA关键词库_202605_v2.xlsx` | `b74a1202a0f7dd7b2a33b16b1cdb6e560522ab64e2f2bd5d4d69917ced872be6` |
+| `outdoor_rug_ABA关键词库_202605_v2.xlsx` | `a5f0a55ce817c50a3b385f43e3e0c349069cb7bc7a7bccda1e6a23ea9cb99a15` |
+
+每次读取前校验文件哈希。任一哈希变化时，将本映射标记为 `STALE_REBUILD_REQUIRED`，重新生成后更新 `generated_at/effective_from/source_hash`，不得沿用旧映射继续给出高置信结论。
 
 上一层：[数据源目录](../../knowledge/README.md)、[新品规则](../../rules/domains/new-product/README.md)、[类目流量规则](../../rules/domains/category-traffic/README.md)。
 

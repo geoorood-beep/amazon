@@ -4,6 +4,8 @@ from decimal import Decimal
 from ai_ads.contracts import (
     ActionType,
     DataMode,
+    DecisionConfidence,
+    ObjectType,
     RiskLevel,
     RuleSourceStatus,
     RunMode,
@@ -223,6 +225,130 @@ def test_pause_cannot_be_misclassified_as_low_risk() -> None:
         item.code == "HIGH_IMPACT_RISK_MISCLASSIFIED"
         for item in report.findings
     )
+
+
+def test_budget_action_requires_structured_budget_semantics() -> None:
+    increase = action(
+        action_type=ActionType.INCREASE_BUDGET,
+        object_type=ObjectType.CAMPAIGN,
+        object_id="C-001",
+        current_value=Decimal("100"),
+        proposed_value=Decimal("110"),
+    )
+    increase.budget_type = None
+    candidate, arbitration = plan([increase])
+    report = validate_plan(
+        packet=packet(),
+        context=context(),
+        package=package(),
+        arbitration=arbitration,
+        plan=candidate,
+        run_mode=RunMode.TEST_ONLY,
+        now=NOW,
+    )
+    assert report.outcome == ValidationOutcome.BLOCKED
+    assert any(item.code == "BUDGET_SEMANTICS_MISSING" for item in report.findings)
+
+
+def test_structure_action_requires_traffic_role_and_overlap_intent() -> None:
+    structure = action(
+        action_type=ActionType.CREATE_STRUCTURE,
+        object_type=ObjectType.STRUCTURE,
+        object_id="STRUCTURE-001",
+        current_value="ABSENT",
+        proposed_value="CANDIDATE",
+    )
+    candidate, arbitration = plan([structure])
+    report = validate_plan(
+        packet=packet(),
+        context=context(),
+        package=package(),
+        arbitration=arbitration,
+        plan=candidate,
+        run_mode=RunMode.TEST_ONLY,
+        now=NOW,
+    )
+    assert report.outcome == ValidationOutcome.BLOCKED
+    assert any(item.code == "STRUCTURE_ROLE_FIELDS_MISSING" for item in report.findings)
+
+
+def test_expansion_requires_unique_execution_object() -> None:
+    expansion = action()
+    expansion.preconditions = {"is_expansion": True}
+    candidate, arbitration = plan([expansion])
+    report = validate_plan(
+        packet=packet(),
+        context=context(),
+        package=package(),
+        arbitration=arbitration,
+        plan=candidate,
+        run_mode=RunMode.TEST_ONLY,
+        now=NOW,
+    )
+    assert report.outcome == ValidationOutcome.BLOCKED
+    assert any(
+        item.code == "EXPANSION_EXECUTION_OBJECT_MISSING"
+        for item in report.findings
+    )
+
+
+def test_trend_action_requires_setting_change_segmentation() -> None:
+    trend_action = action()
+    trend_action.preconditions = {"trend_based": True}
+    candidate, arbitration = plan([trend_action])
+    report = validate_plan(
+        packet=packet(),
+        context=context(),
+        package=package(),
+        arbitration=arbitration,
+        plan=candidate,
+        run_mode=RunMode.TEST_ONLY,
+        now=NOW,
+    )
+    assert report.outcome == ValidationOutcome.BLOCKED
+    assert any(item.code == "TREND_SETTING_SEGMENT_MISSING" for item in report.findings)
+
+
+def test_low_confidence_cannot_emit_executable_action() -> None:
+    low_confidence = action()
+    low_confidence.confidence = DecisionConfidence.LOW
+    candidate, arbitration = plan([low_confidence])
+    report = validate_plan(
+        packet=packet(),
+        context=context(),
+        package=package(),
+        arbitration=arbitration,
+        plan=candidate,
+        run_mode=RunMode.TEST_ONLY,
+        now=NOW,
+    )
+    assert report.outcome == ValidationOutcome.BLOCKED
+    assert any(
+        item.code == "LOW_CONFIDENCE_EXECUTION_FORBIDDEN"
+        for item in report.findings
+    )
+
+
+def test_closing_old_traffic_requires_completed_winner_migration() -> None:
+    close_old = action(
+        action_type=ActionType.PAUSE,
+        current_value="ENABLED",
+        proposed_value="PAUSED",
+        risk=RiskLevel.HIGH,
+    )
+    close_old.preconditions = {"closes_traffic_source": True}
+    candidate, arbitration = plan([close_old])
+    report = validate_plan(
+        packet=packet(),
+        context=context(),
+        package=package(),
+        arbitration=arbitration,
+        plan=candidate,
+        run_mode=RunMode.TEST_ONLY,
+        now=NOW,
+    )
+    assert report.outcome == ValidationOutcome.BLOCKED
+    assert any(item.code == "WINNER_MIGRATION_NOT_COMPLETE" for item in report.findings)
 
 
 def test_unresolved_opposite_actions_block_plan() -> None:

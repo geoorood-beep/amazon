@@ -4,6 +4,7 @@
 
 - 状态：门垫、长条、小区域、大区域为 `CONFIRMED_HUMAN`。
 - 来源：`source-manifest.md`。
+- `applicable_grain`: `SKU_SIZE`。不得直接套用于混合尺寸 Campaign、Placement、Target 或搜索词汇总。
 - CVR、ACOS、CPA 仅在广告订单 `O>=2` 时用于四档判断。
 - 合法非负值必须且只能命中一个档位；空值、单位冲突、空档或多重命中固定 `BLOCKED`。
 

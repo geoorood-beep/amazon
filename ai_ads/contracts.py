@@ -176,6 +176,50 @@ class PrimaryObjective(str, Enum):
     STRUCTURE = "STRUCTURE"
 
 
+class DecisionConfidence(str, Enum):
+    HIGH = "HIGH"
+    MEDIUM = "MEDIUM"
+    LOW = "LOW"
+
+
+class TrafficRole(str, Enum):
+    HARVEST = "HARVEST"
+    DISCOVERY = "DISCOVERY"
+    RANKING = "RANKING"
+    DEFENSE = "DEFENSE"
+    ISOLATION = "ISOLATION"
+    OBSERVE = "OBSERVE"
+
+
+class OverlapIntent(str, Enum):
+    NO_OVERLAP = "NO_OVERLAP"
+    INTENTIONAL_DISTINCT_ROLE = "INTENTIONAL_DISTINCT_ROLE"
+    UNINTENTIONAL_DUPLICATE = "UNINTENTIONAL_DUPLICATE"
+    UNKNOWN = "UNKNOWN"
+
+
+class ExpansionExecutionObject(str, Enum):
+    VERIFIED_SEARCH_TERM = "VERIFIED_SEARCH_TERM"
+    REAL_TARGET = "REAL_TARGET"
+    ROOT_AGGREGATE = "ROOT_AGGREGATE"
+
+
+class BudgetType(str, Enum):
+    STANDARD_MINIMUM = "STANDARD_MINIMUM"
+    OBSERVATION = "OBSERVATION"
+    EXPANSION = "EXPANSION"
+    COPY_VALIDATION = "COPY_VALIDATION"
+    RISK_CAP = "RISK_CAP"
+
+
+class MigrationState(str, Enum):
+    NOT_APPLICABLE = "NOT_APPLICABLE"
+    WINNERS_EXTRACTED = "WINNERS_EXTRACTED"
+    RECEIVER_CREATED = "RECEIVER_CREATED"
+    RECEIVER_ENABLED = "RECEIVER_ENABLED"
+    LEGACY_REMAINDER_READY_TO_CLOSE = "LEGACY_REMAINDER_READY_TO_CLOSE"
+
+
 class SnapshotMetadata(StrictModel):
     schema_version: str
     data_snapshot_id: str
@@ -296,6 +340,20 @@ class ObjectMetricFact(StrictModel):
     samples: list[MetricSample] = Field(default_factory=list)
 
 
+class SettingChangePoint(StrictModel):
+    setting_change_point_id: str
+    object_type: ObjectType
+    object_id: str
+    effective_at: datetime
+    changed_fields: list[str] = Field(min_length=1)
+    source_ref: str
+
+    @model_validator(mode="after")
+    def validate_datetime(self) -> "SettingChangePoint":
+        _require_timezone_aware(self.effective_at, "effective_at")
+        return self
+
+
 class ImportedDataIssue(StrictModel):
     code: str
     message: str
@@ -312,6 +370,7 @@ class AdDecisionPacket(StrictModel):
     targets: list[TargetFact] = Field(default_factory=list)
     search_terms: list[SearchTermFact] = Field(default_factory=list)
     metrics: list[ObjectMetricFact] = Field(default_factory=list)
+    setting_change_points: list[SettingChangePoint] = Field(default_factory=list)
     imported_issues: list[ImportedDataIssue] = Field(default_factory=list)
 
 
@@ -373,6 +432,18 @@ class CandidateAction(StrictModel):
     rule_id: str
     threshold_id: str | None = None
     evidence_refs: list[str] = Field(default_factory=list)
+    confidence: DecisionConfidence
+    traffic_role: TrafficRole | None = None
+    overlap_intent: OverlapIntent | None = None
+    expansion_execution_object: ExpansionExecutionObject | None = None
+    budget_type: BudgetType | None = None
+    calculation_basis: str | None = Field(default=None, min_length=1)
+    target_orders_per_day: Decimal | None = Field(default=None, ge=0)
+    budget_purpose: str | None = Field(default=None, min_length=1)
+    setting_change_point_id: str | None = None
+    strategy_stage: str | None = Field(default=None, min_length=1)
+    migration_state: MigrationState = MigrationState.NOT_APPLICABLE
+    migrated_winner_object_ids: list[str] = Field(default_factory=list)
     expected_impact: str
     risk_level: RiskLevel
     reversible: bool

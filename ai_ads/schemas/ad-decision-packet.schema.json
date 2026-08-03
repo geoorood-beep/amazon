@@ -394,6 +394,49 @@
       "title": "SearchTermFact",
       "type": "object"
     },
+    "SettingChangePoint": {
+      "additionalProperties": false,
+      "properties": {
+        "changed_fields": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Changed Fields",
+          "type": "array"
+        },
+        "effective_at": {
+          "format": "date-time",
+          "title": "Effective At",
+          "type": "string"
+        },
+        "object_id": {
+          "title": "Object Id",
+          "type": "string"
+        },
+        "object_type": {
+          "$ref": "#/$defs/ObjectType"
+        },
+        "setting_change_point_id": {
+          "title": "Setting Change Point Id",
+          "type": "string"
+        },
+        "source_ref": {
+          "title": "Source Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "setting_change_point_id",
+        "object_type",
+        "object_id",
+        "effective_at",
+        "changed_fields",
+        "source_ref"
+      ],
+      "title": "SettingChangePoint",
+      "type": "object"
+    },
     "SnapshotMetadata": {
       "additionalProperties": false,
       "properties": {
@@ -560,6 +603,13 @@
         "$ref": "#/$defs/SearchTermFact"
       },
       "title": "Search Terms",
+      "type": "array"
+    },
+    "setting_change_points": {
+      "items": {
+        "$ref": "#/$defs/SettingChangePoint"
+      },
+      "title": "Setting Change Points",
       "type": "array"
     },
     "targets": {

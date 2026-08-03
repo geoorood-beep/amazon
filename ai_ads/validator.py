@@ -13,8 +13,11 @@ from .contracts import (
     ArbitrationResult,
     CandidateAction,
     DataMode,
+    DecisionConfidence,
     DataQualityStatus,
+    ExpansionExecutionObject,
     FindingLevel,
+    MigrationState,
     ObjectType,
     RiskLevel,
     RulePackageReference,
@@ -143,6 +146,123 @@ def _validate_action(
                     code="EXECUTION_FIELDS_MISSING",
                     level=FindingLevel.BLOCK,
                     message="执行字段缺失: " + ", ".join(missing),
+                    action_id=action.candidate_action_id,
+                    object_id=action.object_id,
+                )
+            )
+
+        if action.confidence == DecisionConfidence.LOW:
+            findings.append(
+                ValidationFinding(
+                    code="LOW_CONFIDENCE_EXECUTION_FORBIDDEN",
+                    level=FindingLevel.BLOCK,
+                    message="低置信度不得生成执行动作",
+                    action_id=action.candidate_action_id,
+                    object_id=action.object_id,
+                )
+            )
+
+    if action.action_type in {ActionType.INCREASE_BUDGET, ActionType.DECREASE_BUDGET}:
+        budget_fields = {
+            "budget_type": action.budget_type,
+            "calculation_basis": action.calculation_basis,
+            "target_orders_per_day": action.target_orders_per_day,
+            "budget_purpose": action.budget_purpose,
+        }
+        missing_budget_fields = [
+            name for name, value in budget_fields.items() if value is None
+        ]
+        if missing_budget_fields:
+            findings.append(
+                ValidationFinding(
+                    code="BUDGET_SEMANTICS_MISSING",
+                    level=FindingLevel.BLOCK,
+                    message="预算动作缺少结构化用途字段: " + ", ".join(missing_budget_fields),
+                    action_id=action.candidate_action_id,
+                    object_id=action.object_id,
+                )
+            )
+
+    if action.action_type == ActionType.CREATE_STRUCTURE:
+        missing_structure_fields = [
+            name
+            for name, value in {
+                "traffic_role": action.traffic_role,
+                "overlap_intent": action.overlap_intent,
+            }.items()
+            if value is None
+        ]
+        if missing_structure_fields:
+            findings.append(
+                ValidationFinding(
+                    code="STRUCTURE_ROLE_FIELDS_MISSING",
+                    level=FindingLevel.BLOCK,
+                    message="结构动作缺少流量角色字段: " + ", ".join(missing_structure_fields),
+                    action_id=action.candidate_action_id,
+                    object_id=action.object_id,
+                )
+            )
+
+    if action.preconditions.get("is_expansion") is True:
+        if action.expansion_execution_object is None:
+            findings.append(
+                ValidationFinding(
+                    code="EXPANSION_EXECUTION_OBJECT_MISSING",
+                    level=FindingLevel.BLOCK,
+                    message="拓量动作必须明确复制完整搜索词、真实Target或经门槛验证的词根",
+                    action_id=action.candidate_action_id,
+                    object_id=action.object_id,
+                )
+            )
+        elif (
+            action.expansion_execution_object == ExpansionExecutionObject.ROOT_AGGREGATE
+            and action.preconditions.get("root_order_concentration_gate_passed") is not True
+        ):
+            findings.append(
+                ValidationFinding(
+                    code="ROOT_EXPANSION_CONCENTRATION_GATE_MISSING",
+                    level=FindingLevel.BLOCK,
+                    message="词根聚合不得下放，除非订单集中度门已明确通过",
+                    action_id=action.candidate_action_id,
+                    object_id=action.object_id,
+                )
+            )
+
+    if action.preconditions.get("trend_based") is True:
+        if not action.setting_change_point_id or not action.strategy_stage:
+            findings.append(
+                ValidationFinding(
+                    code="TREND_SETTING_SEGMENT_MISSING",
+                    level=FindingLevel.BLOCK,
+                    message="趋势动作必须按设置变更点切段并标记策略阶段",
+                    action_id=action.candidate_action_id,
+                    object_id=action.object_id,
+                )
+            )
+
+    if action.preconditions.get("placement_or_product_diagnosis") is True:
+        if action.preconditions.get("comparable_traffic_structure") is not True:
+            findings.append(
+                ValidationFinding(
+                    code="MIXED_STRUCTURE_REQUIRES_ISOLATION",
+                    level=FindingLevel.BLOCK,
+                    message="广告位或商品流量结构不可比，必须先隔离验证",
+                    action_id=action.candidate_action_id,
+                    object_id=action.object_id,
+                )
+            )
+
+    if action.preconditions.get("closes_traffic_source") is True:
+        if (
+            action.migration_state
+            != MigrationState.LEGACY_REMAINDER_READY_TO_CLOSE
+            or not action.migrated_winner_object_ids
+        ):
+            findings.append(
+                ValidationFinding(
+                    code="WINNER_MIGRATION_NOT_COMPLETE",
+                    level=FindingLevel.BLOCK,
+                    message="关闭旧流量前必须提取赢家、启用承接对象并登记迁移对象ID",
                     action_id=action.candidate_action_id,
                     object_id=action.object_id,
                 )

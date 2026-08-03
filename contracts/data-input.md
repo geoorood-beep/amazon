@@ -26,8 +26,11 @@ BusinessMode 只允许 `NORMAL / EVENT / ANOMALY`。库存假设必须显式记�
 - 当前预算、Bid、Placement 和状态；
 - 原始样本数及确定性派生指标；
 - 数据质量问题和对账状态。
+- Bid、预算、Placement 或状态的设置变更点：`setting_change_point_id`、对象 ID、带时区生效时间、变更字段和来源证据。
 
 共享数据包不能提前写入 ACTIVE 阈值命中或广告动作建议。
+
+缺设置变更历史时可以做当前横截面分析，但跨变更期趋势只能标记 `INCONCLUSIVE`，不得生成趋势动作。
 
 完整模式还必须满足：
 

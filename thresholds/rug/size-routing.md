@@ -1,6 +1,7 @@
 # Rug 尺寸与类型路由
 
-- 状态：`HUMAN_RULE_FIXED`
+- 分类状态：`HUMAN_RULE_FIXED`。
+- 阈值适用状态：除明确来源锚点外为 `OBSERVATION_ONLY_PENDING_CALIBRATION`。
 - 来源参考：`reference/rug-aba/area_rug_ABA关键词库_202605_v8.xlsx` 的 `广告词库`。
 
 ## 标准化
@@ -23,5 +24,9 @@
 - 面积 `<=57.5 ft²`：`area_small`。
 - 面积 `>57.5 ft²`：`area_large`。
 - 未命中或单位无法换算：`BLOCKED`。
+
+`57.5 ft²` 只是 5x7 与 8x10 面积锚点的算术中间路由，不是广告表现校准分界。非 5x7/8x10 尺寸可以用于选择观察档案，但不得仅凭该路由生成强动作。
+
+长条分类可按尺寸映射使用；性能阈值的确认来源仍是 `2x5`。其他长条尺寸标记为 `BORROWED_2X5_REFERENCE_OBSERVATION_ONLY`，在补齐尺寸级历史分布前不得据此生成强动作。
 
 圆形没有性能阈值，不能借用区域档案。

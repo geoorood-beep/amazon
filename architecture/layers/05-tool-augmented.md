@@ -38,6 +38,19 @@
 
 程序在本机读取 CSV/TSV/XLSX，生成 `ad_decision_packet.json`、`ad_decision_packet.xlsx`、数据质量报告和证据清单。字段与粒度见[广告报表聚合合同](../../contracts/ad-report-aggregation.md)。它不调用 LLM 逐行计算，也不连接或修改 Amazon 后台。
 
+若用户提供的是 7/14/30 天重叠导出、缺 Amazon 不可变 ID，并附带人工老品工作簿，则调用名称键分析入口：
+
+```bash
+.venv/bin/python scripts/build_name_keyed_ad_analysis.py \
+  --source-dir "/绝对路径/产品广告数据文件" \
+  --old-product-workbook "/绝对路径/老品优化.xlsx" \
+  --primary-asin "B0XXXXXXXXX" \
+  --output-dir "/Users/leo/Documents/陆遥广告智能体/outputs/本批次" \
+  --render-previews
+```
+
+该入口固定以 30 天每日明细为历史事实源，7/14 天和汇总文件只做一致性校验；店铺口径与广告归因口径分离。名称哈希不能替代 Amazon ID，因此输出只允许分析，执行状态固定阻断。
+
 本地聚合工具与外部接入网关是两件事：本地聚合已经启用；MCP、API、Webhook 和外部服务器仍未启用。
 
 ## 外部接入网关预留

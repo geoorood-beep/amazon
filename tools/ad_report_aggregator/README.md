@@ -22,6 +22,19 @@
 
 工作簿中的 `01_AGENT_INPUT` 是唯一聚合输入表。它把不同 `object_type` 和 `window` 保持为独立粒度，避免把搜索词、Target、广告位和商品报表重复相加。
 
+当输入是 7/14/30 天重叠导出、缺 Amazon 不可变 ID，并同时提供人工老品工作簿时，使用名称键分析模式：
+
+```bash
+.venv/bin/python scripts/build_name_keyed_ad_analysis.py \
+  --source-dir "/绝对路径/产品广告数据文件" \
+  --old-product-workbook "/绝对路径/老品优化.xlsx" \
+  --primary-asin "B0XXXXXXXXX" \
+  --output-dir "/Users/leo/Documents/陆遥广告智能体/outputs/本批次" \
+  --render-previews
+```
+
+该模式固定把 `30天每日明细` 作为唯一历史事实源；7 天、14 天和汇总表只校验，绝不叠加。名称生成的 `LOCAL-*` 只用于分析定位，不得替代 Campaign / Ad Group / Target ID。老品工作簿里的店铺订单和店铺销售额单独输出，不进入广告 CVR、CPA 或 ACOS。
+
 ## 对话自动路由
 
 用户说“聚合广告报表”“把六张广告表合成一张”或“生成 ad_decision_packet”时，智能体应调用：
@@ -76,3 +89,5 @@
 ```
 
 当前发布验收使用合成六表完成。真实 Amazon 六表样本的字段变体仍需在第一次实际运行时做一次人工验收；若表头不同，应只更新 [ad_report_aggregation.json](../../config/ad_report_aggregation.json) 的别名，不在程序中临时猜列。
+
+已验收的名称键模式能读取 Amazon/WPS 导出中错误的 `A1` 或整表维度元数据。真实数据仍缺不可变 ID 时，输出状态必须保持 `BLOCKED_MISSING_IMMUTABLE_IDS`。
