@@ -51,6 +51,19 @@ python3 scripts/weekly_amazon_report_ingest.py --source-dir "/path/to/report-fol
 - `imports/amazon_ads_weekly/<run_id>/manifest.json`
 - `imports/amazon_ads_weekly/<run_id>/analysis_prompt.md`
 
+## 归档后本地聚合
+
+六类报表识别完成后，不再把六张表逐张交给模型重算。准备一个本批次上下文 JSON（模板见 `config/ad_report_context.example.json`），然后运行：
+
+```bash
+.venv/bin/python scripts/build_ad_decision_packet.py \
+  --source-dir "imports/amazon_ads_weekly/<run_id>/classified" \
+  --context "/绝对路径/context.json" \
+  --output-dir "outputs/weekly_amazon_ads/<run_id>"
+```
+
+智能体优先读取输出的 `ad_decision_packet.json`；人工可打开同目录 `ad_decision_packet.xlsx`。如果 Data Quality 不是 `DQ_PASS`，先修复报表、字段或映射，不进入广告判断。
+
 ## 老品必须识别的 6 类报表
 
 1. `SP搜索词-按词-每日明细`

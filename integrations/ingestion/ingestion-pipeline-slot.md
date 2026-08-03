@@ -2,6 +2,8 @@
 
 当前状态：`PLACEHOLDER_NOT_ACTIVE`。
 
+本状态只针对 MCP、API 和外部服务器入库。第 05 层的[本地六表聚合工具](../../tools/ad_report_aggregator/README.md)已单独启用，不经过本外部连接器占位，也不改变本页状态。
+
 所有 MCP、API 和外部服务器连接器未来必须共用本层，不能各自绕过数据质量门。
 
 ## 预留职责

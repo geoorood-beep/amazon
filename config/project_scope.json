@@ -90,6 +90,7 @@
     "contracts/new-product-output.md",
     "contracts/old-product-output.md",
     "contracts/review.md",
+    "contracts/ad-report-aggregation.md",
     "contracts/external-ingest.md"
   ],
   "required_knowledge_paths": [
@@ -107,8 +108,18 @@
     "scripts/validate_v20_rules.py",
     "scripts/validate_v14_rules.py",
     "scripts/stress_test_v20.py",
+    "scripts/build_ad_decision_packet.py",
+    "scripts/stress_test_ad_report_aggregator.py",
     "scripts/v20_release_manifest.py",
-    "scripts/validate_integration_placeholders.py"
+    "scripts/validate_integration_placeholders.py",
+    "tools/ad_report_aggregator/README.md",
+    "tools/ad_report_aggregator/aggregator.py",
+    "tools/ad_report_aggregator/synthetic.py",
+    "tools/ad_report_aggregator/workbook_builder.mjs",
+    "config/ad_report_aggregation.json",
+    "config/ad_report_context.example.json",
+    "config/ad_report_map.example.json",
+    "运行广告报表聚合.command"
   ],
   "required_release_paths": [
     "releases/v2.0/RELEASE.md",

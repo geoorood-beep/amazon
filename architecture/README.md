@@ -12,7 +12,7 @@
 | [02 Plan-and-Execute](layers/02-plan-execute.md) | Plan-and-Execute | 把分析、候选动作、Validator、人工执行分开 | 阶段门和执行顺序 |
 | [03 Multi-Agent](layers/03-domain-agents.md) | Multi-Agent | 新品、老品、搜索词、流量结构、历史数据模块分工 | 各领域规则，不在总入口堆规则 |
 | [04 Reflective](layers/04-reflective-validator.md) | Reflective Agent | 独立 Validator、执行确认、复盘、CANDIDATE 隔离 | Validator 与复盘资格 |
-| [05 Tool-Augmented](layers/05-tool-augmented.md) | Tool-Augmented | 报表预处理、确定性计算、Schema、脚本和外部接入网关占位 | 工具输入输出合同与连接器状态 |
+| [05 Tool-Augmented](layers/05-tool-augmented.md) | Tool-Augmented | 已启用本地六表聚合；并保留 Schema、脚本和外部接入网关占位 | 工具输入输出合同与连接器状态 |
 | [06 Memory-Augmented](layers/06-memory-state.md) | Memory-Augmented | 保存批次、快照、执行结果和规则证据 | 正式记忆，不用聊天记忆代替证据 |
 | [07 RAG](layers/07-rag-knowledge.md) | RAG Agent | 按白名单检索 ABA、历史效果、阈值和当前报表 | 数据源优先级与证据粒度 |
 | [08 Autonomous Loop](layers/08-autonomous-loop.md) | Autonomous Loop | 受控闭环、能力启用门、人工审批和停止条件 | 生产启用门；当前仍禁止自动执行 |

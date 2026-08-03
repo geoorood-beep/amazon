@@ -21,6 +21,10 @@
 
 本项目不含宠物喂水器或办公椅固定数据。收到这些类目任务时，应切换到 `/Users/leo/Documents/有它广告智能体`。
 
+## 本地工具
+
+- [广告报表聚合工具](tools/ad_report_aggregator/README.md)：把六类 SP 报表在本地生成一个 `AdDecisionPacket`、人工工作簿、对账和数据质量结果。
+
 ## 八层架构与单一真源
 
 | 人工要修改的内容 | 唯一入口 | 不应修改的地方 |
@@ -57,6 +61,7 @@ python3 -m venv .venv
 .venv/bin/python scripts/validate_v20_rules.py
 .venv/bin/python scripts/validate_integration_placeholders.py
 .venv/bin/python -m pytest new_product_module/tests ai_ads/tests -q
+.venv/bin/python scripts/stress_test_ad_report_aggregator.py
 .venv/bin/python scripts/stress_test_v20.py
 .venv/bin/python scripts/v20_release_manifest.py
 ```

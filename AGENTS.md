@@ -1,6 +1,6 @@
 # 陆遥广告智能体 V2.0 — 八层总入口
 
-本文件只负责最高优先级边界和路由。当前规则正文位于 [rules/](rules/README.md)，数值位于 [thresholds/](thresholds/README.md)，输入输出字段位于 [contracts/](contracts/README.md)，数据源位于 [knowledge/](knowledge/README.md)。第 05 层外部工具接入位于 [外部接入网关正文](integrations/external-integration-gateway.md)，当前全部为占位状态。不要把具体规则或阈值重新堆回本文件。
+本文件只负责最高优先级边界和路由。当前规则正文位于 [rules/](rules/README.md)，数值位于 [thresholds/](thresholds/README.md)，输入输出字段位于 [contracts/](contracts/README.md)，数据源位于 [knowledge/](knowledge/README.md)。第 05 层本地六表聚合工具位于 [广告报表聚合工具](tools/ad_report_aggregator/README.md)，状态为 `ACTIVE_LOCAL_TOOL`；外部服务器/MCP/API 接入位于 [外部接入网关正文](integrations/external-integration-gateway.md)，仍全部为占位状态。不要把具体规则或阈值重新堆回本文件。
 
 当前状态：`V2.0_FROZEN`；`HUMAN_EXECUTION_ONLY`；`ai_ads/` 为 `TEST_ONLY`；Amazon 后台自动执行关闭。冻结文件清单见 [V2.0 Release](releases/v2.0/RELEASE.md)。
 
@@ -36,6 +36,7 @@
 | 搜索词 / 词根 | [语义聚合](rules/domains/search-term/semantic-aggregation.md)、[评分与动作](rules/domains/search-term/scoring-and-actions.md) | [评分与拓量门](thresholds/rug/traffic-and-scoring.md) |
 | 类目流量 | [输入](rules/domains/category-traffic/scope-and-input.md)、[分层](rules/domains/category-traffic/relevance-and-segmentation.md)、[打法](rules/domains/category-traffic/structure-and-playbook.md)、[输出](rules/domains/category-traffic/output-and-confidence.md) | [流量结构阈值](thresholds/rug/traffic-and-scoring.md) |
 | 历史效果数据 | [字段与入库](rules/domains/history-data/schema-and-ingest.md)、[使用边界](rules/domains/history-data/usage-boundaries.md) | 不适用 |
+| 聚合六张广告报表 | [本地聚合工具](tools/ad_report_aggregator/README.md)、[聚合字段合同](contracts/ad-report-aggregation.md) | 不适用；技术舍入容差见工具配置，不是业务阈值 |
 | 外部服务器 / MCP / API | [第 05 层接入占位](integrations/external-integration-gateway.md)、[外部数据接入合同](contracts/external-ingest.md) | 不适用；当前 `PLACEHOLDER_NOT_ACTIVE` |
 | 输出表格 | [输出规则正文](rules/output/output-rules.md) | 按主任务引用 |
 | 动作 / Validator | [动作仲裁规则](rules/core/action-arbitration-validator.md) | 按动作引用 |
@@ -74,6 +75,8 @@
 - 复盘只能生成证据和 CANDIDATE，不能覆盖 ACTIVE。
 - 当前没有生产机器 ACTIVE 规则包。
 - MCP、HTTP API、Webhook 和其他外部服务器连接器当前均为 `PLACEHOLDER_NOT_ACTIVE`；预留目录不代表已经连接或允许执行。
+- 当用户说“聚合广告报表”“把六张广告表合成一张”或“生成 ad_decision_packet”时，先读取 [聚合工具入口](tools/ad_report_aggregator/README.md)，调用 `scripts/build_ad_decision_packet.py`；不得让模型逐行手工重算六表。
+- 聚合工具的 `DQ_PASS` 只表示数据包可进入人工分析，不表示广告动作通过或已经执行。
 
 ## 每次交付前
 
@@ -85,6 +88,7 @@
 .venv/bin/python scripts/validate_phase1_decisions.py
 .venv/bin/python scripts/validate_integration_placeholders.py
 .venv/bin/python -m pytest new_product_module/tests ai_ads/tests -q
+.venv/bin/python scripts/stress_test_ad_report_aggregator.py
 .venv/bin/python scripts/stress_test_v20.py
 .venv/bin/python scripts/v20_release_manifest.py
 ```

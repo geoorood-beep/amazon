@@ -21,8 +21,24 @@
 
 - `new_product_module/`：新品人工架构辅助；
 - `ai_ads/`：V2 `TEST_ONLY` 合同、仲裁和 Validator；
-- `scripts/`：数据导入与项目校验；
+- [广告报表聚合工具](../../tools/ad_report_aggregator/README.md)：六类 SP 报表本地聚合，状态为 `ACTIVE_LOCAL_TOOL`；
+- `scripts/`：数据导入、聚合入口与项目校验；
 - `contracts/README.md`：工具必须遵守的字段合同。
+
+## 本地六表聚合（已启用）
+
+当用户要求“聚合广告报表”时，调用：
+
+```bash
+.venv/bin/python scripts/build_ad_decision_packet.py \
+  --source-dir "/绝对路径/六表目录" \
+  --context "/绝对路径/context.json" \
+  --output-dir "/Users/leo/Documents/陆遥广告智能体/outputs/本批次"
+```
+
+程序在本机读取 CSV/TSV/XLSX，生成 `ad_decision_packet.json`、`ad_decision_packet.xlsx`、数据质量报告和证据清单。字段与粒度见[广告报表聚合合同](../../contracts/ad-report-aggregation.md)。它不调用 LLM 逐行计算，也不连接或修改 Amazon 后台。
+
+本地聚合工具与外部接入网关是两件事：本地聚合已经启用；MCP、API、Webhook 和外部服务器仍未启用。
 
 ## 外部接入网关预留
 
