@@ -30,6 +30,7 @@
 | 数值、区间、单位和确认状态 | [thresholds/](thresholds/README.md) | `rules/` |
 | 输入输出字段与状态 | [contracts/](contracts/README.md) | 阈值文件 |
 | 数据源、证据粒度和优先级 | [knowledge/](knowledge/README.md) | 动作规则 |
+| MCP/API/外部服务器接入占位 | [外部接入网关正文](integrations/external-integration-gateway.md) | 业务规则、阈值和密钥 |
 | 迁移前全文与哈希 | [history/](history/README.md) | 当前规则解析 |
 
 [AGENTS.md](AGENTS.md) 只保留最高边界和任务路由。`agents/*.md` 只是旧路径兼容入口，不再维护规则正文或数值。人工导航见 [AGENTS 可点击目录](agents/agents-directory.md)。
@@ -54,6 +55,7 @@ python3 -m venv .venv
 .venv/bin/python scripts/validate_project_scope.py
 .venv/bin/python scripts/validate_phase1_decisions.py
 .venv/bin/python scripts/validate_v20_rules.py
+.venv/bin/python scripts/validate_integration_placeholders.py
 .venv/bin/python -m pytest new_product_module/tests ai_ads/tests -q
 .venv/bin/python scripts/stress_test_v20.py
 .venv/bin/python scripts/v20_release_manifest.py

@@ -9,9 +9,9 @@
 
 ## 冻结内容
 
-本发布固定八层架构、人工规则、Rug阈值、合同、固定数据、P0/P1/P2修复、确定性校验器、回归测试和压力测试。每个纳入发布的文件及SHA-256记录在 `MANIFEST.sha256`。
+本发布固定八层架构、人工规则、Rug阈值、合同、固定数据、P0/P1/P2修复、确定性校验器、回归测试、压力测试和第 05 层外部接入预留。每个纳入发布的文件及SHA-256记录在 `MANIFEST.sha256`。
 
-冻结不代表启用Amazon后台自动执行。圆形Rug性能阈值、低样本强收缩Threshold ID和生产机器ACTIVE规则包仍保持阻断。
+冻结不代表启用Amazon后台自动执行。圆形Rug性能阈值、低样本强收缩Threshold ID和生产机器ACTIVE规则包仍保持阻断。MCP、HTTP API、Webhook 和其他外部服务器连接器当前均为 `PLACEHOLDER_NOT_ACTIVE`，没有真实 Endpoint 或运行服务。
 
 ## 验收结果
 
@@ -19,12 +19,13 @@
 项目边界校验                         PASS
 V2.0规则一致性校验                   PASS
 第一阶段裁决登记校验                  PASS
+第05层外部接入占位校验                PASS
 Python接口Schema重新导出              PASS（12份）
 单元/回归测试                         PASS（83项）
 随机反向动作                         PASS（2,000项）
-动作仲裁                             PASS（50,000项，0.1333秒）
-Data Quality确定性重放               PASS（5,000次，0.0391秒）
-真实Rug ABA与历史数据适配             PASS（468词，0.6397秒）
+动作仲裁                             PASS（50,000项，0.1377秒）
+Data Quality确定性重放               PASS（5,000次，0.0384秒）
+真实Rug ABA与历史数据适配             PASS（468词，0.6342秒）
 重复历史词聚合与小数整数拒绝           PASS
 ```
 

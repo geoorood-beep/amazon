@@ -11,6 +11,7 @@
 | [新品输出](new-product-output.md) | Rug 新品两张核心表的必备字段 |
 | [老品输出](old-product-output.md) | 老品完整/有限模式的可见字段 |
 | [复盘合同](review.md) | 复盘资格、证据和 CANDIDATE 输出 |
+| [外部数据接入](external-ingest.md) | 第 05 层 MCP/API/服务器输入信封与隔离边界；当前仅占位 |
 | `../ai_ads/schemas/` | 机器可读 JSON Schema |
 
 机器 Schema 与本目录语义不一致时必须阻断并修复，不得由模型猜测哪一份正确。

@@ -13,6 +13,7 @@ WEEKLY_CONFIG_PATH = ROOT / "config" / "weekly_amazon_report_ingest.json"
 REQUIRED_PATH_GROUPS = {
     "compatibility_agent_paths": "兼容 AGENT",
     "required_architecture_paths": "八层架构文件",
+    "required_integration_paths": "第05层外部接入预留文件",
     "required_rule_paths": "当前规则文件",
     "required_threshold_paths": "当前阈值文件",
     "required_contract_paths": "数据合同文件",
@@ -104,6 +105,18 @@ def main() -> int:
     derived_path = ROOT / derived.get("path", "")
     if not derived_path.is_file():
         errors.append(f"派生机器配置不存在：{derived.get('path')}")
+
+    integration = scope.get("integration_gateway", {})
+    if integration.get("status") != "PLACEHOLDER_NOT_ACTIVE":
+        errors.append("第05层外部接入网关必须保持 PLACEHOLDER_NOT_ACTIVE")
+    if integration.get("receive_only") is not True:
+        errors.append("第05层外部接入网关必须保持 receive_only")
+    if integration.get("action_execution_enabled") is not False:
+        errors.append("第05层外部接入网关不得启用广告动作执行")
+    for key in ("path", "config_template", "contract"):
+        relative = integration.get(key)
+        if not relative or not (ROOT / relative).is_file():
+            errors.append(f"第05层外部接入网关缺少有效 {key}：{relative}")
 
     architecture = scope.get("architecture_source", {})
     architecture_path = ROOT / architecture.get("path", "")

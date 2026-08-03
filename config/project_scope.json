@@ -30,6 +30,14 @@
     "architecture/layers/07-rag-knowledge.md",
     "architecture/layers/08-autonomous-loop.md"
   ],
+  "required_integration_paths": [
+    "integrations/external-integration-gateway.md",
+    "integrations/mcp/mcp-connection-slot.md",
+    "integrations/api/http-api-webhook-slot.md",
+    "integrations/server/external-server-slot.md",
+    "integrations/ingestion/ingestion-pipeline-slot.md",
+    "config/connectors.example.yaml"
+  ],
   "required_rule_paths": [
     "rules/README.md",
     "rules/core/scope-and-capability.md",
@@ -81,7 +89,8 @@
     "contracts/action-and-plan.md",
     "contracts/new-product-output.md",
     "contracts/old-product-output.md",
-    "contracts/review.md"
+    "contracts/review.md",
+    "contracts/external-ingest.md"
   ],
   "required_knowledge_paths": [
     "knowledge/README.md"
@@ -98,7 +107,8 @@
     "scripts/validate_v20_rules.py",
     "scripts/validate_v14_rules.py",
     "scripts/stress_test_v20.py",
-    "scripts/v20_release_manifest.py"
+    "scripts/v20_release_manifest.py",
+    "scripts/validate_integration_placeholders.py"
   ],
   "required_release_paths": [
     "releases/v2.0/RELEASE.md",
@@ -134,6 +144,14 @@
     "path": "new_product_module/config/category_rules.example.yaml",
     "status": "TEST_ONLY",
     "maintenance_source": "thresholds/README.md"
+  },
+  "integration_gateway": {
+    "path": "integrations/external-integration-gateway.md",
+    "config_template": "config/connectors.example.yaml",
+    "contract": "contracts/external-ingest.md",
+    "status": "PLACEHOLDER_NOT_ACTIVE",
+    "receive_only": true,
+    "action_execution_enabled": false
   },
   "legacy_compatibility_map": {
     "agents/rug-category.md": "rules/domains/rug-category.md",

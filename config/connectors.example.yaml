@@ -1,0 +1,31 @@
+config_version: "2.0"
+slot_status: PLACEHOLDER_NOT_ACTIVE
+
+global:
+  enabled: false
+  receive_only: true
+  allow_external_rule_changes: false
+  allow_action_execution: false
+  allowed_categories:
+    - rug
+
+connectors:
+  mcp:
+    enabled: false
+    implementation_status: PLACEHOLDER_NOT_ACTIVE
+    endpoint_env: RUG_ADS_MCP_ENDPOINT
+    bearer_token_env: RUG_ADS_MCP_BEARER_TOKEN
+  external_api:
+    enabled: false
+    implementation_status: PLACEHOLDER_NOT_ACTIVE
+    base_url_env: RUG_ADS_EXTERNAL_API_BASE_URL
+    token_env: RUG_ADS_EXTERNAL_API_TOKEN
+  inbound_api:
+    enabled: false
+    implementation_status: PLACEHOLDER_NOT_ACTIVE
+    signing_secret_env: RUG_ADS_INBOUND_SIGNING_SECRET
+  external_server:
+    enabled: false
+    implementation_status: PLACEHOLDER_NOT_ACTIVE
+    endpoint_env: RUG_ADS_EXTERNAL_SERVER_ENDPOINT
+    credential_env: RUG_ADS_EXTERNAL_SERVER_CREDENTIAL

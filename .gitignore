@@ -6,3 +6,6 @@ __pycache__/
 ._*
 imports/
 outputs/
+config/connectors.yaml
+config/connectors.local.yaml
+integrations/runtime/

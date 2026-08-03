@@ -30,6 +30,7 @@ V2.0 生效日期：`2026-08-03`
 - 当前人工正文已拆分为 `architecture/`、`rules/`、`thresholds/`、`contracts/`、`knowledge/`；旧全文冻结于 `history/v1.4-pre-8layer/`。
 - `agents/*.md` 保持旧路径兼容，不再是规则或阈值真源。
 - V2.0 已合并压力测试发现的 P0/P1/P2 修复；发布前必须通过 83 项单元测试、标准压力脚本和冻结清单校验。
+- 第 05 层已预留 `integrations/` 外部接入网关，包含 MCP、HTTP API、外部服务器和统一入库位置；全部固定为 `PLACEHOLDER_NOT_ACTIVE`。
 
 未完成事项：
 
@@ -37,3 +38,4 @@ V2.0 生效日期：`2026-08-03`
 - V2.0 仍为人工执行版本；`ai_ads/` 保持 `TEST_ONLY`。
 - 机器执行的唯一规则源和 Amazon 后台自动执行未启用。
 - Rug O<2 点击/花费停止线缺可执行 Threshold ID，机器强收缩动作保持阻断。
+- MCP/API/外部服务器目前只有目录、合同和禁用配置模板，尚未连接真实 Endpoint。
