@@ -36,6 +36,7 @@
 | 搜索词 / 词根 | [语义聚合](rules/domains/search-term/semantic-aggregation.md)、[评分与动作](rules/domains/search-term/scoring-and-actions.md) | [评分与拓量门](thresholds/rug/traffic-and-scoring.md) |
 | 类目流量 | [输入](rules/domains/category-traffic/scope-and-input.md)、[分层](rules/domains/category-traffic/relevance-and-segmentation.md)、[打法](rules/domains/category-traffic/structure-and-playbook.md)、[输出](rules/domains/category-traffic/output-and-confidence.md) | [流量结构阈值](thresholds/rug/traffic-and-scoring.md) |
 | 历史效果数据 | [字段与入库](rules/domains/history-data/schema-and-ingest.md)、[使用边界](rules/domains/history-data/usage-boundaries.md) | 不适用 |
+| 历史阈值校准 / 达标提醒 | [校准字段合同](contracts/threshold-calibration.md)、[本地累积与提醒](docs/v2/候选阈值自动累积与提醒.md) | [校准资格门](thresholds/rug/calibration-eligibility.md) |
 | 聚合六张广告报表 | [本地聚合工具](tools/ad_report_aggregator/README.md)、[聚合字段合同](contracts/ad-report-aggregation.md) | 不适用；技术舍入容差见工具配置，不是业务阈值 |
 | 外部服务器 / MCP / API | [第 05 层接入占位](integrations/external-integration-gateway.md)、[外部数据接入合同](contracts/external-ingest.md) | 不适用；当前 `PLACEHOLDER_NOT_ACTIVE` |
 | 输出表格 | [输出规则正文](rules/output/output-rules.md) | 按主任务引用 |
@@ -87,6 +88,8 @@
 .venv/bin/python scripts/validate_v20_rules.py
 .venv/bin/python scripts/validate_phase1_decisions.py
 .venv/bin/python scripts/validate_integration_placeholders.py
+.venv/bin/python scripts/validate_threshold_calibration.py
+.venv/bin/python scripts/stress_test_threshold_calibration.py
 .venv/bin/python -m pytest new_product_module/tests ai_ads/tests -q
 .venv/bin/python scripts/stress_test_ad_report_aggregator.py
 .venv/bin/python scripts/stress_test_v20.py

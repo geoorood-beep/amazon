@@ -81,6 +81,7 @@
     "thresholds/rug/new-product-stage.md",
     "thresholds/rug/budget-and-isolation.md",
     "thresholds/rug/traffic-and-scoring.md",
+    "thresholds/rug/calibration-eligibility.md",
     "thresholds/rug/pending.md"
   ],
   "required_contract_paths": [
@@ -91,7 +92,8 @@
     "contracts/old-product-output.md",
     "contracts/review.md",
     "contracts/ad-report-aggregation.md",
-    "contracts/external-ingest.md"
+    "contracts/external-ingest.md",
+    "contracts/threshold-calibration.md"
   ],
   "required_knowledge_paths": [
     "knowledge/README.md"
@@ -113,6 +115,19 @@
     "scripts/stress_test_ad_report_aggregator.py",
     "scripts/v20_release_manifest.py",
     "scripts/validate_integration_placeholders.py",
+    "scripts/validate_threshold_calibration.py",
+    "scripts/check_threshold_calibration.py",
+    "scripts/approve_threshold_candidate.py",
+    "scripts/monitor_threshold_candidates.py",
+    "scripts/stress_test_threshold_calibration.py",
+    "tools/threshold_calibrator/README.md",
+    "tools/threshold_calibrator/calibrator.py",
+    "tools/threshold_calibrator/approval.py",
+    "tools/threshold_calibrator/monitor.py",
+    "tools/threshold_calibrator/proof.py",
+    "config/threshold_calibration.json",
+    "config/threshold_calibration_samples.example.csv",
+    "config/threshold_candidate_approval.example.json",
     "tools/ad_report_aggregator/README.md",
     "tools/ad_report_aggregator/aggregator.py",
     "tools/ad_report_aggregator/synthetic.py",

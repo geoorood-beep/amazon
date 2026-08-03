@@ -1,0 +1,2 @@
+date,category,segment_id,rug_type,size_profile,ad_product_type,strategy_stage,object_grain,object_id,marketplace,currency,impressions,clicks,orders,spend,sales,attribution_mature,dq_status,validation_window_id,source_ref
+2026-07-01,rug,area_rug__area_small__SP__standard__SKU_SIZE,area_rug,area_small,SP,standard,SKU_SIZE,SKU_SIZE_EXAMPLE,US,USD,1000,100,5,50.00,250.00,true,DQ_PASS,2026-W27,example.xlsx#row2

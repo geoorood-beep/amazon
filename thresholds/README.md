@@ -14,6 +14,7 @@
 - [归因成熟期、趋势窗口和小时花费曲线](rug/governance.md)
 - [Rug 尺寸、类型和区域面积路由](rug/size-routing.md)
 - [类目入口、G 梯度、机会分、词根分和拓量证据](rug/traffic-and-scoring.md)
+- [历史数据生成候选阈值的点击、订单、天数和验证窗口门槛](rug/calibration-eligibility.md)
 - [待人工补齐的阈值清单](rug/pending.md)
 - [阈值原件、SHA-256 和确认状态](rug/source-manifest.md)
 
@@ -28,6 +29,7 @@
 | [新品阶段](rug/new-product-stage.md) | 新品 ABA 阶段、评分和分组 | 人工规则，机器未激活 |
 | [预算与隔离](rug/budget-and-isolation.md) | 标准最低预算和新品隔离门 | 人工规则，机器未激活 |
 | [流量与评分](rug/traffic-and-scoring.md) | 类目结构与搜索词评分数值 | 人工规则，机器未激活 |
+| [历史校准资格](rug/calibration-eligibility.md) | 2,000/50/14、5,000/100/30/3 和零订单风险门 | 候选生成已启用；人工批准；不自动应用 |
 | [待确认清单](rug/pending.md) | 所有未确认数值和启用阻断 | 必须人工补齐 |
 
 ## 状态含义

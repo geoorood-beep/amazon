@@ -22,6 +22,7 @@
 - `new_product_module/`：新品人工架构辅助；
 - `ai_ads/`：V2 `TEST_ONLY` 合同、仲裁和 Validator；
 - [广告报表聚合工具](../../tools/ad_report_aggregator/README.md)：六类 SP 报表本地聚合，状态为 `ACTIVE_LOCAL_TOOL`；
+- [历史阈值校准合同](../../contracts/threshold-calibration.md)：本地累计日粒度历史数据、生成候选阈值和一次性提醒，状态为 `CANDIDATE_ONLY`；
 - `scripts/`：数据导入、聚合入口与项目校验；
 - `contracts/README.md`：工具必须遵守的字段合同。
 
@@ -52,6 +53,16 @@
 该入口固定以 30 天每日明细为历史事实源，7/14 天和汇总文件只做一致性校验；店铺口径与广告归因口径分离。名称哈希不能替代 Amazon ID，因此输出只允许分析，执行状态固定阻断。
 
 本地聚合工具与外部接入网关是两件事：本地聚合已经启用；MCP、API、Webhook 和外部服务器仍未启用。
+
+## 本地候选阈值监控（已启用）
+
+监控读取 `imports/threshold-calibration/*.csv`，按日粒度去重并累计点击、广告订单、独立天数和验证窗口：
+
+```bash
+.venv/bin/python scripts/monitor_threshold_candidates.py
+```
+
+具体样本门直接读取[历史校准资格阈值](../../thresholds/rug/calibration-eligibility.md)，字段读取[校准合同](../../contracts/threshold-calibration.md)。监控只生成 `CANDIDATE` 和历史留出证据；人工批准后仍为 `HUMAN_APPROVED_PENDING_REGRESSION`，不会修改正式阈值或 Amazon 后台。完整的数据落地、云端边界和提醒流程见[自动累积与提醒正文](../../docs/v2/候选阈值自动累积与提醒.md)。
 
 ## 外部接入网关预留
 
