@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 const API = "http://127.0.0.1:8766";
+const PUBLIC_DEMO_URL = "https://luyao-rug-ads-v2-20260804.louie847918852.chatgpt.site";
 
 type Intent =
   | "NEW_PRODUCT_PROMOTION"
@@ -537,7 +538,11 @@ export default function Home() {
             </section>
           )}
 
-          <footer><span>陆遥广告智能体 V2.0</span><span>{publicDemo ? "公开演示版 · 本地数据能力未开放" : "数据保存在本机 · HUMAN_EXECUTION_ONLY"}</span></footer>
+          <footer>
+            <span>陆遥广告智能体 V2.0</span>
+            <span>{publicDemo ? "公开演示版 · 本地数据能力未开放" : "本地主版本 · 数据保存在本机 · HUMAN_EXECUTION_ONLY"}</span>
+            {!publicDemo && <a href={PUBLIC_DEMO_URL} target="_blank" rel="noreferrer">分享演示版 ↗</a>}
+          </footer>
         </div>
       </div>
     </main>

@@ -35,6 +35,9 @@ test("client source keeps the local safety boundary visible", async () => {
   assert.match(page, /公开演示版只展示操作流程/);
   assert.match(page, /LOCAL_HOSTNAMES/);
   assert.match(page, /本地执行关闭/);
+  assert.match(page, /本地主版本/);
+  assert.match(page, /分享演示版/);
+  assert.match(page, /PUBLIC_DEMO_URL/);
   assert.match(page, /只生成建议/);
   assert.match(page, /Amazon 自动执行关闭/);
   assert.match(page, /Rug 专用/);
