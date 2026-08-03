@@ -22,7 +22,9 @@
 - `new_product_module/`：新品人工架构辅助；
 - `ai_ads/`：V2 `TEST_ONLY` 合同、仲裁和 Validator；
 - [广告报表聚合工具](../../tools/ad_report_aggregator/README.md)：六类 SP 报表本地聚合，状态为 `ACTIVE_LOCAL_TOOL`；
-- [本地运营网页](../../operator_console/README.md)：新品、老品、报表更新和本周建议四入口，状态为 `ACTIVE_LOCAL_UI_V1`；
+- [本地运营网页](../../operator_console/README.md)：新品、老品、报表更新和本周建议四入口，状态为 `ACTIVE_LOCAL_UI_V1_1`；
+- [运营属性库](../../config/operator_catalog.json)：新品尺寸、类型、风格、颜色、材质和场景选项，状态为 `ACTIVE_LOCAL_CATALOG`；
+- `operator_console/backend/table_recognizer.py`：上传表格字段、ASIN和日期识别，状态为 `ACTIVE_LOCAL_TOOL`；
 - [历史阈值校准合同](../../contracts/threshold-calibration.md)：本地累计日粒度历史数据、生成候选阈值和一次性提醒，状态为 `CANDIDATE_ONLY`；
 - `scripts/`：数据导入、聚合入口与项目校验；
 - `contracts/README.md`：工具必须遵守的字段合同。
@@ -40,7 +42,7 @@
 
 程序在本机读取 CSV/TSV/XLSX，生成 `ad_decision_packet.json`、`ad_decision_packet.xlsx`、数据质量报告和证据清单。字段与粒度见[广告报表聚合合同](../../contracts/ad-report-aggregation.md)。它不调用 LLM 逐行计算，也不连接或修改 Amazon 后台。
 
-若用户提供的是 7/14/30 天重叠导出、缺 Amazon 不可变 ID，并附带人工老品工作簿，则调用名称键分析入口：
+若用户提供的是 7/14/30 天重叠导出且缺 Amazon 不可变 ID，则调用名称键分析入口。网页不要求老品工作簿；命令行的 `--old-product-workbook` 仅保留为旧批次兼容选项：
 
 ```bash
 .venv/bin/python scripts/build_name_keyed_ad_analysis.py \
@@ -55,9 +57,11 @@
 
 本地聚合工具与外部接入网关是两件事：本地聚合已经启用；MCP、API、Webhook 和外部服务器仍未启用。
 
-## 本地运营网页（第一版已启用）
+## 本地运营网页（V1.2 已启用）
 
-双击项目根目录的 `运行广告运营台.command`，打开 `http://localhost:3000/`。网页只收集意图和本机路径；Python 先执行确定性预处理，Codex 通过只读子进程读取本项目 AGENTS、规则和阈值，最后由独立 Validator 校验。任务和结果保存在被 Git 忽略的 `runtime/operator-jobs/`。
+双击项目根目录的 `运行广告运营台.command`，打开 `http://localhost:3000/`。新品属性可从本地属性库选择，也可上传产品表自动识别；导入模式只在识别完成后生成可编辑基础信息。老品和报表更新可多选、拖拽或选择文件夹上传原始广告报表，Python 自动识别 ASIN 和数据周期。用户不再手填本机路径或日期。任务和上传文件分别保存在被 Git 忽略的 `runtime/operator-jobs/` 与 `runtime/operator-uploads/`。
+
+老品网页取消单独工作簿入口。用户先点击“聚合数据报表”，只运行本地 Python；成套 7/14/30 天报表使用报表内 ASIN 生成重叠安全分析包。聚合成功后才出现“生成广告建议方案”，第二步复用数据包并调用只读 Codex，最后由独立 Validator 校验。ASIN 输入为空表示自动识别，填写一个或多个表示只分析指定对象。
 
 四个入口及其规则/阈值路由登记在 `config/operator_intents.json`，字段与状态读取[运营任务合同](../../contracts/operator-job.md)。网页不得复制或维护业务阈值，不得把 `PASS_CANDIDATE_ONLY` 解释为已经执行。后台只监听本机 `127.0.0.1:8766`，不属于外部 API 接入激活。
 

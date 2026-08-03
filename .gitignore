@@ -10,3 +10,4 @@ config/connectors.yaml
 config/connectors.local.yaml
 integrations/runtime/
 runtime/operator-jobs/
+runtime/operator-uploads/

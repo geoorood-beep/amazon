@@ -22,7 +22,16 @@
 
 工作簿中的 `01_AGENT_INPUT` 是唯一聚合输入表。它把不同 `object_type` 和 `window` 保持为独立粒度，避免把搜索词、Target、广告位和商品报表重复相加。
 
-当输入是 7/14/30 天重叠导出、缺 Amazon 不可变 ID，并同时提供人工老品工作簿时，使用名称键分析模式：
+当输入是 7/14/30 天重叠导出且缺 Amazon 不可变 ID 时，使用名称键分析模式。网页流程只提供原始广告报表：
+
+```bash
+.venv/bin/python scripts/build_name_keyed_ad_analysis.py \
+  --source-dir "/绝对路径/产品广告数据文件" \
+  --primary-asin "B0XXXXXXXXX" \
+  --output-dir "/Users/leo/Documents/陆遥广告智能体/outputs/本批次"
+```
+
+兼容命令行仍可选传入人工快照工作簿：
 
 ```bash
 .venv/bin/python scripts/build_name_keyed_ad_analysis.py \
@@ -33,7 +42,7 @@
   --render-previews
 ```
 
-该模式固定把 `30天每日明细` 作为唯一历史事实源；7 天、14 天和汇总表只校验，绝不叠加。名称生成的 `LOCAL-*` 只用于分析定位，不得替代 Campaign / Ad Group / Target ID。老品工作簿里的店铺订单和店铺销售额单独输出，不进入广告 CVR、CPA 或 ACOS。
+该模式固定把 `30天每日明细` 作为唯一历史事实源；7 天、14 天和汇总表只校验，绝不叠加。未提供工作簿时，当前窗口取 30 天每日明细的最后 7 个自然日；名称生成的 `LOCAL-*` 只用于分析定位，不得替代 Campaign / Ad Group / Target ID。若命令行提供旧工作簿，其中店铺订单和店铺销售额单独输出，不进入广告 CVR、CPA 或 ACOS。
 
 ## 对话自动路由
 

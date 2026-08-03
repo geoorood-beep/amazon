@@ -100,7 +100,7 @@
 .venv/bin/python scripts/validate_threshold_calibration.py
 .venv/bin/python scripts/stress_test_threshold_calibration.py
 .venv/bin/python -m pytest new_product_module/tests ai_ads/tests -q
-.venv/bin/python -m unittest discover operator_console/backend/tests -v
+.venv/bin/python -m pytest operator_console/backend/tests -q
 cd operator_console && npm run lint && npm test && npm audit --omit=dev && cd ..
 .venv/bin/python scripts/stress_test_ad_report_aggregator.py
 .venv/bin/python scripts/stress_test_v20.py

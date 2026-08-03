@@ -507,7 +507,7 @@ def normalize_old_daily(kind: str, rows: list[dict[str, Any]]) -> list[dict[str,
 def settings_rows_from_sources(
     settings_path: Path,
     selected_campaigns: set[str],
-    old_workbook: dict[str, Any],
+    old_workbook: dict[str, Any] | None,
 ) -> list[dict[str, Any]]:
     _, _, historical = read_records(settings_path)
     rows: list[dict[str, Any]] = []
@@ -529,6 +529,8 @@ def settings_rows_from_sources(
                 "identity_quality": "DERIVED_NAME_KEY_ANALYSIS_ONLY",
             }
         )
+    if old_workbook is None:
+        return rows
     for row in old_workbook["settings"]["rows"]:
         ad_group = clean_text(row.get("ad_group"))
         if not ad_group:
@@ -566,7 +568,7 @@ def evidence_row(path: Path, role: str, worksheet: str, rows: list[dict[str, Any
 
 def build_name_keyed_analysis(
     source_dir: Path,
-    old_product_path: Path,
+    old_product_path: Path | None,
     primary_asin: str,
     *,
     timezone_name: str = "America/Los_Angeles",
@@ -646,75 +648,94 @@ def build_name_keyed_analysis(
         ),
     }
 
-    old_workbook = load_old_product_workbook(old_product_path)
-    evidence.append(
-        {
-            "role": "CURRENT_OLD_PRODUCT_WORKBOOK",
-            "file_name": old_product_path.name,
-            "worksheet": "多工作表",
-            "row_count": sum(len(item["rows"]) for item in old_workbook.values()),
-            "period_start": None,
-            "period_end": None,
-            "sha256": sha256_file(old_product_path),
-            "source_path": str(old_product_path),
+    old_workbook: dict[str, Any] | None = None
+    if old_product_path is not None:
+        old_workbook = load_old_product_workbook(old_product_path)
+        evidence.append(
+            {
+                "role": "CURRENT_OLD_PRODUCT_WORKBOOK",
+                "file_name": old_product_path.name,
+                "worksheet": "多工作表",
+                "row_count": sum(len(item["rows"]) for item in old_workbook.values()),
+                "period_start": None,
+                "period_end": None,
+                "sha256": sha256_file(old_product_path),
+                "source_path": str(old_product_path),
+            }
+        )
+        current_normalized = {
+            "SEARCH_TERM": normalize_old_daily("SEARCH_TERM", old_workbook["search"]["rows"]),
+            "PLACEMENT": normalize_old_daily("PLACEMENT", old_workbook["placement"]["rows"]),
+            "ADVERTISED_PRODUCT": normalize_old_daily("ADVERTISED_PRODUCT", old_workbook["product"]["rows"]),
         }
-    )
-    current_normalized = {
-        "SEARCH_TERM": normalize_old_daily("SEARCH_TERM", old_workbook["search"]["rows"]),
-        "PLACEMENT": normalize_old_daily("PLACEMENT", old_workbook["placement"]["rows"]),
-        "ADVERTISED_PRODUCT": normalize_old_daily("ADVERTISED_PRODUCT", old_workbook["product"]["rows"]),
-    }
-    current_dates = sorted(
-        row["date"]
-        for family_rows in current_normalized.values()
-        for row in family_rows
-        if row["date"] is not None
-    )
-    if not current_dates:
-        raise ValueError("老品工作簿没有可解析的每日日期")
-    current_start, current_end = current_dates[0], current_dates[-1]
-    current_days = (current_end - current_start).days + 1
-    current_window = ((f"CURRENT_{current_days}D", current_days),)
+        current_dates = sorted(
+            row["date"]
+            for family_rows in current_normalized.values()
+            for row in family_rows
+            if row["date"] is not None
+        )
+        if not current_dates:
+            raise ValueError("老品工作簿没有可解析的每日日期")
+        current_start, current_end = current_dates[0], current_dates[-1]
+        current_days = (current_end - current_start).days + 1
+        current_window = ((f"CURRENT_{current_days}D", current_days),)
+        current_period_label = "CURRENT_SHORT_PERIOD"
+        current_target_rows = current_normalized["SEARCH_TERM"]
+        current_product_keys = ("asin", "sku")
+    else:
+        current_end = historical_end
+        current_start = historical_end - timedelta(days=6)
+        current_days = 7
+        current_window = (("LATEST_D7", 7),)
+        current_period_label = "LATEST_REPORT_WINDOW"
+        current_normalized = filtered
+        current_target_rows = current_normalized["TARGET"]
+        current_product_keys = ("campaign", "ad_group", "sku", "asin")
+
     current_metrics = {
         "campaign": campaign_metrics_from_rows(
             current_normalized["SEARCH_TERM"],
-            period_label="CURRENT_SHORT_PERIOD",
+            period_label=current_period_label,
             end_date=current_end,
             windows=current_window,
         ),
         "target": aggregate_windows(
-            current_normalized["SEARCH_TERM"],
+            current_target_rows,
             key_fields=("campaign", "ad_group", "target", "match_type"),
-            period_label="CURRENT_SHORT_PERIOD",
+            period_label=current_period_label,
             end_date=current_end,
             windows=current_window,
         ),
         "search_term": aggregate_windows(
             current_normalized["SEARCH_TERM"],
             key_fields=("campaign", "ad_group", "target", "match_type", "search_term"),
-            period_label="CURRENT_SHORT_PERIOD",
+            period_label=current_period_label,
             end_date=current_end,
             windows=current_window,
         ),
         "placement": aggregate_windows(
             current_normalized["PLACEMENT"],
             key_fields=("campaign", "placement"),
-            period_label="CURRENT_SHORT_PERIOD",
+            period_label=current_period_label,
             end_date=current_end,
             windows=current_window,
         ),
         "product": aggregate_windows(
             current_normalized["ADVERTISED_PRODUCT"],
-            key_fields=("asin", "sku"),
-            period_label="CURRENT_SHORT_PERIOD",
+            key_fields=current_product_keys,
+            period_label=current_period_label,
             end_date=current_end,
             windows=current_window,
         ),
     }
-    current_store_metrics = aggregate_current_store_metrics(
-        current_normalized["ADVERTISED_PRODUCT"],
-        period_start=current_start,
-        period_end=current_end,
+    current_store_metrics = (
+        aggregate_current_store_metrics(
+            current_normalized["ADVERTISED_PRODUCT"],
+            period_start=current_start,
+            period_end=current_end,
+        )
+        if old_workbook is not None
+        else []
     )
 
     settings_path = source_dir / "Campaign___Ad_Group_设置表-汇总-近30天.csv"
@@ -729,24 +750,37 @@ def build_name_keyed_analysis(
     evidence.append(evidence_row(hourly_path, "ACCOUNT_TOTAL_NOT_HOURLY", hourly_sheet, hourly_rows))
     settings = settings_rows_from_sources(settings_path, selected_campaigns, old_workbook)
 
-    gap_days = (current_start - historical_end).days - 1
+    gap_days = (current_start - historical_end).days - 1 if old_workbook is not None else 0
     issues = [
         {
             "level": "BLOCK_EXECUTION",
             "code": "IMMUTABLE_AMAZON_IDS_MISSING",
             "message": "源报表只有名称，没有Campaign/Ad Group/Target不可变ID；本包仅供分析，禁止生成后台执行动作。",
         },
-        {
-            "level": "WARNING",
-            "code": "CURRENT_PERIOD_SHORT",
-            "message": f"老品当前数据只有{current_days}个自然日（{current_start}..{current_end}），不得当作成熟D7/D14/D30样本。",
-        },
-        {
-            "level": "WARNING",
-            "code": "NON_CONTIGUOUS_PERIODS",
-            "message": f"历史数据结束于{historical_end}，当前数据开始于{current_start}，中间空缺{gap_days}天；两个周期独立保存。",
-        },
     ]
+    if old_workbook is not None:
+        issues.extend(
+            [
+                {
+                    "level": "WARNING",
+                    "code": "CURRENT_PERIOD_SHORT",
+                    "message": f"老品当前数据只有{current_days}个自然日（{current_start}..{current_end}），不得当作成熟D7/D14/D30样本。",
+                },
+                {
+                    "level": "WARNING",
+                    "code": "NON_CONTIGUOUS_PERIODS",
+                    "message": f"历史数据结束于{historical_end}，当前数据开始于{current_start}，中间空缺{gap_days}天；两个周期独立保存。",
+                },
+            ]
+        )
+    else:
+        issues.append(
+            {
+                "level": "WARNING",
+                "code": "LATEST_D7_DERIVED_FROM_30D_REPORT",
+                "message": f"未提供额外当前快照；当前窗口固定取30天每日事实源的最后7天（{current_start}..{current_end}），不得重复累加7/14天导出。",
+            }
+        )
     if "小时" not in hourly_headers and "Hour" not in hourly_headers:
         issues.append(
             {
@@ -873,7 +907,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         description="聚合7/14/30天重叠广告报表，并把无Amazon ID的数据限制为名称键分析包。"
     )
     parser.add_argument("--source-dir", required=True)
-    parser.add_argument("--old-product-workbook", required=True)
+    parser.add_argument("--old-product-workbook")
     parser.add_argument("--primary-asin", required=True)
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--render-previews", action="store_true")
@@ -884,7 +918,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     payload = build_name_keyed_analysis(
         Path(args.source_dir).expanduser().resolve(),
-        Path(args.old_product_workbook).expanduser().resolve(),
+        Path(args.old_product_workbook).expanduser().resolve() if args.old_product_workbook else None,
         args.primary_asin,
     )
     outputs = write_outputs(

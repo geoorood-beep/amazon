@@ -1,12 +1,12 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "version": "V2.0",
   "category": "rug",
   "execution_boundary": "HUMAN_EXECUTION_ONLY",
   "intents": {
     "NEW_PRODUCT_PROMOTION": {
       "label": "新品推广",
-      "required_fields": ["asin", "size_spec", "marketplace", "order_target_daily", "business_goal"],
+      "required_fields": ["asin", "size_spec", "rug_type", "marketplace", "order_target_daily"],
       "preprocessor": "NEW_PRODUCT_MODULE",
       "rule_entry": "rules/domains/new-product/scope-input-sources.md",
       "threshold_entry": "thresholds/rug/new-product-stage.md",
@@ -14,7 +14,7 @@
     },
     "OLD_PRODUCT_OPTIMIZATION": {
       "label": "老品优化",
-      "required_fields": ["asin", "marketplace", "report_source_path", "business_goal"],
+      "required_fields": ["marketplace", "report_source_path"],
       "preprocessor": "AD_REPORT_AGGREGATOR",
       "rule_entry": "rules/domains/old-product/input-and-modes.md",
       "threshold_entry": "thresholds/rug/performance.md",
@@ -22,7 +22,7 @@
     },
     "AGGREGATE_REPORTS": {
       "label": "更新广告数据",
-      "required_fields": ["asin", "marketplace", "report_source_path"],
+      "required_fields": ["marketplace", "report_source_path"],
       "preprocessor": "AD_REPORT_AGGREGATOR",
       "rule_entry": "rules/core/data-quality.md",
       "threshold_entry": null,
