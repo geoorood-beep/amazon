@@ -159,6 +159,8 @@ def main() -> int:
                 errors.append("周报配置缺少保存路径")
                 continue
             target = Path(value).expanduser()
+            if not target.is_absolute():
+                target = ROOT / target
             if not is_within(target, ROOT):
                 errors.append(f"周报保存路径越过项目边界：{target}")
 

@@ -26,7 +26,6 @@ import zipfile
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = PROJECT_ROOT / "config" / "weekly_amazon_report_ingest.json"
-DEFAULT_SAVE_ROOT = PROJECT_ROOT / "imports" / "amazon_ads_weekly"
 
 ALLOWED_EXTENSIONS = {".xlsx", ".xls", ".csv", ".tsv", ".zip"}
 
@@ -244,7 +243,7 @@ def default_config() -> dict:
             "unseen_only": False,
         },
         "output": {
-            "save_root": str(DEFAULT_SAVE_ROOT),
+            "save_root": "imports/amazon_ads_weekly",
             "write_latest_pointer": True,
         },
         "attachments": {
@@ -253,9 +252,16 @@ def default_config() -> dict:
         },
         "analysis": {
             "default_product_stage": "老品推广",
-            "output_root": str(PROJECT_ROOT / "outputs" / "weekly_amazon_ads"),
+            "output_root": "outputs/weekly_amazon_ads",
         },
     }
+
+
+def resolve_project_path(value: str) -> Path:
+    path = Path(value).expanduser()
+    if not path.is_absolute():
+        path = PROJECT_ROOT / path
+    return path.resolve()
 
 
 def load_config(path: Path) -> dict:
@@ -546,7 +552,7 @@ def build_manifest(
     recommended_names = [rule["standard_name"] for rule in REPORT_RULES if not rule["required"]]
     missing_required = [name for name in required_names if not classified.get(name)]
     missing_recommended = [name for name in recommended_names if not classified.get(name)]
-    analysis_output_root = Path(config["analysis"]["output_root"])
+    analysis_output_root = resolve_project_path(config["analysis"]["output_root"])
     analysis_output_dir = analysis_output_root / run_dir.name
 
     return {
@@ -581,7 +587,7 @@ def write_manifest(manifest: dict, run_dir: Path, config: dict) -> Path:
         json.dump(manifest, f, ensure_ascii=False, indent=2)
 
     if config["output"].get("write_latest_pointer", True):
-        latest = Path(config["output"]["save_root"]) / "latest_run.txt"
+        latest = resolve_project_path(config["output"]["save_root"]) / "latest_run.txt"
         latest.write_text(str(run_dir) + "\n", encoding="utf-8")
     return path
 
@@ -677,7 +683,7 @@ def main() -> int:
     args = parse_args()
     config_path = Path(args.config).expanduser().resolve()
     config = load_config(config_path)
-    save_root = Path(config["output"]["save_root"]).expanduser().resolve()
+    save_root = resolve_project_path(config["output"]["save_root"])
     run_id = dt.datetime.now().strftime("%Y%m%d_%H%M%S")
     run_dir = save_root / run_id
     since = imap_since_date(config, args.since) if not args.source_dir else None

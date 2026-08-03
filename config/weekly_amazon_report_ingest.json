@@ -24,7 +24,7 @@
     "unseen_only": false
   },
   "output": {
-    "save_root": "/Users/leo/Documents/陆遥广告智能体/imports/amazon_ads_weekly",
+    "save_root": "imports/amazon_ads_weekly",
     "write_latest_pointer": true
   },
   "attachments": {
@@ -39,6 +39,6 @@
   },
   "analysis": {
     "default_product_stage": "老品推广",
-    "output_root": "/Users/leo/Documents/陆遥广告智能体/outputs/weekly_amazon_ads"
+    "output_root": "outputs/weekly_amazon_ads"
   }
 }
