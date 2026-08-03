@@ -9,7 +9,7 @@
 把符合[样本示例](../../config/threshold_calibration_samples.example.csv)的一个或多个 CSV 放入：
 
 ```text
-/Users/leo/Documents/陆遥广告智能体/imports/threshold-calibration/
+<项目根目录>/imports/threshold-calibration/
 ```
 
 相同 Segment、日期、对象和策略阶段不得在多个文件中重复。
@@ -18,8 +18,8 @@
 
 ```bash
 .venv/bin/python scripts/check_threshold_calibration.py \
-  --source-dir "/Users/leo/Documents/陆遥广告智能体/imports/threshold-calibration" \
-  --output-dir "/Users/leo/Documents/陆遥广告智能体/outputs/threshold-calibration/latest"
+  --source-dir "imports/threshold-calibration" \
+  --output-dir "outputs/threshold-calibration/latest"
 ```
 
 输出：
@@ -36,6 +36,12 @@
 - `INCONCLUSIVE*`：对象、对象对、粒度或证据不足。
 
 证明只适用于与当前性能阈值一致的 `SKU_SIZE` 粒度。Target、搜索词、Campaign 等数据仍可累计资格样本，但不得据此声称新的 SKU_SIZE 性能阈值更好。
+
+## 固定监控周期
+
+便携配置：[threshold_monitoring.json](../../config/threshold_monitoring.json)。默认每周一 `09:00`，使用安装设备本地时区；不创建每日任务。同一项目只允许一个活动 Heartbeat。
+
+当前本地目录是唯一活动数据源。未来云存储和云端 Scheduler 的字段、互斥要求和激活门见[云端接入位](../../integrations/cloud/threshold-monitoring-cloud-slot.md)，当前状态为 `PLACEHOLDER_NOT_ACTIVE`。
 
 ## 人工批准
 

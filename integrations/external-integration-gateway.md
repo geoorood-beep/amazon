@@ -12,6 +12,7 @@
 | HTTP API / Webhook | [API 接入位正文](api/http-api-webhook-slot.md) | `PLACEHOLDER_NOT_ACTIVE` |
 | 其他外部服务器 | [服务器接入位正文](server/external-server-slot.md) | `PLACEHOLDER_NOT_ACTIVE` |
 | 原始数据、标准化和隔离 | [统一入库位正文](ingestion/ingestion-pipeline-slot.md) | `PLACEHOLDER_NOT_ACTIVE` |
+| 云存储 / 云端每周任务 | [候选阈值云端接入位](cloud/threshold-monitoring-cloud-slot.md) | `PLACEHOLDER_NOT_ACTIVE` |
 
 配置模板：[连接器禁用模板](../config/connectors.example.yaml)。输入边界：[外部数据接入合同](../contracts/external-ingest.md)。
 

@@ -64,6 +64,8 @@
 
 具体样本门直接读取[历史校准资格阈值](../../thresholds/rug/calibration-eligibility.md)，字段读取[校准合同](../../contracts/threshold-calibration.md)。监控只生成 `CANDIDATE` 和历史留出证据；人工批准后仍为 `HUMAN_APPROVED_PENDING_REGRESSION`，不会修改正式阈值或 Amazon 后台。完整的数据落地、云端边界和提醒流程见[自动累积与提醒正文](../../docs/v2/候选阈值自动累积与提醒.md)。
 
+默认调度固定为每周一 `09:00`、安装设备本地时区，机器配置见[阈值监控配置](../../config/threshold_monitoring.json)。复制到其他电脑后仍读取项目相对路径；调度器不可用时只报告未调度，不创建未经允许的系统任务。未来云存储和云端 Scheduler 使用[云端接入位](../../integrations/cloud/threshold-monitoring-cloud-slot.md)，当前保持占位禁用。
+
 ## 外部接入网关预留
 
 第 05 层已为外部服务器、MCP 和 API 预留统一入口：[外部接入网关正文](../../integrations/external-integration-gateway.md)。当前状态固定为 `PLACEHOLDER_NOT_ACTIVE`，没有运行中的 Endpoint 或连接器。
@@ -74,6 +76,7 @@
 | HTTP API / Webhook | [API 接入位正文](../../integrations/api/http-api-webhook-slot.md) | 不可监听、不可调用 |
 | 其他外部服务器 | [服务器接入位正文](../../integrations/server/external-server-slot.md) | 不可连接 |
 | 统一入库和隔离 | [入库接入位正文](../../integrations/ingestion/ingestion-pipeline-slot.md) | 不创建生产批次 |
+| 云存储 / 云端每周任务 | [候选阈值云端接入位](../../integrations/cloud/threshold-monitoring-cloud-slot.md) | 不可连接、不可调度 |
 
 所有未来连接器必须先生成 [ExternalDataEnvelope](../../contracts/external-ingest.md)，保存原始输入和 SHA-256，再转换为 `AdDecisionPacket / AdContext`。外部输入不得直接携带 `DQ_PASS`、`AUTO_PASS`、`ACTIVE` 或广告动作权限。
 

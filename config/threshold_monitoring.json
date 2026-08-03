@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0",
+  "config_version": "V2.0-20260804",
+  "status": "ACTIVE_LOCAL_CONFIGURATION",
+  "schedule": {
+    "frequency": "WEEKLY",
+    "weekday": "MONDAY",
+    "local_time": "09:00",
+    "timezone_mode": "INSTALLATION_LOCAL_TIME",
+    "automation_kind": "HEARTBEAT",
+    "duplicate_policy": "ONE_ACTIVE_MONITOR_PER_PROJECT"
+  },
+  "execution": {
+    "active_backend": "LOCAL_HEARTBEAT",
+    "local_heartbeat": {
+      "status": "ACTIVE"
+    },
+    "cloud_runner": {
+      "status": "PLACEHOLDER_NOT_ACTIVE",
+      "read_only_input": true,
+      "allow_threshold_write": false,
+      "allow_amazon_action": false
+    }
+  },
+  "data_sources": {
+    "local_directory": {
+      "status": "ACTIVE",
+      "path": "imports/threshold-calibration"
+    },
+    "cloud_storage": {
+      "status": "PLACEHOLDER_NOT_ACTIVE",
+      "provider": null,
+      "bucket_or_container_env": "RUG_ADS_THRESHOLD_CLOUD_BUCKET",
+      "credential_env": "RUG_ADS_THRESHOLD_CLOUD_CREDENTIAL",
+      "prefix": null,
+      "read_only": true,
+      "local_quarantine_path": "imports/threshold-calibration-cloud-quarantine",
+      "manifest_required": true,
+      "sha256_required": true
+    }
+  },
+  "notification": {
+    "candidate_id_deduplication": true,
+    "notify_only_when_candidate_changes": true,
+    "human_approval_required": true
+  }
+}

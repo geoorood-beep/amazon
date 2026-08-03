@@ -17,11 +17,17 @@ from tools.threshold_calibrator.calibrator import (
     sha256_file,
     write_outputs,
 )
-from tools.threshold_calibrator.monitor import evaluate, mark_notified
+from tools.threshold_calibrator.monitor import (
+    evaluate,
+    load_monitor_config,
+    local_source_dir,
+    mark_notified,
+)
 
 
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG = ROOT / "config/threshold_calibration.json"
+MONITOR_CONFIG = ROOT / "config/threshold_monitoring.json"
 
 
 def _rows(
@@ -249,6 +255,36 @@ def test_monitor_notifies_once_per_candidate(tmp_path: Path) -> None:
     second = evaluate(source, output, state, CONFIG)
     assert second["monitor_status"] == "ALREADY_NOTIFIED"
     assert second["should_notify"] is False
+
+
+def test_portable_monitor_defaults_to_weekly_local_time(tmp_path: Path) -> None:
+    config = load_monitor_config(MONITOR_CONFIG)
+    assert config["schedule"] == {
+        "frequency": "WEEKLY",
+        "weekday": "MONDAY",
+        "local_time": "09:00",
+        "timezone_mode": "INSTALLATION_LOCAL_TIME",
+        "automation_kind": "HEARTBEAT",
+        "duplicate_policy": "ONE_ACTIVE_MONITOR_PER_PROJECT",
+    }
+    assert local_source_dir(config, tmp_path) == (
+        tmp_path / "imports/threshold-calibration"
+    ).resolve()
+
+
+def test_daily_schedule_and_unimplemented_cloud_are_rejected(tmp_path: Path) -> None:
+    config = json.loads(MONITOR_CONFIG.read_text(encoding="utf-8"))
+    config["schedule"]["frequency"] = "DAILY"
+    bad_schedule = tmp_path / "daily.json"
+    bad_schedule.write_text(json.dumps(config), encoding="utf-8")
+    with pytest.raises(ValueError, match="frequency"):
+        load_monitor_config(bad_schedule)
+    config = json.loads(MONITOR_CONFIG.read_text(encoding="utf-8"))
+    config["data_sources"]["cloud_storage"]["status"] = "TEST_ONLY"
+    premature_cloud = tmp_path / "cloud.json"
+    premature_cloud.write_text(json.dumps(config), encoding="utf-8")
+    with pytest.raises(ValueError, match="云存储连接器尚未实现"):
+        load_monitor_config(premature_cloud)
 
 
 def test_candidate_package_proves_historical_holdout_improvement(tmp_path: Path) -> None:

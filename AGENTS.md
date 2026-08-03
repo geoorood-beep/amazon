@@ -36,9 +36,9 @@
 | 搜索词 / 词根 | [语义聚合](rules/domains/search-term/semantic-aggregation.md)、[评分与动作](rules/domains/search-term/scoring-and-actions.md) | [评分与拓量门](thresholds/rug/traffic-and-scoring.md) |
 | 类目流量 | [输入](rules/domains/category-traffic/scope-and-input.md)、[分层](rules/domains/category-traffic/relevance-and-segmentation.md)、[打法](rules/domains/category-traffic/structure-and-playbook.md)、[输出](rules/domains/category-traffic/output-and-confidence.md) | [流量结构阈值](thresholds/rug/traffic-and-scoring.md) |
 | 历史效果数据 | [字段与入库](rules/domains/history-data/schema-and-ingest.md)、[使用边界](rules/domains/history-data/usage-boundaries.md) | 不适用 |
-| 历史阈值校准 / 达标提醒 | [校准字段合同](contracts/threshold-calibration.md)、[本地累积与提醒](docs/v2/候选阈值自动累积与提醒.md) | [校准资格门](thresholds/rug/calibration-eligibility.md) |
+| 历史阈值校准 / 每周达标提醒 | [校准字段合同](contracts/threshold-calibration.md)、[累积与提醒](docs/v2/候选阈值自动累积与提醒.md)、[便携监控配置](config/threshold_monitoring.json) | [校准资格门](thresholds/rug/calibration-eligibility.md) |
 | 聚合六张广告报表 | [本地聚合工具](tools/ad_report_aggregator/README.md)、[聚合字段合同](contracts/ad-report-aggregation.md) | 不适用；技术舍入容差见工具配置，不是业务阈值 |
-| 外部服务器 / MCP / API | [第 05 层接入占位](integrations/external-integration-gateway.md)、[外部数据接入合同](contracts/external-ingest.md) | 不适用；当前 `PLACEHOLDER_NOT_ACTIVE` |
+| 外部服务器 / MCP / API / 云存储 | [第 05 层接入占位](integrations/external-integration-gateway.md)、[阈值云端接入位](integrations/cloud/threshold-monitoring-cloud-slot.md)、[外部数据接入合同](contracts/external-ingest.md) | 不适用；当前 `PLACEHOLDER_NOT_ACTIVE` |
 | 输出表格 | [输出规则正文](rules/output/output-rules.md) | 按主任务引用 |
 | 动作 / Validator | [动作仲裁规则](rules/core/action-arbitration-validator.md) | 按动作引用 |
 
@@ -76,6 +76,14 @@
 - 复盘只能生成证据和 CANDIDATE，不能覆盖 ACTIVE。
 - 当前没有生产机器 ACTIVE 规则包。
 - MCP、HTTP API、Webhook 和其他外部服务器连接器当前均为 `PLACEHOLDER_NOT_ACTIVE`；预留目录不代表已经连接或允许执行。
+
+## 候选阈值监控安装默认
+
+- 唯一默认周期读取 `config/threshold_monitoring.json`：每周一 `09:00`，使用安装设备本地时区；不得默认创建每日检查。
+- 在新的 Codex 安装中首次启用本项目时，若支持任务自动化，应按该配置创建或更新一个 Heartbeat；同一项目只允许一个活动监控，避免重复提醒。
+- Git clone 或复制目录本身不会创建系统级任务；自动化不可用时必须报告 `MONITOR_NOT_SCHEDULED`，不得私自写系统 cron。
+- 本地监控使用项目相对路径，不能硬编码 `/Users/leo` 作为运行依赖。
+- 云存储和云端定时任务预留见 `integrations/cloud/threshold-monitoring-cloud-slot.md`。当前均为 `PLACEHOLDER_NOT_ACTIVE`；未来启用时必须与本地调度互斥，并复用同一校准器、Validator 和人工批准门。
 - 当用户说“聚合广告报表”“把六张广告表合成一张”或“生成 ad_decision_packet”时，先读取 [聚合工具入口](tools/ad_report_aggregator/README.md)，调用 `scripts/build_ad_decision_packet.py`；不得让模型逐行手工重算六表。
 - 聚合工具的 `DQ_PASS` 只表示数据包可进入人工分析，不表示广告动作通过或已经执行。
 

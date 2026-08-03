@@ -16,6 +16,7 @@ REQUIRED_DOCS = (
     "integrations/api/http-api-webhook-slot.md",
     "integrations/server/external-server-slot.md",
     "integrations/ingestion/ingestion-pipeline-slot.md",
+    "integrations/cloud/threshold-monitoring-cloud-slot.md",
     "contracts/external-ingest.md",
 )
 ENV_NAME_PATTERN = re.compile(r"^[A-Z][A-Z0-9_]*$")
@@ -53,9 +54,19 @@ def main() -> int:
             errors.append("连接器允许类目必须且只能为 rug")
 
         connectors = config.get("connectors")
-        expected_connectors = {"mcp", "external_api", "inbound_api", "external_server"}
+        expected_connectors = {
+            "mcp",
+            "external_api",
+            "inbound_api",
+            "external_server",
+            "cloud_storage",
+            "cloud_runner",
+        }
         if not isinstance(connectors, dict) or set(connectors) != expected_connectors:
-            errors.append("连接器占位项必须完整登记 mcp/external_api/inbound_api/external_server")
+            errors.append(
+                "连接器占位项必须完整登记 mcp/external_api/inbound_api/"
+                "external_server/cloud_storage/cloud_runner"
+            )
         else:
             for name, connector in connectors.items():
                 if connector.get("enabled") is not False:
@@ -80,7 +91,7 @@ def main() -> int:
 
     print(
         "第 05 层外部接入占位校验通过："
-        "MCP/API/外部服务器均为 PLACEHOLDER_NOT_ACTIVE，"
+        "MCP/API/外部服务器/云存储/云端任务均为 PLACEHOLDER_NOT_ACTIVE，"
         "只接收边界、Rug 范围和禁止执行门保持有效。"
     )
     return 0

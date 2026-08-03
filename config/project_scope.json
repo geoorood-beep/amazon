@@ -36,6 +36,7 @@
     "integrations/api/http-api-webhook-slot.md",
     "integrations/server/external-server-slot.md",
     "integrations/ingestion/ingestion-pipeline-slot.md",
+    "integrations/cloud/threshold-monitoring-cloud-slot.md",
     "config/connectors.example.yaml"
   ],
   "required_rule_paths": [
@@ -128,6 +129,7 @@
     "config/threshold_calibration.json",
     "config/threshold_calibration_samples.example.csv",
     "config/threshold_candidate_approval.example.json",
+    "config/threshold_monitoring.json",
     "tools/ad_report_aggregator/README.md",
     "tools/ad_report_aggregator/aggregator.py",
     "tools/ad_report_aggregator/synthetic.py",
@@ -181,6 +183,14 @@
     "status": "PLACEHOLDER_NOT_ACTIVE",
     "receive_only": true,
     "action_execution_enabled": false
+  },
+  "threshold_monitoring": {
+    "config": "config/threshold_monitoring.json",
+    "default_frequency": "WEEKLY",
+    "default_weekday": "MONDAY",
+    "default_local_time": "09:00",
+    "cloud_storage_status": "PLACEHOLDER_NOT_ACTIVE",
+    "cloud_runner_status": "PLACEHOLDER_NOT_ACTIVE"
   },
   "legacy_compatibility_map": {
     "agents/rug-category.md": "rules/domains/rug-category.md",

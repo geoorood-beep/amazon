@@ -20,6 +20,7 @@ def main() -> int:
         "config/threshold_calibration.json",
         "config/threshold_calibration_samples.example.csv",
         "config/threshold_candidate_approval.example.json",
+        "config/threshold_monitoring.json",
         "tools/threshold_calibrator/calibrator.py",
         "tools/threshold_calibrator/approval.py",
         "tools/threshold_calibrator/monitor.py",
@@ -34,6 +35,31 @@ def main() -> int:
     config = json.loads(
         (ROOT / "config/threshold_calibration.json").read_text(encoding="utf-8")
     )
+    monitoring = json.loads(
+        (ROOT / "config/threshold_monitoring.json").read_text(encoding="utf-8")
+    )
+    expected_schedule = {
+        "frequency": "WEEKLY",
+        "weekday": "MONDAY",
+        "local_time": "09:00",
+        "timezone_mode": "INSTALLATION_LOCAL_TIME",
+        "automation_kind": "HEARTBEAT",
+        "duplicate_policy": "ONE_ACTIVE_MONITOR_PER_PROJECT",
+    }
+    if monitoring.get("schedule") != expected_schedule:
+        return fail("可移植监控默认必须为每周一09:00安装设备本地时区")
+    if monitoring.get("execution", {}).get("active_backend") != "LOCAL_HEARTBEAT":
+        return fail("当前活动监控后端必须为LOCAL_HEARTBEAT")
+    if (
+        monitoring.get("execution", {}).get("cloud_runner", {}).get("status")
+        != "PLACEHOLDER_NOT_ACTIVE"
+    ):
+        return fail("云端调度器必须保持PLACEHOLDER_NOT_ACTIVE")
+    if (
+        monitoring.get("data_sources", {}).get("cloud_storage", {}).get("status")
+        != "PLACEHOLDER_NOT_ACTIVE"
+    ):
+        return fail("云存储必须保持PLACEHOLDER_NOT_ACTIVE")
     expected = {
         "reference_candidate": {
             "threshold_id": "THR-CAL-001",
@@ -153,6 +179,8 @@ def main() -> int:
         "thresholds/rug/calibration-eligibility.md",
         "contracts/threshold-calibration.md",
         "scripts/monitor_threshold_candidates.py",
+        "config/threshold_monitoring.json",
+        "integrations/cloud/threshold-monitoring-cloud-slot.md",
     ):
         if relative not in agents:
             return fail(f"AGENTS目录缺少直达入口: {relative}")

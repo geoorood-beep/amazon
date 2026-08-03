@@ -8,6 +8,53 @@ from typing import Any
 from .calibrator import build_candidate_package, load_config, read_samples, write_outputs
 
 
+ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_MONITOR_CONFIG = ROOT / "config/threshold_monitoring.json"
+
+
+def load_monitor_config(path: Path = DEFAULT_MONITOR_CONFIG) -> dict[str, Any]:
+    config = json.loads(path.read_text(encoding="utf-8"))
+    schedule = config.get("schedule", {})
+    expected_schedule = {
+        "frequency": "WEEKLY",
+        "weekday": "MONDAY",
+        "local_time": "09:00",
+        "timezone_mode": "INSTALLATION_LOCAL_TIME",
+        "automation_kind": "HEARTBEAT",
+        "duplicate_policy": "ONE_ACTIVE_MONITOR_PER_PROJECT",
+    }
+    for field, expected in expected_schedule.items():
+        if schedule.get(field) != expected:
+            raise ValueError(f"候选阈值监控schedule.{field}必须为{expected}")
+    execution = config.get("execution", {})
+    if execution.get("active_backend") != "LOCAL_HEARTBEAT":
+        raise ValueError("当前发布只允许LOCAL_HEARTBEAT作为活动调度后端")
+    for name in ("cloud_runner",):
+        if execution.get(name, {}).get("status") != "PLACEHOLDER_NOT_ACTIVE":
+            raise ValueError(f"{name}尚未实现，必须保持PLACEHOLDER_NOT_ACTIVE")
+    sources = config.get("data_sources", {})
+    if sources.get("local_directory", {}).get("status") != "ACTIVE":
+        raise ValueError("本地阈值历史目录必须保持ACTIVE")
+    cloud = sources.get("cloud_storage", {})
+    if cloud.get("status") != "PLACEHOLDER_NOT_ACTIVE":
+        raise ValueError("云存储连接器尚未实现，必须保持PLACEHOLDER_NOT_ACTIVE")
+    if cloud.get("read_only") is not True:
+        raise ValueError("未来云存储接入必须保持只读")
+    return config
+
+
+def local_source_dir(config: dict[str, Any], project_root: Path = ROOT) -> Path:
+    relative = Path(config["data_sources"]["local_directory"]["path"])
+    if relative.is_absolute():
+        raise ValueError("本地历史目录必须使用相对项目路径，保证可移植")
+    resolved = (project_root / relative).resolve()
+    try:
+        resolved.relative_to(project_root.resolve())
+    except ValueError as exc:
+        raise ValueError("本地历史目录不得逃逸项目根目录") from exc
+    return resolved
+
+
 def _read_state(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {"schema_version": "1.0", "notified_candidate_ids": []}
@@ -19,7 +66,11 @@ def _read_state(path: Path) -> dict[str, Any]:
 
 
 def evaluate(
-    source_dir: Path, output_dir: Path, state_path: Path, config_path: Path
+    source_dir: Path,
+    output_dir: Path,
+    state_path: Path,
+    config_path: Path,
+    monitor_metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     config = load_config(config_path)
     rows, evidence = read_samples(source_dir)
@@ -62,6 +113,8 @@ def evaluate(
             "auto_apply": False,
             "human_approval_required": True,
         }
+    if monitor_metadata is not None:
+        result["monitoring"] = monitor_metadata
     output_dir.mkdir(parents=True, exist_ok=True)
     monitor_path = output_dir / "monitor_status.json"
     monitor_path.write_text(
@@ -93,13 +146,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--output-dir")
     parser.add_argument("--state")
     parser.add_argument("--config")
+    parser.add_argument("--monitor-config")
     parser.add_argument("--mark-notified")
     return parser.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
-    root = Path(__file__).resolve().parents[2]
+    root = ROOT
     output_dir = Path(
         args.output_dir or root / "outputs/threshold-calibration/latest"
     ).expanduser().resolve()
@@ -114,13 +168,35 @@ def main(argv: list[str] | None = None) -> int:
         )
         print(json.dumps(state, ensure_ascii=False))
         return 0
-    source_dir = Path(
-        args.source_dir or root / "imports/threshold-calibration"
+    monitor_config_path = Path(
+        args.monitor_config or DEFAULT_MONITOR_CONFIG
     ).expanduser().resolve()
+    monitor_config = load_monitor_config(monitor_config_path)
+    source_dir = (
+        Path(args.source_dir).expanduser().resolve()
+        if args.source_dir
+        else local_source_dir(monitor_config, root)
+    )
     config_path = Path(
         args.config or root / "config/threshold_calibration.json"
     ).expanduser().resolve()
-    result = evaluate(source_dir, output_dir, state_path, config_path)
+    result = evaluate(
+        source_dir,
+        output_dir,
+        state_path,
+        config_path,
+        monitor_metadata={
+            "config_path": str(monitor_config_path),
+            "schedule": monitor_config["schedule"],
+            "active_backend": monitor_config["execution"]["active_backend"],
+            "cloud_storage_status": monitor_config["data_sources"][
+                "cloud_storage"
+            ]["status"],
+            "cloud_runner_status": monitor_config["execution"]["cloud_runner"][
+                "status"
+            ],
+        },
+    )
     print(json.dumps(result, ensure_ascii=False))
     return 0
 
