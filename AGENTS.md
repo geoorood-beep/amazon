@@ -1,8 +1,8 @@
-# 陆遥广告智能体 V2.0 — 八层总入口
+# 陆遥广告智能体 V2.1 运行时 — V2.0 八层规则总入口
 
 本文件只负责最高优先级边界和路由。当前规则正文位于 [rules/](rules/README.md)，数值位于 [thresholds/](thresholds/README.md)，输入输出字段位于 [contracts/](contracts/README.md)，数据源位于 [knowledge/](knowledge/README.md)。第 05 层本地六表聚合工具位于 [广告报表聚合工具](tools/ad_report_aggregator/README.md)，本地四入口运营网页位于 [运营任务合同](contracts/operator-job.md)，两者均已启用；外部服务器/MCP/API 接入位于 [外部接入网关正文](integrations/external-integration-gateway.md)，仍全部为占位状态。不要把具体规则或阈值重新堆回本文件。
 
-当前状态：`V2.0_FROZEN`；`HUMAN_EXECUTION_ONLY`；`ai_ads/` 为 `TEST_ONLY`；Amazon 后台自动执行关闭。冻结文件清单见 [V2.0 Release](releases/v2.0/RELEASE.md)。
+当前状态：`V2.1_RUNTIME / V2.0_RULESET_FROZEN`；`HUMAN_EXECUTION_ONLY`；`ai_ads/` 为 `TEST_ONLY`；Amazon 后台自动执行关闭。V2.0 规则基线见 [V2.0 Release](releases/v2.0/RELEASE.md)，当前运行时冻结清单见 [V2.1 Release](releases/v2.1/RELEASE.md)。
 
 ## 最高优先级边界
 
@@ -31,8 +31,8 @@
 | 任务 | 规则入口 | 阈值入口 |
 |---|---|---|
 | Rug 类目 / 尺寸 | [Rug 类目规则](rules/domains/rug-category.md) | [尺寸路由](thresholds/rug/size-routing.md) |
-| 新品选词 / 新广告 | [输入](rules/domains/new-product/scope-input-sources.md)、[属性选词](rules/domains/new-product/attribute-and-selection.md)、[架构](rules/domains/new-product/architecture.md)、[隔离](rules/domains/new-product/negative-isolation.md) | [新品阶段](thresholds/rug/new-product-stage.md)、[预算与隔离](thresholds/rug/budget-and-isolation.md) |
-| 老品优化 | [输入模式](rules/domains/old-product/input-and-modes.md)、[诊断](rules/domains/old-product/diagnosis.md)、[预算/Bid/广告位](rules/domains/old-product/budget-bid-placement.md)、[趋势](rules/domains/old-product/product-and-trend.md)、[拓量](rules/domains/old-product/growth-and-structure.md) | [性能阈值](thresholds/rug/performance.md)、[治理阈值](thresholds/rug/governance.md) |
+| 广告架构设计 | [输入](rules/domains/new-product/scope-input-sources.md)、[属性选词](rules/domains/new-product/attribute-and-selection.md)、[Phrase/Broad路由](rules/domains/new-product/match-type-routing.md)、[架构](rules/domains/new-product/architecture.md)、[隔离](rules/domains/new-product/negative-isolation.md) | [新品阶段](thresholds/rug/new-product-stage.md)、[预算与隔离](thresholds/rug/budget-and-isolation.md)、[词根需求与集中度](thresholds/rug/match-type-routing.md) |
+| SP广告优化 | [输入模式](rules/domains/old-product/input-and-modes.md)、[诊断](rules/domains/old-product/diagnosis.md)、[预算/Bid/广告位](rules/domains/old-product/budget-bid-placement.md)、[趋势](rules/domains/old-product/product-and-trend.md)、[拓量与结构](rules/domains/old-product/growth-and-structure.md) | [性能阈值](thresholds/rug/performance.md)、[治理阈值](thresholds/rug/governance.md) |
 | 搜索词 / 词根 | [语义聚合](rules/domains/search-term/semantic-aggregation.md)、[评分与动作](rules/domains/search-term/scoring-and-actions.md) | [评分与拓量门](thresholds/rug/traffic-and-scoring.md) |
 | 类目流量 | [输入](rules/domains/category-traffic/scope-and-input.md)、[分层](rules/domains/category-traffic/relevance-and-segmentation.md)、[打法](rules/domains/category-traffic/structure-and-playbook.md)、[输出](rules/domains/category-traffic/output-and-confidence.md) | [流量结构阈值](thresholds/rug/traffic-and-scoring.md) |
 | 历史效果数据 | [字段与入库](rules/domains/history-data/schema-and-ingest.md)、[使用边界](rules/domains/history-data/usage-boundaries.md) | 不适用 |
@@ -73,10 +73,18 @@
 
 - 架构来源：[AI广告Agent完整架构与实施方案 V2.0](docs/v2/source/AI广告Agent完整架构与实施方案_V2.0.md)；SHA-256 在 [项目边界配置](config/project_scope.json)。
 - 规则包必须分别保存规则文件和阈值文件 SHA-256。
-- `SP_STANDARD_OPTIMIZATION` 只做 TEST_ONLY 结构验证；`SP_COLD_START` 为 `CAPABILITY_NOT_ACTIVE`；SB/SD 不支持。
+- `SP_STANDARD_OPTIMIZATION` 只做 TEST_ONLY 结构验证；`SP_COLD_START` 已启用为 `CANDIDATE_ONLY`，只允许 ABA、产品属性、阶段和合规门通过后的人工候选，未确认 Bid/广告位不得补造；SB/SD 不支持。
 - 复盘只能生成证据和 CANDIDATE，不能覆盖 ACTIVE。
 - 当前没有生产机器 ACTIVE 规则包。
 - MCP、HTTP API、Webhook 和其他外部服务器连接器当前均为 `PLACEHOLDER_NOT_ACTIVE`；预留目录不代表已经连接或允许执行。
+
+## V2.1 网页执行基座
+
+- 网页只提交意图、输入和文件，不拥有规则、阈值或业务结论；服务端只接受 `config/operator_intents.json` 登记的可信路由。
+- Python 只做确定性读取、去重、聚合、字段识别和证据包；广告架构与优化结论必须由 Codex 按本任务完整 AGENTS 上下文生成。
+- `agents_context.json` 必须包含八层架构、规则、阈值、知识、合同、配置、工具和本次证据的 SHA-256；缺失任一登记源即阻断。
+- 每次 Python 预处理必须生成工具回执；每次 Codex 推理必须生成运行回执。独立 Validator 会重新构建上下文、核对回执与输出来源，不能只相信结果自报。
+- 页面和最终工作簿只能使用 Validator 通过后的结构化结论；中间候选证据包不得冒充最终方案。
 
 ## 候选阈值监控安装默认
 
@@ -99,12 +107,13 @@
 .venv/bin/python scripts/validate_integration_placeholders.py
 .venv/bin/python scripts/validate_threshold_calibration.py
 .venv/bin/python scripts/stress_test_threshold_calibration.py
+.venv/bin/python scripts/stress_test_v21_provenance.py
 .venv/bin/python -m pytest new_product_module/tests ai_ads/tests -q
 .venv/bin/python -m pytest operator_console/backend/tests -q
 cd operator_console && npm run lint && npm test && npm audit --omit=dev && cd ..
 .venv/bin/python scripts/stress_test_ad_report_aggregator.py
 .venv/bin/python scripts/stress_test_v20.py
-.venv/bin/python scripts/v20_release_manifest.py
+.venv/bin/python scripts/v21_release_manifest.py
 ```
 
 任一校验失败，不得宣称规则、阈值或智能体已完成。

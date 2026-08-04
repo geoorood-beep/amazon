@@ -93,6 +93,44 @@ class KeywordScoringTest(unittest.TestCase):
         self.assertEqual(scores[0].conclusion, "不建议投放")
         self.assertTrue(any(reason.startswith("颜色硬冲突") for reason in scores[0].attribute_conflicts))
 
+    def test_cold_start_uses_type_and_secondary_attribute_without_fake_score(self) -> None:
+        self.product.size_spec = "2x8"
+        self.product.rug_type = "runner"
+        rules = load_rules(ROOT / "config/category_rules.example.yaml")
+        row = StageMatchedKeyword(
+            search_term="runner rug 2x8",
+            clicks=0,
+            orders=0,
+            cvr=0,
+            aba_rank=171861,
+            evidence_grain="ABA_COLD_START",
+            source_report_type="rug_aba_catalog",
+            aba_rug_types=["长条"],
+            aba_tags=["2x8", "runner"],
+            compliance_status="安全",
+            ad_status="可投",
+            pool_status="进入候选池",
+            pool_reasons=["ABA冷启动候选：无当前ASIN历史绩效，仅限人工确认"],
+            order_stage="15-30单/日",
+            aba_stage_ok=True,
+            aba_stage_status="ABA阶段适配",
+            stage_min_match_score=80,
+            stage_max_keyword_count=8,
+        )
+        scores, _ = score_keywords([row], self.product, rules)
+        self.assertEqual(scores[0].conclusion, "建议投放")
+        self.assertIsNone(scores[0].total_match_score)
+        self.assertTrue(scores[0].needs_review)
+
+    def test_runner_single_length_conflict_is_blocked(self) -> None:
+        self.product.size_spec = "2x8"
+        self.product.rug_type = "runner"
+        row = self._stage_row("carpet runners for hallway 6ft")
+        scores, blocked = score_keywords([row], self.product, self.rules)
+        self.assertEqual(scores[0].conclusion, "不建议投放")
+        self.assertTrue(any("长条长度硬冲突" in reason for reason in scores[0].attribute_conflicts))
+        self.assertTrue(any("长条长度硬冲突" in item.reason for item in blocked))
+
     def _stage_row(self, search_term: str) -> StageMatchedKeyword:
         return StageMatchedKeyword(
             search_term=search_term,

@@ -20,7 +20,7 @@ REQUIRED_PATH_GROUPS = {
     "required_knowledge_paths": "知识源文件",
     "required_history_paths": "历史快照文件",
     "required_runtime_paths": "项目运行或校验文件",
-    "required_release_paths": "V2.0冻结发布文件",
+    "required_release_paths": "冻结发布文件",
 }
 
 
@@ -42,10 +42,13 @@ def main() -> int:
     scope = json.loads(SCOPE_PATH.read_text(encoding="utf-8"))
     project_name = scope.get("project_name")
     ruleset_version = scope.get("ruleset_version")
+    runtime_version = scope.get("runtime_version")
     allowed_categories = scope.get("allowed_categories", [])
 
     if ruleset_version != "V2.0":
         errors.append(f"当前规则版本必须为 V2.0，实际为 {ruleset_version}")
+    if runtime_version != "V2.1":
+        errors.append(f"当前运行时版本必须为 V2.1，实际为 {runtime_version}")
 
     for group, label in REQUIRED_PATH_GROUPS.items():
         paths = scope.get(group)
@@ -180,7 +183,7 @@ def main() -> int:
     category_text = ", ".join(allowed_categories)
     print(
         f"{project_name} 项目边界校验通过："
-        f"当前版本 {ruleset_version}，允许类目 [{category_text}]，"
+        f"当前规则版本 {ruleset_version}，运行时 {runtime_version}，允许类目 [{category_text}]，"
         "固定数据、禁止路径和周报输出路径均符合配置。"
     )
     return 0

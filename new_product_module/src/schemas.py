@@ -99,6 +99,27 @@ class HistoricalKeyword(FlexibleBaseModel):
     compliance_status: str | None = None
     ad_status: str | None = None
     recommendation_tier: str | None = None
+    normalized_root: str | None = None
+    category_judgment: str | None = None
+    detailed_category: str | None = None
+    comprehensive_priority: str | None = None
+    advertising_use: str | None = None
+    aba_tags: list[str] = Field(default_factory=list)
+    aba_rug_types: list[str] = Field(default_factory=list)
+    aba_relevance_levels: list[str] = Field(default_factory=list)
+    aba_judgment_reason: str | None = None
+    relevance_evidence_status: str = "PENDING_SOURCE"
+    relevance_level: str | None = None
+    relevance_score: float | None = None
+    relevance_reason: str | None = None
+    relevance_source_files: list[str] = Field(default_factory=list)
+    monthly_search_volume: float | None = None
+    root_monthly_search_volume: float | None = None
+    root_top3_volume_share: float | None = None
+    root_distinct_query_count: int | None = None
+    search_volume_months: list[str] = Field(default_factory=list)
+    search_volume_source_files: list[str] = Field(default_factory=list)
+    match_type_evidence_status: str = "PENDING_SOURCE"
 
     @field_validator("clicks", "orders", "aba_rank", mode="before")
     @classmethod
@@ -108,7 +129,15 @@ class HistoricalKeyword(FlexibleBaseModel):
             raise ValueError("integer value is required")
         return parsed
 
-    @field_validator("cvr", "cpa", mode="before")
+    @field_validator(
+        "cvr",
+        "cpa",
+        "relevance_score",
+        "monthly_search_volume",
+        "root_monthly_search_volume",
+        "root_top3_volume_share",
+        mode="before",
+    )
     @classmethod
     def _parse_number_fields(cls, value: Any) -> float | None:
         return parse_number(value)
@@ -118,7 +147,22 @@ class HistoricalKeyword(FlexibleBaseModel):
     def _parse_dates_field(cls, value: Any) -> list[str]:
         return parse_dates(value)
 
-    @field_validator("source_files", "aba_sources", mode="before")
+    @field_validator("root_distinct_query_count", mode="before")
+    @classmethod
+    def _parse_optional_int_fields(cls, value: Any) -> int | None:
+        return parse_int(value)
+
+    @field_validator(
+        "source_files",
+        "aba_sources",
+        "aba_tags",
+        "aba_rug_types",
+        "aba_relevance_levels",
+        "relevance_source_files",
+        "search_volume_months",
+        "search_volume_source_files",
+        mode="before",
+    )
     @classmethod
     def _parse_string_lists(cls, value: Any) -> list[str]:
         return parse_dates(value)
@@ -159,6 +203,34 @@ class KeywordScore(FlexibleBaseModel):
     hard_conflict: bool = False
     attribute_conflicts: list[str] = Field(default_factory=list)
     aba_stage_ok: bool = False
+    evidence_grain: str = "CUSTOMER_SEARCH_TERM"
+    source_report_type: str | None = None
+    source_files: list[str] = Field(default_factory=list)
+    aba_sources: list[str] = Field(default_factory=list)
+    compliance_status: str | None = None
+    ad_status: str | None = None
+    recommendation_tier: str | None = None
+    normalized_root: str | None = None
+    category_judgment: str | None = None
+    detailed_category: str | None = None
+    comprehensive_priority: str | None = None
+    advertising_use: str | None = None
+    aba_tags: list[str] = Field(default_factory=list)
+    aba_rug_types: list[str] = Field(default_factory=list)
+    aba_relevance_levels: list[str] = Field(default_factory=list)
+    aba_judgment_reason: str | None = None
+    relevance_evidence_status: str = "PENDING_SOURCE"
+    relevance_level: str | None = None
+    relevance_score: float | None = None
+    relevance_reason: str | None = None
+    relevance_source_files: list[str] = Field(default_factory=list)
+    monthly_search_volume: float | None = None
+    root_monthly_search_volume: float | None = None
+    root_top3_volume_share: float | None = None
+    root_distinct_query_count: int | None = None
+    search_volume_months: list[str] = Field(default_factory=list)
+    search_volume_source_files: list[str] = Field(default_factory=list)
+    match_type_evidence_status: str = "PENDING_SOURCE"
 
 
 class AdArchitectureRow(FlexibleBaseModel):
@@ -191,6 +263,7 @@ class ProductProfile(FlexibleBaseModel):
     data_confidence: str
     rug_type: str | None = None
     analysis_threshold_profile: str | None = None
+    target_size: str | None = None
 
 
 class PipelineResult(FlexibleBaseModel):

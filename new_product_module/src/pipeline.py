@@ -118,7 +118,17 @@ def _build_product_profile(
 ) -> ProductProfile:
     asin_sku = product.asin or product.sku or "未提供"
     current_order_target = f"父体目标日订单{_format_number(product.order_target_daily)}单"
-    if blocked_items:
+    cold_start_scores = [
+        row for row in keyword_scores if getattr(row, "evidence_grain", "") == "ABA_COLD_START"
+    ]
+    cold_start_candidates = [row for row in cold_start_scores if row.conclusion == "建议投放"]
+    if cold_start_candidates:
+        core_diagnosis = (
+            f"没有要求当前ASIN历史点击；已按ABA、产品属性和阶段门生成"
+            f" {len(cold_start_candidates)} 个冷启动人工候选。"
+        )
+        confidence = "中"
+    elif blocked_items:
         core_diagnosis = "存在规则缺失、样本不足或冲突项，已进入待人工确认清单。"
         confidence = "中" if keyword_scores else "低"
     elif keyword_scores:
@@ -131,10 +141,15 @@ def _build_product_profile(
         asin_sku=asin_sku,
         current_order_target=current_order_target,
         core_diagnosis=core_diagnosis,
-        overall_strategy="新品验证：尺寸词、长尾词/场景词；词组小预算测试；地毯类目新品阶段不建立精准关键词广告。",
+        overall_strategy=(
+            "新品验证：先通过产品属性与ASIN相关性门，再按词根月搜索量、"
+            "语义特异度和流量集中度生成Phrase/Broad人工候选；"
+            "证据缺失时不新建；新品阶段不建立精准关键词广告。"
+        ),
         data_confidence=confidence,
         rug_type=product.rug_type,
         analysis_threshold_profile=product.analysis_threshold_profile,
+        target_size=product.size_spec,
     )
 
 

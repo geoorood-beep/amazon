@@ -29,6 +29,16 @@ type Job = {
     analysis_asins?: string[];
     auto_period?: { start?: string; end?: string };
     issues?: string[];
+    workbook_summary?: {
+      path: string;
+      sheets: Array<{
+        name: string;
+        max_row: number;
+        data_row_count?: number;
+        preview: Array<Array<string | number | boolean | null>>;
+        notes?: Array<{ asin: string; title: string; content: string }>;
+      }>;
+    };
   };
   result?: Result;
   validation?: { outcome: string; findings: Array<{ level: string; code: string; message: string }> };
@@ -37,7 +47,22 @@ type Job = {
 type Result = {
   status: string;
   executive_summary: string;
-  recommendations: Array<{ priority: string; action: string; reason: string; evidence: string }>;
+  recommendations: Array<{ priority: string; action: string; reason: string; evidence: string; risk?: string }>;
+  new_product_architecture: Array<{
+    campaign_name: string;
+    ad_group_name: string;
+    asin: string;
+    structure_mode: string;
+    operation: string;
+    match_type: string;
+    daily_budget: string | number | null;
+    bid: string | number | null;
+    bidding_strategy: string;
+    placement: string;
+    role: string;
+    target: string;
+    negative_exact: string;
+  }>;
   missing_inputs: string[];
   artifacts: string[];
   safety: {
@@ -55,6 +80,14 @@ type Catalog = {
   fields: Record<string, CatalogOption[]>;
 };
 
+type ProductInfo = Record<string, string> & {
+  asin: string;
+  marketplace: string;
+  size_spec: string;
+  rug_type: string;
+  order_target_daily: string;
+};
+
 type UploadSummary = {
   upload_id: string;
   files: Array<{ role: string; name: string; size: number; error?: string }>;
@@ -67,6 +100,7 @@ type UploadSummary = {
     source_file: string;
     sheet: string | null;
     fields: Record<string, string>;
+    products: ProductInfo[];
     warnings: string[];
   } | null;
   paths: { reports: string | null };
@@ -84,17 +118,17 @@ const INTENTS: Array<{
   {
     id: "NEW_PRODUCT_PROMOTION",
     number: "01",
-    title: "新品推广",
-    subtitle: "选择属性或导入产品表",
-    description: "属性识别 → 选词与结构 → Validator → 候选建议",
+    title: "广告架构设计",
+    subtitle: "输入 ASIN 与产品属性",
+    description: "填写产品信息，预览并下载广告架构",
     accent: "orange",
   },
   {
     id: "OLD_PRODUCT_OPTIMIZATION",
     number: "02",
-    title: "老品优化",
-    subtitle: "上传报表，自动识别ASIN与日期",
-    description: "本地聚合 → 多ASIN诊断 → 调整建议 → 人工确认",
+    title: "SP广告优化",
+    subtitle: "上传报表，诊断并重构 SP 广告",
+    description: "上传广告报表，预览并下载 SP 优化方案",
     accent: "teal",
   },
   {
@@ -102,7 +136,7 @@ const INTENTS: Array<{
     number: "03",
     title: "更新广告数据",
     subtitle: "多张报表合并为决策包",
-    description: "自动识别报表、ASIN、周期并计算指标",
+    description: "上传多张报表，生成一份可下载的聚合结果",
     accent: "blue",
   },
   {
@@ -110,23 +144,23 @@ const INTENTS: Array<{
     number: "04",
     title: "查看本周建议",
     subtitle: "检查阈值候选与证据",
-    description: "只展示候选阈值，不会覆盖当前生效标准",
+    description: "查看本周需关注的候选更新和问题",
     accent: "violet",
   },
 ];
 
 const STAGES = [
   ["QUEUED", "已接收"],
-  ["PREPROCESSING", "本地聚合"],
-  ["ANALYZING", "智能分析"],
-  ["VALIDATING", "安全校验"],
-  ["COMPLETED", "生成建议"],
+  ["PREPROCESSING", "处理数据"],
+  ["ANALYZING", "生成结果"],
+  ["VALIDATING", "检查结果"],
+  ["COMPLETED", "已完成"],
 ] as const;
 
 const AGGREGATION_STAGES = [
   ["QUEUED", "已接收"],
-  ["PREPROCESSING", "本地聚合"],
-  ["VALIDATING", "聚合校验"],
+  ["PREPROCESSING", "处理数据"],
+  ["VALIDATING", "检查结果"],
 ] as const;
 
 const FINAL_STATES = new Set(["COMPLETED", "BLOCKED", "FAILED"]);
@@ -142,6 +176,18 @@ function readPublicDemo() {
 
 function intentTitle(intent: Intent) {
   return INTENTS.find((item) => item.id === intent)?.title ?? intent;
+}
+
+function jobStatusLabel(status: string) {
+  return ({
+    QUEUED: "等待处理",
+    PREPROCESSING: "处理数据",
+    ANALYZING: "生成方案",
+    VALIDATING: "检查结果",
+    COMPLETED: "已完成",
+    BLOCKED: "需补数据",
+    FAILED: "处理失败",
+  } as Record<string, string>)[status] ?? status;
 }
 
 function artifactHref(jobId: string, path: string) {
@@ -181,6 +227,7 @@ export default function Home() {
   const [uploadSummary, setUploadSummary] = useState<UploadSummary | null>(null);
   const [uploading, setUploading] = useState(false);
   const [newInputMode, setNewInputMode] = useState<"manual" | "import">("manual");
+  const [newProducts, setNewProducts] = useState<ProductInfo[]>([]);
   const publicDemo = useSyncExternalStore(subscribeToHostname, readPublicDemo, () => false);
 
   const loadJobs = useCallback(async () => {
@@ -242,6 +289,7 @@ export default function Home() {
   function resetUpload() {
     setUploadId("");
     setUploadSummary(null);
+    setNewProducts([]);
     setFields((current) => {
       const next = { ...current };
       delete next.report_source_path;
@@ -259,6 +307,7 @@ export default function Home() {
     setUploadId("");
     setUploadSummary(null);
     setNewInputMode("manual");
+    setNewProducts([]);
     window.setTimeout(() => document.getElementById("work-panel")?.scrollIntoView({ block: "start" }), 20);
   }
 
@@ -272,11 +321,18 @@ export default function Home() {
       const next = { ...current, upload_id: currentUploadId };
       if (summary.paths.reports) next.report_source_path = summary.paths.reports;
       if (summary.recognized_product?.fields) {
-        Object.assign(next, summary.recognized_product.fields);
         next.product_source_file = summary.recognized_product.source_file;
       }
       return next;
     });
+    if (summary.recognized_product?.products?.length) {
+      setNewProducts(summary.recognized_product.products);
+      setFields((current) => ({
+        marketplace: summary.recognized_product?.products[0]?.marketplace || current.marketplace || "US",
+        upload_id: currentUploadId,
+        product_source_file: summary.recognized_product?.source_file || "",
+      }));
+    }
     return summary;
   }
 
@@ -323,11 +379,15 @@ export default function Home() {
     event.preventDefault();
     if (!activeIntent) return;
     if (publicDemo) {
-      setMessage("公开演示版只展示操作流程；请在安装了 V2.0 的本地电脑上处理真实数据。");
+      setMessage("公开演示版只展示操作流程；请在安装了 V2.1 运行时的本地电脑上处理真实数据。");
       return;
     }
     if (["OLD_PRODUCT_OPTIMIZATION", "AGGREGATE_REPORTS"].includes(activeIntent) && !fields.report_source_path) {
       setMessage("请先上传广告报表文件。");
+      return;
+    }
+    if (activeIntent === "NEW_PRODUCT_PROMOTION" && newProducts.length === 0) {
+      setMessage(newInputMode === "manual" ? "请先点击“添加到产品清单”，至少保存一个ASIN。" : "请先上传并识别产品表格。");
       return;
     }
     setSubmitting(true);
@@ -335,7 +395,15 @@ export default function Home() {
     try {
       const submittedFields = activeIntent === "OLD_PRODUCT_OPTIMIZATION"
         ? { ...fields, workflow_phase: "AGGREGATE_ONLY" }
-        : fields;
+        : activeIntent === "NEW_PRODUCT_PROMOTION"
+          ? {
+              ...fields,
+              ...newProducts[0],
+              input_mode: uploadSummary?.recognized_product ? "import" : newInputMode,
+              product_count: String(newProducts.length),
+              products_json: JSON.stringify(newProducts),
+            }
+          : fields;
       const response = await fetch(`${API}/api/jobs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -383,7 +451,7 @@ export default function Home() {
         <a className="brand" href="#top" aria-label="返回广告运营台顶部">
           <span className="brand-mark">L</span>
           <span><strong>陆遥广告智能体</strong><small>RUG AD OPERATIONS</small></span>
-          <b>V2.0</b>
+          <b>V2.1</b>
         </a>
 
         <div className="nav-context">
@@ -404,7 +472,7 @@ export default function Home() {
 
         <div className="nav-footer">
           <div><span className={`online-dot ${backendOnline === false ? "offline" : ""}`} /><strong>{publicDemo ? "公开演示模式" : backendOnline ? "本机服务正常" : backendOnline === false ? "后台未启动" : "正在连接"}</strong></div>
-          <small>HUMAN_EXECUTION_ONLY</small>
+          <small>所有结果需人工确认</small>
         </div>
       </aside>
 
@@ -424,7 +492,7 @@ export default function Home() {
           <section className="hero" id="top">
             <div className="hero-copy">
               <div className="hero-title-line"><h1>广告运营驾驶舱</h1><span>Amazon US · Rugs</span></div>
-              <p>从产品资料与广告报表开始，本地 Python 负责确定性处理，Codex 按 V2.0 规则生成候选方案，最终由 Validator 和人工确认把关。</p>
+              <p>输入产品信息或上传广告报表，直接查看广告架构、优化方案和可下载结果。</p>
             </div>
             <div className="guardrails"><span>Rug 专用</span><span>数据仅在本机</span><span>Amazon 自动执行关闭</span></div>
           </section>
@@ -432,14 +500,14 @@ export default function Home() {
           {publicDemo && (
             <section className="demo-notice" role="status">
               <span>PUBLIC DEMO</span>
-              <div><strong>这是可分享的流程演示版</strong><p>其他电脑可以浏览全部入口和操作界面；报表上传、Python 聚合、Codex 分析与结果下载只在安装了 V2.0 的本地电脑运行。</p></div>
+              <div><strong>这是可分享的流程演示版</strong><p>其他电脑可以浏览全部入口和操作界面；真实数据上传、分析和结果下载只在安装了 V2.1 运行时的本地电脑上开放。</p></div>
             </section>
           )}
 
           <section className="intent-section" aria-labelledby="intent-heading">
             <div className="section-heading">
               <div><p className="eyebrow">今日工作入口</p><h2 id="intent-heading">选择要处理的广告任务</h2></div>
-              <p>每个入口会自动路由到对应规则、阈值和本地处理程序。</p>
+              <p>选择一个任务，填写或上传页面要求的数据即可。</p>
             </div>
             <div className="intent-grid">
               {INTENTS.map((intent) => (
@@ -456,13 +524,6 @@ export default function Home() {
             </div>
           </section>
 
-          <section className="flow-card" aria-label="系统处理流程">
-            <div><span>01</span><p><strong>网页输入</strong><small>选择属性或上传报表</small></p></div><i>→</i>
-            <div><span>02</span><p><strong>本地 Python</strong><small>识别、去重与聚合</small></p></div><i>→</i>
-            <div><span>03</span><p><strong>Codex + AGENTS</strong><small>按规则生成候选建议</small></p></div><i>→</i>
-            <div><span>04</span><p><strong>Validator</strong><small>阻断越权并等待人工</small></p></div>
-          </section>
-
           {activeIntent && currentIntent && (
             <section className="work-shell" id="work-panel">
               <div className="work-main">
@@ -475,6 +536,7 @@ export default function Home() {
                   <form onSubmit={submitJob} className="job-form">
                     {activeIntent === "NEW_PRODUCT_PROMOTION" && (
                       <NewProductForm
+                        key={`${newInputMode}-${uploadId}`}
                         catalog={catalog}
                         fields={fields}
                         setFields={setFields}
@@ -485,6 +547,8 @@ export default function Home() {
                         uploadFiles={uploadFiles}
                         resetUpload={resetUpload}
                         readOnly={publicDemo}
+                        products={newProducts}
+                        setProducts={setNewProducts}
                       />
                     )}
                     {(activeIntent === "OLD_PRODUCT_OPTIMIZATION" || activeIntent === "AGGREGATE_REPORTS") && (
@@ -514,7 +578,7 @@ export default function Home() {
                             ? "检查本周建议"
                             : activeIntent === "OLD_PRODUCT_OPTIMIZATION" || activeIntent === "AGGREGATE_REPORTS"
                               ? "聚合数据报表"
-                              : "开始处理数据"}
+                              : `生成 ${newProducts.length || 1} 个ASIN广告架构`}
                       </button>
                     </div>
                   </form>
@@ -533,18 +597,18 @@ export default function Home() {
                 <div className="recent-heading"><div><p className="eyebrow">任务记录</p><h3>最近任务</h3></div><button onClick={loadJobs} type="button" disabled={publicDemo}>刷新</button></div>
                 {jobs.length === 0 ? <p className="empty-copy">还没有任务记录。</p> : jobs.slice(0, 8).map((job) => (
                   <button className="recent-job" key={job.job_id} onClick={() => loadJob(job.job_id)} type="button">
-                    <span className={`job-state ${job.status.toLowerCase()}`}>{job.status}</span>
+                    <span className={`job-state ${job.status.toLowerCase()}`}>{jobStatusLabel(job.status)}</span>
                     <strong>{intentTitle(job.intent)}</strong><small>{formatTime(job.created_at)}</small>
                   </button>
                 ))}
-                <div className="safety-note"><strong>安全边界</strong><p>AUTO_PASS 只代表校验通过，不代表已在亚马逊后台执行。</p></div>
+                <div className="safety-note"><strong>使用提示</strong><p>所有方案只供人工确认，不会自动修改亚马逊广告。</p></div>
               </aside>
             </section>
           )}
 
           <footer>
-            <span>陆遥广告智能体 V2.0</span>
-            <span>{publicDemo ? "公开演示版 · 本地数据能力未开放" : "本地主版本 · 数据保存在本机 · HUMAN_EXECUTION_ONLY"}</span>
+            <span>陆遥广告智能体 V2.1 · V2.0规则集</span>
+            <span>{publicDemo ? "公开演示版 · 本地数据能力未开放" : "本地主版本 · 数据保存在本机 · 结果需人工确认"}</span>
             {!publicDemo && <a href={PUBLIC_DEMO_URL} target="_blank" rel="noreferrer">分享演示版 ↗</a>}
           </footer>
         </div>
@@ -564,6 +628,8 @@ function NewProductForm({
   uploadFiles,
   resetUpload,
   readOnly,
+  products,
+  setProducts,
 }: {
   catalog: Catalog | null;
   fields: Record<string, string>;
@@ -575,15 +641,105 @@ function NewProductForm({
   uploadFiles: (files: FileList | null, role: "new_product" | "reports") => Promise<void>;
   resetUpload: () => void;
   readOnly: boolean;
+  products: ProductInfo[];
+  setProducts: React.Dispatch<React.SetStateAction<ProductInfo[]>>;
 }) {
   const update = (name: string, value: string) => setFields((current) => ({ ...current, [name]: value }));
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [draftError, setDraftError] = useState("");
   const selectedScenes = (fields.scene_tags || "").split(",").filter(Boolean);
-  const showProductFields = mode === "manual" || Boolean(uploadSummary?.recognized_product);
+  const showProductFields = mode === "manual" || editingIndex !== null;
+  const manualLimitReached = mode === "manual" && products.length >= 10 && editingIndex === null;
+  const optionLabel = (field: string, value: string) => (
+    catalog?.fields[field]?.find((option) => option.value === value)?.label || value || "未填写"
+  );
   const toggleScene = (value: string) => {
     const next = selectedScenes.includes(value)
       ? selectedScenes.filter((item) => item !== value)
       : [...selectedScenes, value];
     update("scene_tags", next.join(","));
+  };
+
+  const clearDraft = (marketplace = "US") => {
+    setFields((current) => ({
+      marketplace,
+      ...(current.upload_id ? { upload_id: current.upload_id } : {}),
+      ...(current.product_source_file ? { product_source_file: current.product_source_file } : {}),
+    }));
+  };
+
+  const saveProduct = () => {
+    const asin = String(fields.asin || "").trim().toUpperCase();
+    const required = [
+      ["ASIN", asin],
+      ["站点", fields.marketplace],
+      ["尺寸", fields.size_spec],
+      ["地毯类型", fields.rug_type],
+      ["日订单目标", fields.order_target_daily],
+    ];
+    const missing = required.filter(([, value]) => !String(value || "").trim()).map(([label]) => label);
+    if (missing.length) {
+      setDraftError(`请补齐：${missing.join("、")}`);
+      return;
+    }
+    if (!/^B0[A-Z0-9]{8}$/.test(asin)) {
+      setDraftError("ASIN必须是10位并以B0开头，例如 B0ABC12345。");
+      return;
+    }
+    if (!(Number(fields.order_target_daily) > 0)) {
+      setDraftError("日订单目标必须大于0。");
+      return;
+    }
+    if (manualLimitReached) {
+      setDraftError("手动录入最多10个ASIN；超过10个请使用表格上传。");
+      return;
+    }
+    const duplicateIndex = products.findIndex((product, index) => product.asin === asin && index !== editingIndex);
+    if (duplicateIndex >= 0) {
+      setDraftError(`ASIN ${asin} 已在第${duplicateIndex + 1}条产品信息中，请直接编辑原记录。`);
+      return;
+    }
+    const product: ProductInfo = {
+      asin,
+      marketplace: String(fields.marketplace || "US").trim().toUpperCase(),
+      size_spec: String(fields.size_spec || ""),
+      rug_type: String(fields.rug_type || ""),
+      order_target_daily: String(fields.order_target_daily || ""),
+      sku: String(fields.sku || "").trim(),
+      style: String(fields.style || ""),
+      color: String(fields.color || ""),
+      material: String(fields.material || ""),
+      scene_tags: String(fields.scene_tags || ""),
+      target_cpa: String(fields.target_cpa || ""),
+      daily_budget: String(fields.daily_budget || ""),
+    };
+    setProducts((current) => {
+      if (editingIndex === null) return [...current, product];
+      return current.map((item, index) => index === editingIndex ? product : item);
+    });
+    setEditingIndex(null);
+    setDraftError("");
+    clearDraft(product.marketplace);
+  };
+
+  const editProduct = (index: number) => {
+    setFields((current) => ({
+      ...products[index],
+      ...(current.upload_id ? { upload_id: current.upload_id } : {}),
+      ...(current.product_source_file ? { product_source_file: current.product_source_file } : {}),
+    }));
+    setEditingIndex(index);
+    setDraftError("");
+  };
+
+  const removeProduct = (index: number) => {
+    setProducts((current) => current.filter((_, itemIndex) => itemIndex !== index));
+    if (editingIndex === index) {
+      setEditingIndex(null);
+      clearDraft();
+    } else if (editingIndex !== null && editingIndex > index) {
+      setEditingIndex(editingIndex - 1);
+    }
   };
 
   return (
@@ -595,15 +751,15 @@ function NewProductForm({
 
       {mode === "import" && (
         <div className="upload-card product-upload">
-          <div><span className="upload-kicker">产品字段识别</span><h3>上传一张新品表格</h3><p>支持 XLSX、XLSM、CSV、TSV。系统识别 ASIN、SKU、尺寸、类型、风格、颜色、材质、场景和目标数据，并自动填入下方选项。</p></div>
+          <div><span className="upload-kicker">产品字段识别</span><h3>上传一张新品表格</h3><p>超过10个ASIN请使用此入口，单次最多100个。支持 XLSX、XLSM、CSV、TSV；系统逐行识别 ASIN、SKU、尺寸、类型、风格、颜色、材质、场景和目标数据。</p></div>
           <label className="upload-button">
             {uploading ? "正在识别…" : uploadSummary?.recognized_product ? "已识别产品表" : "选择产品表格"}
             <input type="file" accept=".xlsx,.xlsm,.csv,.tsv" onChange={(event) => uploadFiles(event.target.files, "new_product")} disabled={readOnly || uploading || Boolean(uploadSummary?.recognized_product)} />
           </label>
           {uploadSummary?.recognized_product && (
             <div className="recognition-result">
-              <strong>已从 {uploadSummary.recognized_product.source_file} 自动填入</strong>
-              <span>{Object.keys(uploadSummary.recognized_product.fields).length} 个字段</span>
+              <strong>已从 {uploadSummary.recognized_product.source_file} 识别产品清单</strong>
+              <span>{uploadSummary.recognized_product.products.length} 个ASIN</span>
               <button type="button" onClick={resetUpload}>换一张表</button>
             </div>
           )}
@@ -612,17 +768,17 @@ function NewProductForm({
       )}
 
       {showProductFields && <>
-      <div className="form-section-heading"><span>产品基础信息</span><small>{mode === "import" ? "已根据表格生成，可人工修正" : "手动选择或填写"}</small></div>
+      <div className="form-section-heading"><span>{editingIndex === null ? "添加产品基础信息" : `编辑第 ${editingIndex + 1} 条产品信息`}</span><small>{mode === "import" ? "从表格清单中修改" : `手动录入 · 已添加 ${products.length}/10`}</small></div>
       <div className={`field-grid ${mode === "import" ? "generated-product-fields" : ""}`}>
-        <TextField label="ASIN" value={fields.asin} required placeholder="例如 B0XXXXXXXX" onChange={(value) => update("asin", value.toUpperCase())} />
+        <TextField label="ASIN" value={fields.asin} required={products.length === 0} placeholder="例如 B0XXXXXXXX" onChange={(value) => update("asin", value.toUpperCase())} />
         <TextField label="SKU" value={fields.sku} placeholder="内部 SKU，可不填" onChange={(value) => update("sku", value)} />
-        <TextField label="站点" value={fields.marketplace} required placeholder="US" onChange={(value) => update("marketplace", value.toUpperCase())} />
-        <CatalogSelect label="尺寸" field="size_spec" value={fields.size_spec} catalog={catalog} required onChange={(value) => update("size_spec", value)} />
-        <CatalogSelect label="地毯类型" field="rug_type" value={fields.rug_type} catalog={catalog} required onChange={(value) => update("rug_type", value)} />
+        <TextField label="站点" value={fields.marketplace} required={products.length === 0} placeholder="US" onChange={(value) => update("marketplace", value.toUpperCase())} />
+        <CatalogSelect label="尺寸" field="size_spec" value={fields.size_spec} catalog={catalog} required={products.length === 0} onChange={(value) => update("size_spec", value)} />
+        <CatalogSelect label="地毯类型" field="rug_type" value={fields.rug_type} catalog={catalog} required={products.length === 0} onChange={(value) => update("rug_type", value)} />
         <CatalogSelect label="风格" field="style" value={fields.style} catalog={catalog} onChange={(value) => update("style", value)} />
         <CatalogSelect label="颜色" field="color" value={fields.color} catalog={catalog} onChange={(value) => update("color", value)} />
         <CatalogSelect label="材质" field="material" value={fields.material} catalog={catalog} onChange={(value) => update("material", value)} />
-        <TextField label="日订单目标" value={fields.order_target_daily} type="number" required placeholder="例如 3" onChange={(value) => update("order_target_daily", value)} />
+        <TextField label="日订单目标" value={fields.order_target_daily} type="number" required={products.length === 0} placeholder="例如 3" onChange={(value) => update("order_target_daily", value)} />
         <TextField label="目标 CPA" value={fields.target_cpa} type="number" placeholder="例如 12.5" onChange={(value) => update("target_cpa", value)} />
         <TextField label="期望日预算" value={fields.daily_budget} type="number" placeholder="例如 50" onChange={(value) => update("daily_budget", value)} />
         <div className="wide scene-field">
@@ -636,7 +792,50 @@ function NewProductForm({
           </div>
         </div>
       </div>
+      {draftError && <p className="inline-form-error" role="alert">{draftError}</p>}
+      <div className="product-draft-actions">
+        {editingIndex !== null && <button className="secondary-button" type="button" onClick={() => { setEditingIndex(null); setDraftError(""); clearDraft(); }}>取消编辑</button>}
+        <button className="add-product-button" type="button" onClick={saveProduct} disabled={readOnly || manualLimitReached}>
+          {editingIndex === null ? `＋ 添加到产品清单（${products.length}/10）` : "保存修改"}
+        </button>
+      </div>
       </>}
+
+      {products.length > 0 && (
+        <section className="product-queue" aria-label="待设计产品清单">
+          <div className="product-queue-heading">
+            <div><span>PRODUCT QUEUE</span><h3>待设计产品清单</h3><p>本次任务会按每个ASIN的独立属性分别生成架构，再合并到同一份两表工作簿。</p></div>
+            <strong>{products.length}<small>个 ASIN</small></strong>
+          </div>
+          <div className="product-queue-list">
+            {products.map((product, index) => (
+              <article className={editingIndex === index ? "editing" : ""} key={`${product.asin}-${index}`}>
+                <span className="product-index">{String(index + 1).padStart(2, "0")}</span>
+                <div className="product-identity"><strong>{product.asin}</strong><small>{product.sku || "未填写SKU"}</small></div>
+                <div className="product-attributes">
+                  <span>{optionLabel("size_spec", product.size_spec)}</span>
+                  <span>{optionLabel("rug_type", product.rug_type)}</span>
+                  {product.material && <span>{optionLabel("material", product.material)}</span>}
+                  {product.style && <span>{optionLabel("style", product.style)}</span>}
+                  {product.color && <span>{optionLabel("color", product.color)}</span>}
+                </div>
+                <div className="product-row-actions">
+                  <button type="button" onClick={() => editProduct(index)}>编辑</button>
+                  <button className="danger" type="button" onClick={() => removeProduct(index)}>删除</button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {mode === "manual" && products.length >= 10 && (
+        <div className="manual-limit-notice" role="status">
+          <span>10 / 10</span>
+          <div><strong>手动录入已达到10个ASIN上限</strong><p>如果还要继续添加，请整理到产品表格中批量上传；系统会逐行识别，不需要重复手动填写。</p></div>
+          <button type="button" onClick={() => setMode("import")}>采用表格上传</button>
+        </div>
+      )}
     </>
   );
 }
@@ -681,6 +880,24 @@ function ReportForm({
         <TextField label="站点" value={fields.marketplace} required placeholder="US" onChange={(value) => update("marketplace", value.toUpperCase())} />
       </div>
 
+      {!aggregateOnly && (
+        <section className="data-requirements" aria-label="SP广告优化数据要求">
+          <div className="requirements-heading">
+          <div><span>需要上传</span><h3>一次上传这些报表</h3></div>
+            <small>报表不必每类只有一张；7 / 14 / 30 天重复窗口会在本地去重。</small>
+          </div>
+          <div className="requirements-grid">
+            <div><b>01</b><span>SP 搜索词报告</span><small>汇总 + 每日明细</small></div>
+            <div><b>02</b><span>SP 投放对象报告</span><small>关键词 / ASIN Target</small></div>
+            <div><b>03</b><span>SP 广告商品报告</span><small>广告 ASIN 层</small></div>
+            <div><b>04</b><span>SP 广告位报告</span><small>TOS / ROS / PP</small></div>
+            <div><b>05</b><span>Campaign / Ad Group 设置表</span><small>预算、状态、投放类型</small></div>
+            <div><b>06</b><span>小时预算与花费</span><small>可选，用于断流诊断</small></div>
+          </div>
+          <p><strong>要生成可直接定位后台的修改行，还需：</strong>Campaign ID、Ad Group ID、Target ID、当前库存/利润和本次经营目标。缺少时仍可生成诊断与架构候选，但不会伪造 ID 或可执行值。</p>
+        </section>
+      )}
+
       <div
         className={`report-drop-zone ${dragging ? "dragging" : ""} ${reportFiles.length ? "has-files" : ""}`}
         onDragEnter={(event) => { event.preventDefault(); setDragging(true); }}
@@ -694,7 +911,7 @@ function ReportForm({
       >
         <div className="drop-orbit" aria-hidden="true"><span /><i /><b /></div>
         <div className="drop-copy">
-          <span className="upload-kicker">本地 Python 数据入口</span>
+          <span className="upload-kicker">广告报表上传</span>
           <h3>{dragging ? "松开即可载入报表" : reportFiles.length ? `已载入 ${reportFiles.length} 个广告报表` : "拖拽广告报表到这里"}</h3>
           <p>支持一次拖入多个 XLSX、XLSM、CSV、TSV，也可以通过按钮选择文件或整个文件夹。原始报表只保存在本机。</p>
         </div>
@@ -780,44 +997,100 @@ function CatalogSelect({
 }
 
 function DataProcessingWindow({ job }: { job: Job }) {
-  const steps = [
-    "校验文件完整性",
-    "识别 ASIN 与日期窗口",
-    "消除 7 / 14 / 30 天重叠",
-    "计算 CTR · CPC · CVR · ACOS",
-    "生成本地决策数据包",
-  ];
-  const activeStep = job.status === "QUEUED" ? 0 : job.status === "PREPROCESSING" ? 2 : 4;
+  const queued = job.status === "QUEUED";
   return (
     <div className="data-processing-window" role="status" aria-live="polite">
       <div className="processing-visual" aria-hidden="true">
         <div className="processing-grid" />
-        <div className="data-core"><span>PY</span><i /><b /></div>
+        <div className="data-core"><span>•••</span><i /><b /></div>
         <div className="scan-beam" />
       </div>
       <div className="processing-console">
-        <div className="console-heading"><span>LOCAL DATA ENGINE</span><strong>本地 Python 正在聚合</strong></div>
-        <div className="tech-lines">
-          {steps.map((step, index) => (
-            <div className={`tech-line ${index < activeStep ? "done" : index === activeStep ? "active" : ""}`} key={step}>
-              <span>{index < activeStep ? "✓" : String(index + 1).padStart(2, "0")}</span>
-              <p>{step}</p><i />
-            </div>
-          ))}
-        </div>
-        <p className="processing-note">处理状态来自本机后台；动画只用于展示处理阶段，不代表虚构进度。</p>
+        <div className="console-heading"><span>DATA PROCESSING</span><strong>{queued ? "已接收文件" : "正在聚合广告报表"}</strong></div>
+        <p className="processing-note">请稍候。完成后会显示分析 ASIN、数据周期、问题提示和结果下载。</p>
       </div>
     </div>
   );
 }
 
 function ArtifactList({ job }: { job: Job }) {
-  const artifacts = job.result?.artifacts ?? [];
+  const phase = job.request?.fields?.workflow_phase;
+  const artifacts = (job.result?.artifacts ?? []).filter((path) => {
+    const name = path.split("/").pop() ?? path;
+    if (/agents_context|preprocess|request|status|validation|\.log$/i.test(name)) return false;
+    if (job.intent === "NEW_PRODUCT_PROMOTION") return /\.(xlsx|xlsm)$/i.test(name) && name.includes("广告架构");
+    if (job.intent === "OLD_PRODUCT_OPTIMIZATION" && phase !== "AGGREGATED") return name.includes("SP广告优化方案") && /\.xlsx$/i.test(name);
+    return true;
+  });
   if (!artifacts.length) return null;
   return (
-    <section className="result-section"><h3>结果文件</h3><div className="artifact-list">
-      {artifacts.map((path) => <a href={artifactHref(job.job_id, path)} key={path} target="_blank" rel="noreferrer"><span>↓</span><div><strong>{path.split("/").pop()}</strong><small>点击查看或下载</small></div></a>)}
+    <section className="result-section"><h3>下载结果</h3><div className="artifact-list">
+      {artifacts.map((path) => <a href={artifactHref(job.job_id, path)} key={path} target="_blank" rel="noreferrer"><span>↓</span><div><strong>{path.split("/").pop()}</strong><small>点击下载完整结果</small></div></a>)}
     </div></section>
+  );
+}
+
+function NewProductArchitecturePreview({ result }: { result: Result }) {
+  const rows = result.new_product_architecture ?? [];
+  return (
+    <section className="result-section workbook-preview">
+      <div className="preview-heading"><div><span>RESULT PREVIEW</span><h3>广告架构预览</h3></div><small>页面显示主要结果；完整内容请下载表格。</small></div>
+      {rows.length ? (
+        <div className="sheet-preview">
+          <div className="sheet-title"><strong>新广告设置表</strong><span>{rows.length} 行有效数据</span></div>
+          <div className="table-scroll"><table><thead><tr>
+            <th>Campaign 名称</th><th>广告组名称</th><th>ASIN</th><th>匹配方式</th><th>预算</th><th>Bid</th><th>投放策略</th><th>广告位</th><th>角色</th><th>投放对象</th><th>精准否定</th>
+          </tr></thead><tbody>
+            {rows.map((row, index) => <tr key={`${row.asin}-${row.ad_group_name}-${index}`}>
+              <td>{row.campaign_name}</td><td>{row.ad_group_name}</td><td>{row.asin}</td><td>{row.match_type}</td><td>{String(row.daily_budget ?? "待人工配置")}</td><td>{String(row.bid ?? "待人工配置")}</td><td>{row.bidding_strategy}</td><td>{row.placement}</td><td>{row.role}</td><td>{row.target}</td><td>{row.negative_exact}</td>
+            </tr>)}
+          </tbody></table></div>
+        </div>
+      ) : (
+        <div className="empty-sheet-state"><strong>当前没有可用架构</strong><p>请查看“问题提示”并补充所需数据。</p></div>
+      )}
+    </section>
+  );
+}
+
+function recommendationAsin(recommendation: Result["recommendations"][number]) {
+  const match = `${recommendation.action} ${recommendation.reason} ${recommendation.evidence}`.toUpperCase().match(/B0[A-Z0-9]{8}/);
+  return match?.[0] ?? "待定位";
+}
+
+function SPOptimizationPreview({ result }: { result: Result }) {
+  if (!result.recommendations?.length) return null;
+  return (
+    <section className="result-section sp-plan-preview">
+      <div className="preview-heading"><div><span>RESULT PREVIEW</span><h3>SP 广告优化方案</h3></div><small>页面显示主要结果；完整方案请下载表格。</small></div>
+      <div className="table-scroll"><table><thead><tr><th>优先级</th><th>ASIN</th><th>优化动作</th><th>需要关注</th></tr></thead><tbody>
+        {result.recommendations.map((item, index) => <tr key={`${item.action}-${index}`}><td>{item.priority}</td><td>{recommendationAsin(item)}</td><td>{item.action}</td><td>{item.risk || "需人工确认"}</td></tr>)}
+      </tbody></table></div>
+    </section>
+  );
+}
+
+function ProblemPanel({ job, result }: { job: Job; result: Result }) {
+  const validatorProblems = (job.validation?.findings ?? [])
+    .filter((item) => item.level === "BLOCK")
+    .map((item) => {
+      if (item.code === "MATCH_TYPE_DATA_PENDING") return "相关性表或搜索词月搜索量表尚未补充，当前不会生成词组或广泛投放。";
+      if (item.code === "RESULT_NOT_READY") return "当前结果尚未达到可确认状态，请按提示补充数据后重新生成。";
+      if (["PREPROCESSING_DATA_BLOCKED", "BLOCKED_DATA_PROMOTED"].includes(item.code)) return "上传数据未通过检查，请按提示修正后重新处理。";
+      return "系统结果检查未通过，请重新生成；如仍失败，请联系维护人员。";
+    });
+  const problems = Array.from(new Set([
+    ...(job.preprocessing?.issues ?? []),
+    ...(result.missing_inputs ?? []),
+    ...validatorProblems,
+    ...(job.error ? [job.error] : []),
+  ].map((item) => String(item || "").trim()).filter(Boolean)));
+  if (!problems.length) return null;
+  return (
+    <section className="result-section warning-list" aria-label="问题提示">
+      <h3>问题提示</h3>
+      <ul>{problems.map((item) => <li key={item}>{item}</li>)}</ul>
+    </section>
   );
 }
 
@@ -860,13 +1133,13 @@ function JobResult({
       {aggregationRunning ? (
         <DataProcessingWindow job={job} />
       ) : !FINAL_STATES.has(job.status) ? (
-        <div className="processing-card"><span className="spinner" /><div><h3>{phase === "ANALYSIS_REQUESTED" ? "正在生成广告建议方案" : STAGES[stageIndex]?.[1] ?? "正在处理"}</h3><p>任务在本机后台运行。你可以留在此页等待，状态会自动刷新。</p></div></div>
+        <div className="processing-card"><span className="spinner" /><div><h3>{phase === "ANALYSIS_REQUESTED" ? "正在生成 SP 广告优化方案" : STAGES[stageIndex]?.[1] ?? "正在处理"}</h3><p>请留在此页等待，完成后会自动显示结果。</p></div></div>
       ) : aggregationReady && result ? (
         <>
           <div className="aggregation-ready">
             <div className="aggregation-check">✓</div>
             <div className="aggregation-copy">
-              <span>PYTHON AGGREGATION COMPLETE</span>
+              <span>REPORTS READY</span>
               <h3>数据报表已经聚合完成</h3>
               <p>{result.executive_summary}</p>
             </div>
@@ -874,35 +1147,42 @@ function JobResult({
           <div className="aggregation-metrics">
             <div><span>分析对象</span><strong>{job.preprocessing?.analysis_asins?.length ?? 0} 个 ASIN</strong></div>
             <div><span>数据周期</span><strong>{job.preprocessing?.auto_period?.start && job.preprocessing?.auto_period?.end ? `${job.preprocessing.auto_period.start} 至 ${job.preprocessing.auto_period.end}` : "由报表自动识别"}</strong></div>
-            <div><span>聚合模式</span><strong>{job.preprocessing?.mode ?? "LOCAL_PYTHON"}</strong></div>
           </div>
+          <ProblemPanel job={job} result={result} />
           <ArtifactList job={job} />
           <div className="next-stage-panel">
-            <div><span>下一步</span><h3>让 Codex 按 V2.0 规则生成建议</h3><p>点击后才会读取聚合结果进行智能分析；不会重新聚合，也不会自动修改亚马逊广告。</p></div>
+            <div><span>下一步</span><h3>生成 SP 广告优化方案</h3><p>使用刚刚聚合的数据生成方案；不会重复聚合，也不会自动修改亚马逊广告。</p></div>
             <button className="primary-button next-stage-button" type="button" onClick={onGenerateRecommendations} disabled={generating}>
-              {generating ? "正在启动分析…" : "生成广告建议方案"}
+              {generating ? "正在启动分析…" : "生成 SP 广告优化方案"}
             </button>
           </div>
         </>
       ) : result ? (
         <>
-          <div className={`result-summary ${failed ? "warning" : ""}`}>
-            <div><span className="result-status">{result.status}</span><h3>{result.executive_summary}</h3></div>
-            <div className="human-chip">需要人工确认</div>
-          </div>
-          {result.recommendations?.length > 0 && (
-            <section className="result-section"><h3>建议动作</h3><div className="recommendation-list">
-              {result.recommendations.map((recommendation, index) => (
-                <article key={`${recommendation.action}-${index}`}><span>{recommendation.priority}</span><div><h4>{recommendation.action}</h4><p>{recommendation.reason}</p>{recommendation.evidence?.length > 0 && <small>证据：{recommendation.evidence}</small>}</div></article>
-              ))}
-            </div></section>
+          {job.intent === "NEW_PRODUCT_PROMOTION" ? (
+            <>
+              <NewProductArchitecturePreview result={result} />
+              <ArtifactList job={job} />
+              <ProblemPanel job={job} result={result} />
+            </>
+          ) : (
+            <>
+              <div className={`result-summary ${failed ? "warning" : ""}`}>
+                <div><span className="result-status">结果</span><h3>{result.executive_summary}</h3></div>
+                <div className="human-chip">需要人工确认</div>
+              </div>
+              {job.intent === "OLD_PRODUCT_OPTIMIZATION" && <SPOptimizationPreview result={result} />}
+              {job.intent === "WEEKLY_REVIEW" && result.recommendations?.length > 0 && (
+                <section className="result-section"><h3>本周建议</h3><div className="recommendation-list">
+                  {result.recommendations.map((recommendation, index) => (
+                    <article key={`${recommendation.action}-${index}`}><span>{recommendation.priority}</span><div><h4>{recommendation.action}</h4>{recommendation.risk && <p>{recommendation.risk}</p>}</div></article>
+                  ))}
+                </div></section>
+              )}
+              <ProblemPanel job={job} result={result} />
+              <ArtifactList job={job} />
+            </>
           )}
-          {result.missing_inputs?.length > 0 && <section className="result-section warning-list"><h3>还需要补充</h3><ul>{result.missing_inputs.map((item) => <li key={item}>{item}</li>)}</ul></section>}
-          <ArtifactList job={job} />
-          <section className="validator-box">
-            <div><span className={`validator-icon ${job.validation?.outcome === "PASS_CANDIDATE_ONLY" ? "pass" : ""}`}>{job.validation?.outcome === "PASS_CANDIDATE_ONLY" ? "✓" : "!"}</span><div><h3>Validator：{job.validation?.outcome ?? result.safety.validator_status}</h3><p>{job.validation?.findings?.map((item) => item.message).join("；") || "未发现额外问题"}</p></div></div>
-            <ul><li>亚马逊执行：{result.safety.execution_allowed ? "允许" : "禁止"}</li><li>自动应用：{result.safety.auto_apply ? "允许" : "禁止"}</li></ul>
-          </section>
         </>
       ) : (
         <div className="processing-card error-card"><span>!</span><div><h3>任务未完成</h3><p>{job.error || "没有生成可用结果，请查看任务日志。"}</p></div></div>

@@ -12,11 +12,11 @@
 | AdProductType | StrategyProfile | 当前处理 |
 |---|---|---|
 | SP | `SP_STANDARD_OPTIMIZATION` | `ai_ads/` 只允许 `TEST_ONLY` 结构验证 |
-| SP | `SP_COLD_START` | `CAPABILITY_NOT_ACTIVE` |
+| SP | `SP_COLD_START` | `CANDIDATE_ONLY`：仅 ABA+属性+阶段+合规门，人工确认 |
 | SB / SD | 任意 | `UNSUPPORTED_SCOPE` |
 | SP | 缺 StrategyProfile | `BLOCKED` |
 
-新品模块可以生成 Rug 新广告人工建议表，但这不等于 V2 `SP_COLD_START` 能力已经激活。
+新品模块可以生成 Rug 冷启动人工建议表，但没有获得 Amazon 执行权限；Bid、广告位和未确认风险参数继续保持待人工配置。
 
 ## 运行状态
 

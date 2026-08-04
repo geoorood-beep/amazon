@@ -12,6 +12,8 @@
 
 Rug 默认输入必须与 `新品基础信息输入模版_Rug类目` 的 `产品信息表` 一致，不把 ABA 系统字段当成用户必填。
 
+运营网页可在一个任务中提交多个产品：手动方式最多 10 个不重复 ASIN，表格方式最多 100 个不重复 ASIN。每个产品独立执行尺寸路由、属性冲突、ABA 选词和架构判断；只允许合并输出，不得把一个 ASIN 的属性或证据借给另一个 ASIN。
+
 | 字段 | 要求 | 用途 |
 |---|---|---|
 | `ASIN/SKU` | 必填 | 确认推广对象；可识别的款号可作为 SPU |
@@ -41,3 +43,11 @@ SPU 无法从 `ASIN/SKU` 识别时，命名中写 `SPU待补`；不把 SPU 另�
 只读 `广告词库`。用户新 ABA 优先，但仍需 Rug 边界、字段和证据检查。
 
 历史效果读取 `knowledge/README.md`；不得把 `TARGETING_KEYWORD` 当成真实 Customer Search Term。
+
+## Phrase / Broad 补充数据
+
+- ASIN 级相关性表放入 `reference/rug-relevance/`；
+- 搜索词月搜索量与规范词根表放入 `reference/rug-search-volume/`；
+- 字段和去重规则只读取 `contracts/new-product-match-evidence.md`。
+
+两类数据当前均为 `PENDING_SOURCE`。可先输出 ABA / 产品属性候选，但在补齐前不判定 Phrase / Broad，不生成伪投放架构。

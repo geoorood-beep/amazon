@@ -29,6 +29,8 @@ def normalize_term(value: Any) -> str:
 def load_rug_keyword_evidence(
     aba_source: str | Path,
     history_source: str | Path,
+    *,
+    include_aba_cold_start: bool = False,
 ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
     """Join fixed Rug ABA facts to historical performance keywords.
 
@@ -66,6 +68,13 @@ def load_rug_keyword_evidence(
                 "compliance_status": aba["compliance_status"],
                 "ad_status": aba["ad_status"],
                 "recommendation_tier": aba["recommendation_tier"],
+                "normalized_root": aba["normalized_root"],
+                "category_judgment": aba["category_judgment"],
+                "detailed_category": aba["detailed_category"],
+                "comprehensive_priority": aba["comprehensive_priority"],
+                "advertising_use": aba["advertising_use"],
+                "aba_tags": aba["tags"],
+                "aba_judgment_reason": aba["judgment_reason"],
                 "historical_subcategory": history.get("subcategory"),
                 "aba_rug_types": aba["rug_types"],
                 "aba_relevance_levels": aba["relevance_levels"],
@@ -86,7 +95,54 @@ def load_rug_keyword_evidence(
                 "message": "历史效果词与当前 Rug ABA 广告词库没有可用交集。",
             }
         )
+    if include_aba_cold_start:
+        joined_terms = {row["search_term"] for row in joined}
+        cold_start_rows = [
+            _aba_cold_start_record(term, aba)
+            for term, aba in aba_records.items()
+            if term not in joined_terms
+        ]
+        joined.extend(cold_start_rows)
+        issues.append(
+            {
+                "code": "ABA_COLD_START_CANDIDATES_ADDED",
+                "message": (
+                    f"已加入 {len(cold_start_rows)} 个无当前ASIN历史绩效的ABA冷启动候选；"
+                    "仅允许按属性、阶段、合规和人工批准门生成CANDIDATE_ONLY架构。"
+                ),
+            }
+        )
     return sorted(joined, key=lambda row: (row["aba_rank"], row["search_term"])), issues
+
+
+def _aba_cold_start_record(term: str, aba: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "search_term": term,
+        "clicks": 0,
+        "orders": 0,
+        "order_dates": [],
+        "cvr": 0.0,
+        "cpa": None,
+        "aba_rank": aba["aba_rank"],
+        "evidence_grain": "ABA_COLD_START",
+        "source_report_type": "rug_aba_catalog",
+        "source_files": [],
+        "aba_sources": aba["aba_sources"],
+        "aba_conflict": aba["aba_conflict"],
+        "compliance_status": aba["compliance_status"],
+        "ad_status": aba["ad_status"],
+        "recommendation_tier": aba["recommendation_tier"],
+        "normalized_root": aba["normalized_root"],
+        "category_judgment": aba["category_judgment"],
+        "detailed_category": aba["detailed_category"],
+        "comprehensive_priority": aba["comprehensive_priority"],
+        "advertising_use": aba["advertising_use"],
+        "aba_tags": aba["tags"],
+        "aba_judgment_reason": aba["judgment_reason"],
+        "historical_subcategory": None,
+        "aba_rug_types": aba["rug_types"],
+        "aba_relevance_levels": aba["relevance_levels"],
+    }
 
 
 def _iter_xlsx_paths(source: str | Path) -> list[Path]:
@@ -139,6 +195,25 @@ def _load_aba_records(source: str | Path) -> dict[str, dict[str, Any]]:
                     "relevance_level": _text(row.get("相关度等级")),
                     "compliance_status": _text(row.get("合规状态")),
                     "ad_status": _text(row.get("广告状态")),
+                    "normalized_root": _text(row.get("规范词根")),
+                    "category_judgment": _text(_first_matching_value(row, "类目判断")),
+                    "detailed_category": _text(row.get("详细分类")),
+                    "comprehensive_priority": _text(row.get("综合优先级")),
+                    "advertising_use": _text(row.get("广告用途")),
+                    "tags": _unique(
+                        _text(row.get(header))
+                        for header in (
+                            "尺寸标签",
+                            "场景标签",
+                            "功能标签",
+                            "风格图案标签",
+                            "颜色标签",
+                            "材质结构标签",
+                            "形状标签",
+                            "人群宠物标签",
+                        )
+                    ),
+                    "judgment_reason": _text(row.get("判断原因")),
                     "source": path.name,
                 }
             )
@@ -164,11 +239,32 @@ def _resolve_aba_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "compliance_status": compliance_status,
         "ad_status": ad_status,
         "recommendation_tier": tier_values[0] if len(tier_values) == 1 else "冲突待复核",
+        "normalized_root": _resolved_text(rows, "normalized_root"),
+        "category_judgment": _resolved_text(rows, "category_judgment"),
+        "detailed_category": _resolved_text(rows, "detailed_category"),
+        "comprehensive_priority": _resolved_text(rows, "comprehensive_priority"),
+        "advertising_use": _resolved_text(rows, "advertising_use"),
+        "tags": _unique(tag for row in rows for tag in row.get("tags", [])),
+        "judgment_reason": _resolved_text(rows, "judgment_reason"),
         "rug_types": rug_types,
         "relevance_levels": relevance_levels,
         "aba_sources": _unique(row["source"] for row in rows),
         "aba_conflict": conflict,
     }
+
+
+def _first_matching_value(row: dict[str, Any], suffix: str) -> Any:
+    for key, value in row.items():
+        if str(key).endswith(suffix):
+            return value
+    return None
+
+
+def _resolved_text(rows: list[dict[str, Any]], key: str) -> str | None:
+    values = _unique(row.get(key) for row in rows)
+    if not values:
+        return None
+    return values[0] if len(values) == 1 else "冲突待复核"
 
 
 def _load_history_summary(source: str | Path) -> tuple[dict[str, dict[str, Any]], list[dict[str, str]]]:

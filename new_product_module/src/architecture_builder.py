@@ -56,7 +56,42 @@ def build_ad_architecture(
                 )
             )
             continue
-        eligible.append((score, strategy))
+        ad_types = list(strategy.get("ad_types") or [strategy.get("ad_type")])
+        for ad_type in [item for item in ad_types if item]:
+            variant = dict(strategy)
+            variant["ad_type"] = ad_type
+            variant["strategy"] = (strategy.get("strategy_by_type") or {}).get(
+                ad_type, strategy.get("strategy")
+            )
+            eligible.append((score, variant))
+
+    stage_rule = next(
+        (item for item in rules.order_stage_aba_table if eligible and item.stage == eligible[0][0].order_stage),
+        None,
+    )
+    if stage_rule and stage_rule.max_keyword_count is not None:
+        ordered_terms = list(
+            dict.fromkeys(
+                score.search_term
+                for score, _ in sorted(eligible, key=lambda item: (item[0].aba_rank, item[0].search_term))
+            )
+        )
+        selected_terms = set(ordered_terms[: int(stage_rule.max_keyword_count)])
+        excluded_terms = ordered_terms[int(stage_rule.max_keyword_count) :]
+        eligible = [item for item in eligible if item[0].search_term in selected_terms]
+        if excluded_terms:
+            blocked.append(
+                BlockedItem(
+                    item_type="stage_limit",
+                    identifier=stage_rule.stage,
+                    source_step="architecture_builder",
+                    reason=(
+                        f"当前阶段最多输出 {stage_rule.max_keyword_count} 个通过属性门的关键词；"
+                        f"其余 {len(excluded_terms)} 个保留为观察证据"
+                    ),
+                    data={"excluded_keyword_count": len(excluded_terms)},
+                )
+            )
 
     grouped: dict[tuple[str, str], list[tuple[KeywordScore, dict[str, Any]]]] = defaultdict(list)
     for score, strategy in eligible:
@@ -82,6 +117,7 @@ def build_ad_architecture(
         for chunk in rank_groups:
             terms = [score.search_term for score, _ in chunk]
             row_reasons = list(budget_reasons)
+            row_reasons.append(chunk[0][1]["reason"])
             bid = _default_bid(ad_type, rules)
             if bid is None:
                 row_reasons.append(f"规则缺失：bid_defaults.{ad_type}")
@@ -89,7 +125,11 @@ def build_ad_architecture(
             if placement is None:
                 row_reasons.append(f"规则缺失：placement_defaults.{ad_type}")
 
-            needs_review = bool(row_reasons) or any(score.needs_review for score, _ in chunk)
+            needs_review = (
+                bool(row_reasons)
+                or any(score.needs_review for score, _ in chunk)
+                or any(bool(strategy.get("needs_review")) for _, strategy in chunk)
+            )
             row_reasons.extend(reason for score, _ in chunk for reason in score.reasons)
             row = AdArchitectureRow(
                 ad_group_name=_ad_group_name(product, ad_type, traffic_entry, chunk),
@@ -211,5 +251,12 @@ def _default_placement(ad_type: str, rules: CategoryRules) -> str | None:
 def _rationale(chunk: list[tuple[KeywordScore, dict[str, Any]]], traffic_entry: str) -> str:
     scores = [score for score, _ in chunk]
     terms = "、".join(score.search_term for score in scores)
-    conclusions = "；".join(f"{score.search_term}: {score.conclusion}, 总分{score.total_match_score}" for score in scores)
+    conclusions = "；".join(
+        (
+            f"{score.search_term}: {score.conclusion}, ABA冷启动属性门"
+            if score.evidence_grain == "ABA_COLD_START"
+            else f"{score.search_term}: {score.conclusion}, 总分{score.total_match_score}"
+        )
+        for score in scores
+    )
     return f"{traffic_entry}入口；投放词：{terms}；{conclusions}。"

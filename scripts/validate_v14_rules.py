@@ -62,6 +62,13 @@ def _check_current_version(scope: dict, rules: dict, errors: list[str]) -> None:
     machine_version = str(rules.get("version") or "").lower()
     if "v2.0" not in machine_version:
         errors.append(f"派生 TEST_ONLY 配置版本必须标记 v2.0，实际为 {rules.get('version')}")
+    if scope.get("runtime_version") != "V2.1":
+        errors.append(
+            f"config/project_scope.json.runtime_version 必须为 V2.1，实际为 {scope.get('runtime_version')}"
+        )
+    console = scope.get("operator_console", {})
+    if console.get("version") != "V1.8":
+        errors.append(f"运营网页版本必须为 V1.8，实际为 {console.get('version')}")
 
 
 def _check_status_boundaries(rules: dict, errors: list[str]) -> None:
@@ -113,6 +120,27 @@ def _check_status_boundaries(rules: dict, errors: list[str]) -> None:
     )
     if 'get("phrase_priority_aba_rank", 50000)' in strategy_text:
         errors.append("Phrase/Broad ABA 阈值仍以代码默认值回退")
+    strategy_rules = rules.get("strategy_rules", {})
+    if "phrase_priority_aba_rank" in strategy_rules:
+        errors.append("Phrase/Broad 仍使用单一ABA排名分界")
+    match_routing = strategy_rules.get("match_type_routing", {})
+    expected_volume_bands = {
+        "no_standalone_lt": 3000,
+        "conditional_group_lt": 10000,
+        "broad_test_lt": 30000,
+        "phrase_priority_lt": 100000,
+    }
+    expected_concentration = {
+        "sparse_query_phrase_max": 3,
+        "mixed_top3_share_gte": 0.35,
+        "phrase_top3_share_gte": 0.60,
+    }
+    if match_routing.get("root_monthly_volume_bands") != expected_volume_bands:
+        errors.append("Phrase/Broad 词根月搜索量分层与阈值正文不一致")
+    if match_routing.get("root_concentration") != expected_concentration:
+        errors.append("Phrase/Broad 词根集中度门与阈值正文不一致")
+    if match_routing.get("eligible_relevance_levels") != ["HIGH", "MEDIUM"]:
+        errors.append("Phrase/Broad 相关性资格门必须仅允许 HIGH/MEDIUM")
 
 
 def _check_threshold_source(rules: dict, errors: list[str]) -> None:

@@ -4,6 +4,11 @@
 
 Validator 只检查，不新增、不修改动作。它检查：
 
+- 服务端可信意图路由与请求路由完全一致；
+- `agents_context.json` 可从当前文件重新构建且摘要一致，八层必须 8/8；
+- 规则、阈值、知识、配置、工具、合同、本次证据的 SHA-256；
+- Python 工具回执的输入、配置、程序和输出摘要；
+- Codex 运行回执、原始 JSON、上下文摘要、完整 `sources_read` 和输出摘要；
 - 数据质量和对象映射；
 - 类目、广告产品和 StrategyProfile 能力；
 - 规则包版本与两个文件 SHA-256；
@@ -13,6 +18,8 @@ Validator 只检查，不新增、不修改动作。它检查：
 - 单动作及批次累计风险。
 
 输出只能是 `AUTO_PASS / APPROVAL_REQUIRED / BLOCKED`。
+
+Validator 不信任网页、Python、Codex 或结果 JSON 自报的“已读取/已通过”。任一来源未登记、文件内容被替换、回执不一致或最终工作簿被篡改，固定阻断。聚合数据包可以使用 `DETERMINISTIC_TOOL_ONLY`；广告架构和 SP 优化结论必须使用 `CODEX_AGENTS`。
 
 ## 复盘
 

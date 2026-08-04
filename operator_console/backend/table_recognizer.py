@@ -192,7 +192,9 @@ def recognize_new_product(path: Path, catalog: dict[str, Any]) -> dict[str, Any]
         mapping = {index: field for index, value in enumerate(header) if (field := _field_for_header(value))}
         if not mapping:
             continue
-        for row in list(buffered) + [list(item) for _, item in zip(range(1000), rows)]:
+        products: list[dict[str, str]] = []
+        seen_asins: set[str] = set()
+        for row_number, row in enumerate(list(buffered) + [list(item) for _, item in zip(range(1000), rows)], start=2):
             if not any(clean_value(value) for value in row):
                 continue
             recognized: dict[str, Any] = {}
@@ -213,8 +215,32 @@ def recognize_new_product(path: Path, catalog: dict[str, Any]) -> dict[str, Any]
                 if value not in (None, ""):
                     recognized[field] = value
             if recognized:
-                return {"source_file": path.name, "sheet": sheet_name, "fields": recognized, "warnings": warnings}
-    return {"source_file": path.name, "sheet": None, "fields": {}, "warnings": ["没有找到可识别的新品字段表头"]}
+                asin = str(recognized.get("asin") or "").upper()
+                if not ASIN_PATTERN.fullmatch(asin):
+                    warnings.append(f"第{row_number}行缺少有效ASIN，未加入产品清单")
+                    continue
+                if asin in seen_asins:
+                    warnings.append(f"第{row_number}行ASIN {asin}重复，已保留首次出现的记录")
+                    continue
+                seen_asins.add(asin)
+                recognized["asin"] = asin
+                recognized.setdefault("marketplace", "US")
+                products.append({key: str(value) for key, value in recognized.items()})
+        if products:
+            return {
+                "source_file": path.name,
+                "sheet": sheet_name,
+                "fields": products[0],
+                "products": products,
+                "warnings": list(dict.fromkeys(warnings)),
+            }
+    return {
+        "source_file": path.name,
+        "sheet": None,
+        "fields": {},
+        "products": [],
+        "warnings": ["没有找到可识别的新品字段表头或有效ASIN"],
+    }
 
 
 def scan_report_file(path: Path) -> dict[str, Any]:

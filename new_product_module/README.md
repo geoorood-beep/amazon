@@ -1,6 +1,8 @@
-# AI广告智能体新品推广模块
+# AI广告智能体广告架构设计模块
 
-本目录实现模块一：新品推广。模块只生成 Excel 建议表，不调用 Amazon Ads API。
+本目录实现模块一：广告架构设计。模块根据 Rug ASIN、产品属性、ABA 和历史证据生成 Excel 候选架构，不调用 Amazon Ads API。
+
+`--product` 兼容单个产品对象，也支持 `{"products": [...]}` 批量对象。批量模式只读取一次固定 ABA 和历史证据，但每个 ASIN 独立运行规则管线，最后合并到同一份两表工作簿；`ABA选词表` 通过 ASIN 列保持逐行可追溯。
 
 ## 运行
 
@@ -19,6 +21,8 @@ python3 cli.py \
   --product tests/fixtures/product.sop_6_2.json \
   --aba ../reference/rug-aba/ \
   --history ../reference/category-history/rug/normalized/20260707_rug_historical_search_terms_normalized.xlsx \
+  --relevance ../reference/rug-relevance/ \
+  --search-volume ../reference/rug-search-volume/ \
   --rules config/category_rules.example.yaml \
   --output result.xlsx
 ```
@@ -27,6 +31,8 @@ python3 cli.py \
 
 - `ABA选词表`：表格下方包含自然段 `判断依据与设计逻辑`，数据源问题和待人工确认原因也在该说明区保留。
 - `新广告设置表`：使用七段式广告组命名，并保留人工确认字段。
+
+Phrase / Broad 不再使用“ABA排名分界”。程序先读取 ASIN 相关性，再计算词根月搜索量、Top3 占比和有效查询数，最后结合语义特异度生成候选。`reference/rug-relevance/` 或 `reference/rug-search-volume/` 没有实际数据文件时，程序输出 `MATCH_TYPE_DATA_PENDING` 并不新建广告组。
 
 ## 测试
 
@@ -37,6 +43,8 @@ python3 -m unittest discover -s tests -v
 ## 规则库说明
 
 生产示例规则库是 `config/category_rules.example.yaml`。它标记为 `HUMAN_EXECUTION_ONLY + TEST_ONLY`。其中没有用户确认的数字保留 `null`，程序会把依赖这些字段的关键词或广告结构写入人工确认原因，不会借用其他地毯类型的参数。Rug O<2 停止线尚无可执行 Threshold ID，因此固定为 `BLOCKED_PENDING_THRESHOLD_ID`。
+
+新品没有当前 ASIN 的历史点击或订单时，模块可以进入 `ABA_COLD_START` 候选路径，但只生成 `CANDIDATE_ONLY`：候选必须来自固定 Rug ABA，并同时通过 Rug 类型、至少一项次级属性、阶段、合规和广告状态检查。该路径不伪造点击、订单、CVR、CPA、ACOS 或综合分；Bid、广告位与Amazon后台动作仍需人工确认。存在真实历史样本时，历史辅助路径继续执行已配置的样本量门槛。
 
 V2.0 在任何历史成交、ABA 阶段和评分之前执行产品属性检查：关键词有明确尺寸时必须与本次目标尺寸一致；明确冲突的地毯类型、风格、颜色、材质、形状或图案动物类型直接判为 `不建议投放`，不会进入广告架构。属性字段缺失但关键词写出明确属性时进入人工确认。可在 `attribute_scoring.<属性>.value_aliases` 中扩充类目同义词。
 

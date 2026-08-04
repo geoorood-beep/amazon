@@ -11,7 +11,7 @@ if [[ $# -ge 3 ]]; then
     --output-dir "$3"
 fi
 
-echo "陆遥广告智能体 V2.0｜六表聚合"
+echo "陆遥广告智能体 V2.1运行时｜V2.0规则集｜六表聚合"
 echo "只允许 Rug；不会修改 Amazon 后台。"
 echo ""
 read "SOURCE_DIR?请输入六张报表所在文件夹: "

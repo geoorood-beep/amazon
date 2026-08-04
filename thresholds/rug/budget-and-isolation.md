@@ -14,7 +14,7 @@
 
 ## 新品高流量核心隔离
 
-- 状态：`HUMAN_RULE_FIXED / MACHINE_NOT_ACTIVE`
+- 状态：`HUMAN_RULE_FIXED / MACHINE_CANDIDATE_ONLY`
 - 适用：Auto Close、关键词 Broad、Phrase。
 - 推荐层级：`P1 / P2`。
 - ABA 排名：`<=11,000`。

@@ -24,7 +24,7 @@ Exact 需要稳定的当前链接搜索词表现，应转入老品规则判断�
 - 头部、尺寸、场景、风格和拓词词根不得为了减少广告组而混组；
 - 低预算隔离测试必须单独组、单独预算并标记非主投。
 
-Phrase 承接词序稳定的短语和属性长尾；关键词 Broad 只做低 Bid、小预算拓词；Auto 只保留 Close match。Broad 是关键词匹配方式，不得与 Auto Loose 混为一种广告。
+Phrase / Broad 必须读取 [`match-type-routing.md`](match-type-routing.md)，不再以单一 ABA 排名分界。Phrase 承接词序稳定的短语和属性长尾；关键词 Broad 只做低 Bid、小预算拓词；Auto 只保留 Close match。Broad 是关键词匹配方式，不得与 Auto Loose 混为一种广告。
 
 ## 命名
 

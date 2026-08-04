@@ -67,6 +67,16 @@ class ReferenceAdapterTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "不得截断小数"):
                 load_rug_keyword_evidence(aba, history)
 
+    def test_optional_cold_start_adds_aba_only_terms_with_explicit_grain(self) -> None:
+        rows, issues = load_rug_keyword_evidence(
+            PROJECT_ROOT / "reference/rug-aba",
+            PROJECT_ROOT
+            / "reference/category-history/rug/normalized/20260707_rug_historical_search_terms_normalized.xlsx",
+            include_aba_cold_start=True,
+        )
+        self.assertTrue(any(row["evidence_grain"] == "ABA_COLD_START" for row in rows))
+        self.assertTrue(any(issue["code"] == "ABA_COLD_START_CANDIDATES_ADDED" for issue in issues))
+
     @staticmethod
     def _write_aba(path: Path, rank: float) -> None:
         workbook = Workbook()

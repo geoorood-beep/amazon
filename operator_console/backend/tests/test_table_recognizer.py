@@ -14,7 +14,7 @@ if str(BACKEND) not in sys.path:
     sys.path.insert(0, str(BACKEND))
 
 from table_recognizer import load_catalog, recognize_new_product, scan_report_file, summarize_upload
-from server import aggregation_only_result, has_complete_overlap_windows, requested_asins, safe_upload_name
+from server import aggregation_only_result, has_complete_overlap_windows, new_product_payloads, requested_asins, safe_upload_name
 
 
 CATALOG_PATH = ROOT / "config/operator_catalog.json"
@@ -53,6 +53,26 @@ def test_new_product_import_normalizes_catalog_values(tmp_path: Path) -> None:
     assert result["fields"]["material"] == "polyester"
     assert result["fields"]["scene_tags"] == "living room,bedroom"
     assert result["fields"]["order_target_daily"] == "3"
+    assert len(result["products"]) == 1
+
+
+def test_new_product_import_reads_multiple_unique_asins(tmp_path: Path) -> None:
+    source = tmp_path / "批量新品资料.xlsx"
+    save_workbook(
+        source,
+        [
+            ["ASIN", "尺寸", "地毯类型", "材质", "日订单目标"],
+            ["B0ABC12345", "5x7", "area rug", "polyester", 3],
+            ["B0XYZ98765", "2x6", "runner", "cotton", 2],
+            ["B0ABC12345", "8x10", "area rug", "wool", 5],
+        ],
+    )
+
+    result = recognize_new_product(source, load_catalog(CATALOG_PATH))
+
+    assert [item["asin"] for item in result["products"]] == ["B0ABC12345", "B0XYZ98765"]
+    assert result["products"][1]["rug_type"] == "runner"
+    assert any("重复" in warning for warning in result["warnings"])
 
 
 def test_report_scan_detects_multiple_asins_and_date_range(tmp_path: Path) -> None:
@@ -126,6 +146,22 @@ def test_requested_asins_supports_multiple_values_and_deduplicates() -> None:
     fields = {"asin": "B0ABC12345, b0xyz98765", "asins": "B0ABC12345"}
     assert requested_asins(fields) == ["B0ABC12345", "B0XYZ98765"]
     assert requested_asins({"asin": "not-an-asin"}) == []
+
+
+def test_new_product_payloads_supports_batch_and_enforces_manual_limit() -> None:
+    products = [
+        {"asin": "B0ABC12345", "marketplace": "US", "size_spec": "5x7", "rug_type": "area_rug", "order_target_daily": "3"},
+        {"asin": "B0XYZ98765", "marketplace": "US", "size_spec": "2x6", "rug_type": "runner", "order_target_daily": "2"},
+    ]
+    payloads = new_product_payloads({"input_mode": "manual", "products_json": __import__("json").dumps(products)})
+    assert [item["asin"] for item in payloads] == ["B0ABC12345", "B0XYZ98765"]
+
+    too_many = [
+        {"asin": f"B0AA{index:06d}", "marketplace": "US", "size_spec": "5x7", "rug_type": "area_rug", "order_target_daily": "1"}
+        for index in range(11)
+    ]
+    with pytest.raises(ValueError, match="最多10个ASIN"):
+        new_product_payloads({"input_mode": "manual", "products_json": __import__("json").dumps(too_many)})
 
 
 def test_overlap_detector_requires_all_report_windows(tmp_path: Path) -> None:

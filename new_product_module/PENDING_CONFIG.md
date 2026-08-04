@@ -44,7 +44,7 @@
 - `candidate_pool_thresholds.min_click_sample`
 - `candidate_pool_thresholds.min_order_sample`
 
-实际执行时会优先读取各地毯类型下的 `min_click_sample` / `min_order_sample`；两处都缺失时，关键词进入 `待人工确认`。
+历史辅助模式会优先读取各地毯类型下的 `min_click_sample` / `min_order_sample`；两处都缺失时，历史效果词进入 `待人工确认`。这两个缺口不再清空 `ABA_COLD_START` 候选；冷启动按类型、次级属性、阶段、合规和广告状态门独立判断，且始终需要人工批准。
 
 ## 属性匹配评分
 
@@ -53,6 +53,13 @@
 - `attribute_scoring.style.partial_match_score`
 - `attribute_scoring.color.partial_match_score`
 - `attribute_scoring.color.neutral_score`
+
+## Phrase / Broad 证据与回放
+
+- `reference/rug-relevance/` 尚未放入实际 ASIN 相关性表；
+- `reference/rug-search-volume/` 尚未放入实际搜索词月搜索量表；
+- `3,000 / 10,000 / 30,000 / 100,000` 词根月搜索量分层和 `35% / 60%` Top3 占比是用户已确认的临时候选逻辑，但还没有用 Rug 数据回放校准；
+- 数据补齐前机器状态保持 `MATCH_TYPE_DATA_PENDING / TEST_ONLY`，不得回退到 ABA 排名分界。
 
 ## 预算、Bid、广告位和风险
 

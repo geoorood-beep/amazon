@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 import json
+import mimetypes
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -12,7 +13,7 @@ import sys
 import threading
 import traceback
 from typing import Any
-from urllib.parse import unquote, urlparse
+from urllib.parse import quote, unquote, urlparse
 import uuid
 
 from openpyxl import load_workbook
@@ -22,6 +23,13 @@ if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
 from validator import validate_operator_result
+from agents_context import (
+    build_agents_analysis_context,
+    build_tool_receipt,
+    canonical_digest,
+    source_record,
+)
+from plan_exporter import export_new_product_architecture, export_sp_optimization_plan
 from table_recognizer import SUPPORTED_EXTENSIONS, load_catalog, metadata_candidates, scan_report_file, summarize_upload
 
 
@@ -37,6 +45,8 @@ PYTHON = ROOT / ".venv/bin/python"
 CODEX = shutil.which("codex") or "/Applications/ChatGPT.app/Contents/Resources/codex"
 MAX_JSON_BODY_BYTES = 2 * 1024 * 1024
 MAX_UPLOAD_BYTES = 200 * 1024 * 1024
+MAX_MANUAL_PRODUCTS = 10
+MAX_IMPORTED_PRODUCTS = 100
 UPLOAD_ROLES = {"new_product", "reports"}
 UPLOAD_ID_PATTERN = re.compile(r"[A-Za-z0-9-]{8,80}")
 WORKER_LOCK = threading.Lock()
@@ -92,6 +102,14 @@ def safe_upload_name(raw: str) -> str:
     if Path(name).suffix.casefold() not in SUPPORTED_EXTENSIONS:
         raise ValueError("只支持 XLSX、XLSM、CSV、TSV 表格")
     return name
+
+
+def artifact_content_disposition(name: str) -> str:
+    """Return an RFC 5987 filename header that remains latin-1 encodable."""
+
+    suffix = Path(name).suffix.casefold()
+    fallback = f"artifact{suffix}" if suffix else "artifact-download"
+    return f"attachment; filename=\"{fallback}\"; filename*=UTF-8''{quote(name, safe='')}"
 
 
 def requested_asins(fields: dict[str, Any]) -> list[str]:
@@ -186,56 +204,209 @@ def run_command(command: list[str], log_path: Path, timeout: int = 900) -> subpr
     return completed
 
 
+def command_issue(completed: subprocess.CompletedProcess[str], fallback: str, limit: int = 3000) -> str:
+    """Keep the actionable process output and suppress a known non-fatal XLSX style warning."""
+
+    combined = "\n".join(part for part in (completed.stdout, completed.stderr) if part).strip()
+    lines = [
+        line
+        for line in combined.splitlines()
+        if "Workbook contains no default style" not in line
+        and "warn(\"Workbook contains no default style" not in line
+    ]
+    cleaned = "\n".join(lines).strip()
+    return (cleaned or fallback)[-limit:]
+
+
+def routing_entry(request: dict[str, Any], key: str, suffix: str) -> Path:
+    values = request.get("routing", {}).get(key) or []
+    for value in values:
+        if str(value).endswith(suffix):
+            path = (ROOT / str(value)).resolve()
+            if path.exists() and (path == ROOT or ROOT in path.parents):
+                return path
+    raise ValueError(f"AGENTS路由未找到数据源: {suffix}")
+
+
 def workbook_summary(path: Path, limit: int = 20) -> dict[str, Any]:
     workbook = load_workbook(path, data_only=False, read_only=True)
     sheets = []
     for sheet in workbook.worksheets:
-        rows = []
-        for row in sheet.iter_rows(values_only=True, max_row=min(sheet.max_row, limit)):
-            rows.append([value for value in row])
-        sheets.append({"name": sheet.title, "max_row": sheet.max_row, "preview": rows})
+        raw_rows = [[value for value in row] for row in sheet.iter_rows(values_only=True)]
+        rows: list[list[Any]] = []
+        notes: list[dict[str, str]] = []
+        index = 0
+        while index < len(raw_rows):
+            row = raw_rows[index]
+            first = str(row[0] or "").strip() if row else ""
+            if first == "判断依据与设计逻辑":
+                asin = str(row[1] or "").strip() if len(row) > 1 else ""
+                content = ""
+                if index + 1 < len(raw_rows):
+                    content = str(raw_rows[index + 1][0] or "").strip()
+                notes.append({"asin": asin, "title": first, "content": content})
+                index += 2
+                continue
+            if any(value is not None and str(value).strip() for value in row):
+                rows.append(row)
+            index += 1
+        sheets.append(
+            {
+                "name": sheet.title,
+                "max_row": sheet.max_row,
+                "data_row_count": max(0, len(rows) - 1),
+                "preview": rows[:limit],
+                "notes": notes,
+            }
+        )
     return {"path": str(path), "sheets": sheets}
 
 
 def missing_fields(request: dict[str, Any], intent_config: dict[str, Any]) -> list[str]:
     fields = request.get("fields", {})
+    if request.get("intent") == "NEW_PRODUCT_PROMOTION" and fields.get("products_json"):
+        return []
     return [name for name in intent_config["required_fields"] if fields.get(name) in (None, "", [])]
+
+
+def new_product_payloads(fields: dict[str, Any]) -> list[dict[str, Any]]:
+    raw_json = fields.get("products_json")
+    if raw_json:
+        try:
+            raw_products = json.loads(str(raw_json))
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"产品清单JSON无效: {exc.msg}") from exc
+        if not isinstance(raw_products, list):
+            raise ValueError("产品清单必须是数组")
+    else:
+        raw_products = [fields]
+
+    input_mode = str(fields.get("input_mode") or "manual")
+    limit = MAX_MANUAL_PRODUCTS if input_mode == "manual" else MAX_IMPORTED_PRODUCTS
+    if not raw_products:
+        raise ValueError("产品清单为空")
+    if len(raw_products) > limit:
+        if input_mode == "manual":
+            raise ValueError("手动录入最多10个ASIN；超过10个请使用表格上传")
+        raise ValueError(f"单次表格导入最多{MAX_IMPORTED_PRODUCTS}个ASIN，请拆分批次")
+
+    products: list[dict[str, Any]] = []
+    seen_asins: set[str] = set()
+    issues: list[str] = []
+    for index, raw in enumerate(raw_products, start=1):
+        if not isinstance(raw, dict):
+            issues.append(f"第{index}条产品信息不是对象")
+            continue
+        asin = str(raw.get("asin") or "").strip().upper()
+        marketplace = str(raw.get("marketplace") or fields.get("marketplace") or "US").strip().upper()
+        missing = [
+            label for label, value in (
+                ("ASIN", asin),
+                ("站点", marketplace),
+                ("尺寸", raw.get("size_spec")),
+                ("地毯类型", raw.get("rug_type")),
+                ("日订单目标", raw.get("order_target_daily")),
+            ) if value in (None, "")
+        ]
+        if missing:
+            issues.append(f"第{index}条缺少: {', '.join(missing)}")
+            continue
+        if not re.fullmatch(r"B0[A-Z0-9]{8}", asin):
+            issues.append(f"第{index}条ASIN格式无效: {asin or '空'}")
+            continue
+        if asin in seen_asins:
+            issues.append(f"第{index}条ASIN重复: {asin}")
+            continue
+        try:
+            order_target = float(raw.get("order_target_daily"))
+            target_cpa = float(raw["target_cpa"]) if raw.get("target_cpa") not in (None, "") else None
+            daily_budget = float(raw["daily_budget"]) if raw.get("daily_budget") not in (None, "") else None
+        except (TypeError, ValueError):
+            issues.append(f"第{index}条的日订单目标、CPA或预算不是有效数字")
+            continue
+        if order_target <= 0:
+            issues.append(f"第{index}条日订单目标必须大于0")
+            continue
+        seen_asins.add(asin)
+        scene_tags = [item.strip() for item in str(raw.get("scene_tags") or "").split(",") if item.strip()]
+        products.append({
+            "asin": asin,
+            "sku": str(raw.get("sku") or asin),
+            "category": "Rugs",
+            "rug_type": raw.get("rug_type") or None,
+            "scene_tags": scene_tags,
+            "region_tags": scene_tags,
+            "size_spec": raw.get("size_spec"),
+            "material": raw.get("material") or None,
+            "style": raw.get("style") or None,
+            "color": raw.get("color") or None,
+            "shape": raw.get("shape") or None,
+            "order_target_daily": order_target,
+            "target_cpa": target_cpa,
+            "product_stage": "new_test",
+            "operator_name": raw.get("operator_name") or fields.get("operator_name") or "web-operator",
+            "requested_daily_budget": daily_budget,
+            "marketplace": marketplace,
+        })
+    if issues:
+        raise ValueError("；".join(issues[:20]))
+    return products
+
+
+def evidence_source_files(source: Path) -> list[Path]:
+    """Return real operator evidence files; README and hidden files are not evidence."""
+    allowed_suffixes = {".csv", ".xlsx", ".xlsm"}
+    if source.is_file():
+        return [source] if source.suffix.lower() in allowed_suffixes else []
+    if not source.is_dir():
+        return []
+    return sorted(
+        path
+        for path in source.rglob("*")
+        if path.is_file()
+        and not path.name.startswith(".")
+        and path.suffix.lower() in allowed_suffixes
+    )
 
 
 def preprocess_new_product(request: dict[str, Any], job_dir: Path) -> dict[str, Any]:
     fields = request["fields"]
     artifacts = job_dir / "artifacts"
     artifacts.mkdir(parents=True, exist_ok=True)
-    product = {
-        "asin": fields.get("asin"),
-        "sku": fields.get("sku") or fields.get("asin"),
-        "category": "Rugs",
-        "rug_type": fields.get("rug_type") or None,
-        "scene_tags": [item.strip() for item in str(fields.get("scene_tags") or "").split(",") if item.strip()],
-        "region_tags": [item.strip() for item in str(fields.get("scene_tags") or "").split(",") if item.strip()],
-        "size_spec": fields.get("size_spec"),
-        "material": fields.get("material") or None,
-        "style": fields.get("style") or None,
-        "color": fields.get("color") or None,
-        "shape": fields.get("shape") or None,
-        "order_target_daily": float(fields.get("order_target_daily")),
-        "target_cpa": float(fields["target_cpa"]) if fields.get("target_cpa") else None,
-        "product_stage": "new_test",
-        "operator_name": fields.get("operator_name") or "web-operator",
-        "requested_daily_budget": float(fields["daily_budget"]) if fields.get("daily_budget") else None,
-    }
+    try:
+        products = new_product_payloads(fields)
+    except ValueError as exc:
+        return {"status": "DATA_BLOCKED", "issues": [str(exc)], "artifacts": []}
     product_path = job_dir / "product.json"
-    write_json(product_path, product)
-    output_path = artifacts / "new_product_plan.xlsx"
+    write_json(product_path, {"products": products})
+    output_path = artifacts / "新品候选证据包.xlsx"
+    try:
+        aba_source = routing_entry(request, "knowledge_entries", "reference/rug-aba")
+        history_source = routing_entry(
+            request,
+            "knowledge_entries",
+            "20260707_rug_historical_search_terms_normalized.xlsx",
+        )
+        relevance_source = routing_entry(request, "knowledge_entries", "reference/rug-relevance")
+        search_volume_source = routing_entry(
+            request, "knowledge_entries", "reference/rug-search-volume"
+        )
+        module_cli = routing_entry(request, "tool_entries", "new_product_module/cli.py")
+    except ValueError as exc:
+        return {"status": "DATA_BLOCKED", "issues": [str(exc)], "artifacts": []}
     command = [
         str(PYTHON),
-        str(ROOT / "new_product_module/cli.py"),
+        str(module_cli),
         "--product",
         str(product_path),
         "--aba",
-        str(ROOT / "reference/rug-aba"),
+        str(aba_source),
         "--history",
-        str(ROOT / "reference/category-history/rug/normalized/20260707_rug_historical_search_terms_normalized.xlsx"),
+        str(history_source),
+        "--relevance",
+        str(relevance_source),
+        "--search-volume",
+        str(search_volume_source),
         "--rules",
         str(ROOT / "new_product_module/config/category_rules.example.yaml"),
         "--output",
@@ -243,13 +414,31 @@ def preprocess_new_product(request: dict[str, Any], job_dir: Path) -> dict[str, 
     ]
     completed = run_command(command, job_dir / "preprocess.log")
     if completed.returncode != 0:
-        return {"status": "DATA_BLOCKED", "issues": [completed.stderr[-2000:]], "artifacts": []}
+        return {
+            "status": "DATA_BLOCKED",
+            "issues": [command_issue(completed, "广告架构预处理失败", 3000)],
+            "artifacts": [],
+        }
+    evidence_issues: list[str] = []
+    relevance_files = evidence_source_files(relevance_source)
+    search_volume_files = evidence_source_files(search_volume_source)
+    if not relevance_files:
+        evidence_issues.append("请补充新品相关性表；缺少相关性证据时不会生成词组或广泛投放")
+    if not search_volume_files:
+        evidence_issues.append("请补充搜索词月搜索量表；缺少词根月搜索量时不会生成词组或广泛投放")
     return {
         "status": "READY_FOR_ANALYSIS",
-        "mode": "NEW_PRODUCT_MODULE",
+        "mode": "NEW_PRODUCT_BATCH_MODULE" if len(products) > 1 else "NEW_PRODUCT_MODULE",
+        "input_mode": str(fields.get("input_mode") or "manual"),
+        "analysis_asins": [str(product["asin"]) for product in products],
+        "product_count": len(products),
+        "input_artifacts": [str(product_path)],
         "artifacts": [str(output_path)],
         "workbook_summary": workbook_summary(output_path),
-        "issues": [],
+        "match_type_data_status": "READY" if not evidence_issues else "PENDING_SOURCE",
+        "relevance_source_count": len(relevance_files),
+        "search_volume_source_count": len(search_volume_files),
+        "issues": evidence_issues,
     }
 
 
@@ -348,7 +537,7 @@ def preprocess_reports(request: dict[str, Any], job_dir: Path) -> dict[str, Any]
             expected_json = asin_artifacts / "ad_analysis_packet.json"
             expected_xlsx = asin_artifacts / "ad_analysis_packet.xlsx"
             if completed.returncode != 0 or not expected_json.is_file():
-                issue = (completed.stderr or completed.stdout or "聚合程序没有生成数据包")[-2000:]
+                issue = command_issue(completed, "聚合程序没有生成数据包", 3000)
                 issues.append(f"{asin}: {issue}")
                 continue
             packet = read_json(expected_json)
@@ -368,6 +557,7 @@ def preprocess_reports(request: dict[str, Any], job_dir: Path) -> dict[str, Any]
             "status": "READY_FOR_ANALYSIS",
             "mode": "NAME_KEYED_OVERLAP_SAFE_MULTI_ASIN" if workbook is not None else "REPORT_ONLY_OVERLAP_SAFE_MULTI_ASIN",
             "artifacts": successful_artifacts,
+            "input_artifacts": [str(workbook)] if workbook is not None else [],
             "analysis_asins": [item.get("primary_asin") for item in packet_summaries],
             "detected_asins": detected_asins,
             "auto_period": {"start": metadata["period_start"], "end": metadata["period_end"]},
@@ -396,13 +586,35 @@ def preprocess_reports(request: dict[str, Any], job_dir: Path) -> dict[str, Any]
     expected_xlsx = artifacts / "ad_decision_packet.xlsx"
     mode = "STANDARD_SIX_REPORTS_AUTO_SCOPE"
     completed = run_command(command, job_dir / "preprocess.log")
-    if completed.returncode != 0 or not expected_json.is_file():
-        issue = (completed.stderr or completed.stdout or "聚合程序没有生成数据包")[-3000:]
+    if not expected_json.is_file():
+        issue = command_issue(completed, "聚合程序没有生成数据包", 3000)
         return {"status": "DATA_BLOCKED", "issues": [issue, *metadata["issues"]], "artifacts": []}
     packet = read_json(expected_json)
+    imported_issues = packet.get("imported_issues") or []
+    blocking_issues = [
+        str(item.get("message") or item.get("code") or item)
+        for item in imported_issues
+        if isinstance(item, dict) and item.get("blocking") is True
+    ]
+    if completed.returncode != 0 or blocking_issues:
+        return {
+            "status": "DATA_BLOCKED",
+            "mode": "STANDARD_SIX_REPORTS_DQ_BLOCKED",
+            "artifacts": [str(expected_json), str(expected_xlsx)] if expected_xlsx.exists() else [str(expected_json)],
+            "analysis_asins": analysis_asins,
+            "detected_asins": detected_asins,
+            "auto_period": {"start": metadata["period_start"], "end": metadata["period_end"]},
+            "packet_summary": {
+                "metadata": packet.get("metadata"),
+                "imported_issues": imported_issues,
+            },
+            "issues": blocking_issues
+            or [command_issue(completed, "聚合数据质量未通过", 3000)],
+        }
     return {
         "status": "READY_FOR_ANALYSIS",
         "mode": mode,
+        "input_artifacts": [str(context)],
         "artifacts": [str(expected_json), str(expected_xlsx)] if expected_xlsx.exists() else [str(expected_json)],
         "analysis_asins": analysis_asins,
         "detected_asins": detected_asins,
@@ -428,11 +640,17 @@ def preprocess_weekly(request: dict[str, Any], job_dir: Path) -> dict[str, Any]:
     artifacts.mkdir(parents=True, exist_ok=True)
     copied_status = artifacts / "weekly_threshold_monitor_status.json"
     shutil.copy2(status_path, copied_status)
+    calibration_inputs = sorted(
+        str(path)
+        for path in (ROOT / "imports/threshold-calibration").glob("*.csv")
+        if path.is_file()
+    )
     return {
         "status": "READY_FOR_ANALYSIS",
         "mode": "WEEKLY_THRESHOLD_MONITOR",
         "monitor_status": read_json(status_path),
         "artifacts": [str(copied_status)],
+        "input_artifacts": calibration_inputs,
         "issues": [],
     }
 
@@ -447,17 +665,33 @@ def preprocess(request: dict[str, Any], job_dir: Path) -> dict[str, Any]:
     return {"status": "DATA_BLOCKED", "issues": ["未知任务意图"], "artifacts": []}
 
 
-def codex_prompt(request_path: Path, preprocessing_path: Path) -> str:
-    return f"""你是陆遥广告运营工作台的只读分析Worker。
-必须先读取项目根AGENTS.md与config/project_scope.json，只允许category=rug。
-读取任务：{request_path}
-读取确定性预处理：{preprocessing_path}
-按任务意图读取operator_intents中登记的规则、阈值和输出合同。不得修改任何文件，不得连接或操作Amazon后台。
-预处理为DATA_BLOCKED时，status必须是DATA_REQUIRED或VALIDATOR_BLOCKED，不得给出可执行建议。
-所有recommendations必须approval_required=true。safety固定execution_allowed=false、auto_apply=false、human_approval_required=true。
-预处理含多个analysis_asins时，必须逐ASIN给出可区分的结论；每条动作和证据以[ASIN]开头，不得把不同ASIN合并成一个动作。
-只返回符合operator_console/contracts/operator-result.schema.json的JSON，不要Markdown，不要代码围栏。
-结果job_id与intent必须和任务完全一致。证据不足时明确列入missing_inputs，不得补造数字。"""
+def codex_prompt(
+    request_path: Path,
+    preprocessing_path: Path,
+    preprocessing: dict[str, Any],
+    codex_run_id: str,
+) -> str:
+    context = preprocessing.get("agents_context") or {}
+    required_sources = context.get("required_codex_sources") or []
+    tool_receipt_ids = context.get("tool_receipt_ids") or []
+    return f"""你是陆遥广告运营工作台的只读业务决策Worker。网页只是输入输出载体。
+必须读取任务：{request_path}
+必须读取预处理与AGENTS执行上下文：{preprocessing_path}
+本次唯一允许的AGENTS上下文摘要：{context.get('context_digest')}
+本次Codex运行ID：{codex_run_id}
+必须逐项读取并在provenance.sources_read中原样返回以下完整清单，不得缺少、增加或改名：
+{json.dumps(required_sources, ensure_ascii=False)}
+必须在provenance.tool_receipt_ids中原样返回：{json.dumps(tool_receipt_ids, ensure_ascii=False)}
+provenance固定为decision_engine=CODEX_AGENTS、codex_invoked=true、codex_run_id={codex_run_id}、agents_context_digest={context.get('context_digest')}。
+只允许category=rug。不得使用执行上下文以外的规则、阈值、知识、工具、配置、合同或项目数据。
+分析指标优先读取预处理JSON和工具输出证据；已有确定性聚合时不得再次逐行重算原始报表或ABA全库。
+每条recommendation必须approval_required=true，并在evidence_sources中填写执行上下文sources内真实存在的精确path；不能只写泛化说明。
+所有业务建议必须来自AGENTS八层规则。不得修改文件，不得连接或操作Amazon后台，不得补造Bid、预算、ID、阈值或数据。
+NEW_PRODUCT_PROMOTION必须把最终广告架构写入new_product_architecture；网页和下载表只使用这里的行。每行必须绑定本次ASIN、匹配方式、投放对象和evidence_sources。数据不足时status=DATA_REQUIRED且数组为空。
+其他意图的new_product_architecture固定为空数组。模型输出artifacts固定为空数组，最终文件只允许在Validator通过后由服务端渲染。
+预处理含多个analysis_asins时必须逐ASIN给出可区分结论。证据不足时写入missing_inputs。
+只返回符合operator_console/contracts/operator-result.schema.json的JSON，不要Markdown或代码围栏。job_id与intent必须完全一致。
+safety固定execution_allowed=false、auto_apply=false、human_approval_required=true。"""
 
 
 def fallback_result(request: dict[str, Any], preprocessing: dict[str, Any], reason: str) -> dict[str, Any]:
@@ -472,8 +706,21 @@ def fallback_result(request: dict[str, Any], preprocessing: dict[str, Any], reas
         "executive_summary": reason,
         "primary_issue": str((preprocessing.get("issues") or [reason])[0]),
         "recommendations": [],
+        "new_product_architecture": [],
         "missing_inputs": [str(item) for item in preprocessing.get("issues", [])],
-        "artifacts": [str(item) for item in preprocessing.get("artifacts", [])],
+        "artifacts": [],
+        "provenance": {
+            "decision_engine": "NONE",
+            "codex_invoked": False,
+            "codex_run_id": None,
+            "agents_context_digest": (preprocessing.get("agents_context") or {}).get("context_digest"),
+            "sources_read": [],
+            "tool_receipt_ids": [
+                item.get("receipt_id")
+                for item in preprocessing.get("tool_receipts", [])
+                if isinstance(item, dict) and item.get("receipt_id")
+            ],
+        },
         "safety": {
             "execution_allowed": False,
             "auto_apply": False,
@@ -495,10 +742,19 @@ def parse_codex_result(path: Path) -> dict[str, Any]:
         return json.loads(match.group(0))
 
 
-def analyze_with_codex(request: dict[str, Any], preprocessing: dict[str, Any], job_dir: Path) -> dict[str, Any]:
+def analyze_with_codex(
+    request: dict[str, Any], preprocessing: dict[str, Any], job_dir: Path
+) -> tuple[dict[str, Any], dict[str, Any] | None]:
     if preprocessing.get("status") == "DATA_BLOCKED":
-        return fallback_result(request, preprocessing, "确定性预处理未通过，未调用Codex生成广告建议。")
+        return fallback_result(request, preprocessing, "确定性预处理未通过，未调用Codex生成广告建议。"), None
     output = job_dir / "codex_result.json"
+    codex_run_id = f"{request['job_id']}-codex-{uuid.uuid4().hex[:12]}"
+    prompt = codex_prompt(
+        job_dir / "request.json",
+        job_dir / "preprocessing.json",
+        preprocessing,
+        codex_run_id,
+    )
     command = [
         CODEX,
         "exec",
@@ -511,15 +767,36 @@ def analyze_with_codex(request: dict[str, Any], preprocessing: dict[str, Any], j
         str(RESULT_SCHEMA),
         "--output-last-message",
         str(output),
-        codex_prompt(job_dir / "request.json", job_dir / "preprocessing.json"),
+        prompt,
     ]
     completed = run_command(command, job_dir / "codex.log", timeout=1200)
+    receipt: dict[str, Any] = {
+        "schema_version": "2.1",
+        "codex_run_id": codex_run_id,
+        "codex_invoked": True,
+        "status": "FAILED",
+        "exit_code": completed.returncode,
+        "prompt_sha256": canonical_digest(prompt),
+        "agents_context_digest": (preprocessing.get("agents_context") or {}).get("context_digest"),
+        "tool_receipt_ids": (preprocessing.get("agents_context") or {}).get("tool_receipt_ids", []),
+        "output_path": str(output.resolve()),
+        "output_sha256": None,
+    }
     if completed.returncode != 0 or not output.is_file():
-        return fallback_result(request, preprocessing, "Codex Worker暂时不可用，任务包和预处理结果已保存。")
+        receipt["receipt_id"] = canonical_digest(receipt)
+        return fallback_result(request, preprocessing, "Codex Worker暂时不可用，任务包和预处理结果已保存。"), receipt
     try:
-        return parse_codex_result(output)
+        result = parse_codex_result(output)
+        write_json(output, result)
+        receipt["status"] = "SUCCESS"
+        receipt["output_sha256"] = source_record(
+            ROOT, str(output.resolve()), "codex_output", external=True
+        )["sha256"]
+        receipt["receipt_id"] = canonical_digest(receipt)
+        return result, receipt
     except Exception as exc:
-        return fallback_result(request, preprocessing, f"Codex输出无法通过JSON合同：{exc}")
+        receipt["receipt_id"] = canonical_digest(receipt)
+        return fallback_result(request, preprocessing, f"Codex输出无法通过JSON合同：{exc}"), receipt
 
 
 def aggregation_only_result(request: dict[str, Any], preprocessing: dict[str, Any]) -> dict[str, Any]:
@@ -543,16 +820,68 @@ def aggregation_only_result(request: dict[str, Any], preprocessing: dict[str, An
         "executive_summary": f"本地Python已完成{asin_text}的确定性聚合{period_text}。尚未调用Codex生成广告建议。",
         "primary_issue": None,
         "recommendations": [],
+        "new_product_architecture": [],
         "missing_inputs": [],
         "artifacts": [str(item) for item in preprocessing.get("artifacts", [])],
+        "provenance": {
+            "decision_engine": "DETERMINISTIC_TOOL_ONLY",
+            "codex_invoked": False,
+            "codex_run_id": None,
+            "agents_context_digest": (preprocessing.get("agents_context") or {}).get("context_digest"),
+            "sources_read": [],
+            "tool_receipt_ids": (preprocessing.get("agents_context") or {}).get("tool_receipt_ids", []),
+        },
         "safety": {
             "execution_allowed": False,
             "auto_apply": False,
             "human_approval_required": True,
             "validator_status": "CANDIDATE_ONLY",
         },
-        "next_steps": ["确认聚合结果后点击“生成广告建议方案”"],
+        "next_steps": ["确认聚合结果后点击“生成 SP 广告优化方案”"],
     }
+
+
+def attach_sp_plan_artifact(
+    result: dict[str, Any],
+    request: dict[str, Any],
+    preprocessing: dict[str, Any],
+    validation: dict[str, Any],
+    job_dir: Path,
+) -> dict[str, Any]:
+    """Attach the final SP workbook only after the independent Validator passes."""
+
+    if request.get("intent") != "OLD_PRODUCT_OPTIMIZATION":
+        return result
+    if validation.get("outcome") != "PASS_CANDIDATE_ONLY":
+        return result
+    output_path = job_dir / "artifacts" / "SP广告优化方案.xlsx"
+    export_sp_optimization_plan(result, preprocessing, validation, output_path)
+    result["artifacts"] = [str(output_path)]
+    return result
+
+
+def attach_new_product_artifact(
+    result: dict[str, Any],
+    request: dict[str, Any],
+    preprocessing: dict[str, Any],
+    validation: dict[str, Any],
+    job_dir: Path,
+) -> dict[str, Any]:
+    if request.get("intent") != "NEW_PRODUCT_PROMOTION":
+        return result
+    if validation.get("outcome") != "PASS_CANDIDATE_ONLY":
+        return result
+    output_path = job_dir / "artifacts" / "广告架构设计方案.xlsx"
+    export_new_product_architecture(result, preprocessing, validation, output_path)
+    result["artifacts"] = [str(output_path)]
+    return result
+
+
+def final_artifact_receipts(paths: list[str]) -> list[dict[str, Any]]:
+    return [
+        source_record(ROOT, str(Path(path).resolve()), "final_artifact", external=True)
+        for path in paths
+    ]
 
 
 def process_job(job_id: str) -> None:
@@ -567,6 +896,21 @@ def process_job(job_id: str) -> None:
             else:
                 update_job(job_dir, status="PREPROCESSING", progress=20, message="正在整理数据")
                 preprocessing = preprocess(request, job_dir)
+            preprocessing["tool_receipts"] = (
+                [build_tool_receipt(ROOT, request, preprocessing)]
+                if preprocessing.get("status") == "READY_FOR_ANALYSIS"
+                else []
+            )
+            agents_context = build_agents_analysis_context(ROOT, request, preprocessing)
+            if preprocessing.get("status") == "READY_FOR_ANALYSIS" and agents_context.get("route_status") != "READY":
+                preprocessing["status"] = "DATA_BLOCKED"
+                preprocessing.setdefault("issues", []).append(
+                    "AGENTS执行上下文未达到8/8或来源/工具回执校验失败"
+                )
+            context_path = job_dir / "agents_context.json"
+            write_json(context_path, agents_context)
+            preprocessing["agents_context"] = agents_context
+            preprocessing["agents_context_path"] = str(context_path)
             write_json(job_dir / "preprocessing.json", preprocessing)
             aggregation_only = request["intent"] == "AGGREGATE_REPORTS" or (
                 request["intent"] == "OLD_PRODUCT_OPTIMIZATION"
@@ -574,9 +918,13 @@ def process_job(job_id: str) -> None:
             )
             if aggregation_only:
                 result = aggregation_only_result(request, preprocessing)
+                preprocessing["final_artifact_receipts"] = final_artifact_receipts(result.get("artifacts", []))
+                write_json(job_dir / "preprocessing.json", preprocessing)
                 write_json(job_dir / "result.json", result)
                 update_job(job_dir, status="VALIDATING", progress=90, message="正在校验聚合结果")
-                validation = validate_operator_result(result, request, preprocessing)
+                validation = validate_operator_result(
+                    result, request, preprocessing, require_final_artifacts=True
+                )
                 write_json(job_dir / "validation.json", validation)
                 ready = preprocessing.get("status") == "READY_FOR_ANALYSIS" and validation["outcome"] == "PASS_CANDIDATE_ONLY"
                 if request["intent"] == "OLD_PRODUCT_OPTIMIZATION":
@@ -584,20 +932,37 @@ def process_job(job_id: str) -> None:
                     write_json(job_dir / "request.json", request)
                 update_job(
                     job_dir,
-                    status="COMPLETED" if validation["outcome"] == "PASS_CANDIDATE_ONLY" else "BLOCKED",
+                    status="COMPLETED" if ready else "BLOCKED",
                     progress=100,
                     message="聚合完成，等待生成建议" if ready else "聚合结果需要补充数据",
                     completed_at=now_iso(),
                 )
                 return
             update_job(job_dir, status="ANALYZING", progress=55, message="正在按AGENTS分析")
-            result = analyze_with_codex(request, preprocessing, job_dir)
-            result["artifacts"] = [str(item) for item in preprocessing.get("artifacts", [])]
-            write_json(job_dir / "result.json", result)
+            result, codex_receipt = analyze_with_codex(request, preprocessing, job_dir)
+            if codex_receipt is not None:
+                preprocessing["codex_invocation_receipt"] = codex_receipt
+                write_json(job_dir / "codex_invocation_receipt.json", codex_receipt)
+            write_json(job_dir / "preprocessing.json", preprocessing)
             update_job(job_dir, status="VALIDATING", progress=85, message="正在进行安全校验")
             validation = validate_operator_result(result, request, preprocessing)
+            result = attach_new_product_artifact(result, request, preprocessing, validation, job_dir)
+            result = attach_sp_plan_artifact(result, request, preprocessing, validation, job_dir)
+            require_final = request["intent"] in {"NEW_PRODUCT_PROMOTION", "OLD_PRODUCT_OPTIMIZATION"}
+            if validation["outcome"] == "PASS_CANDIDATE_ONLY" and require_final:
+                preprocessing["final_artifact_receipts"] = final_artifact_receipts(result.get("artifacts", []))
+                validation = validate_operator_result(
+                    result, request, preprocessing, require_final_artifacts=True
+                )
+            write_json(job_dir / "preprocessing.json", preprocessing)
+            write_json(job_dir / "result.json", result)
             write_json(job_dir / "validation.json", validation)
-            final_status = "COMPLETED" if validation["outcome"] == "PASS_CANDIDATE_ONLY" else "BLOCKED"
+            final_status = (
+                "COMPLETED"
+                if validation["outcome"] == "PASS_CANDIDATE_ONLY"
+                and result.get("status") == "READY_FOR_HUMAN_REVIEW"
+                else "BLOCKED"
+            )
             update_job(
                 job_dir,
                 status=final_status,
@@ -616,21 +981,36 @@ def process_recommendations(job_id: str) -> None:
         try:
             request = read_json(job_dir / "request.json")
             preprocessing = read_json(job_dir / "preprocessing.json")
-            update_job(job_dir, status="ANALYZING", progress=60, message="正在生成广告建议方案")
-            result = analyze_with_codex(request, preprocessing, job_dir)
-            result["artifacts"] = [str(item) for item in preprocessing.get("artifacts", [])]
-            write_json(job_dir / "result.json", result)
+            update_job(job_dir, status="ANALYZING", progress=60, message="正在生成 SP 广告优化方案")
+            result, codex_receipt = analyze_with_codex(request, preprocessing, job_dir)
+            if codex_receipt is not None:
+                preprocessing["codex_invocation_receipt"] = codex_receipt
+                write_json(job_dir / "codex_invocation_receipt.json", codex_receipt)
+            write_json(job_dir / "preprocessing.json", preprocessing)
             update_job(job_dir, status="VALIDATING", progress=88, message="正在进行安全校验")
             validation = validate_operator_result(result, request, preprocessing)
+            result = attach_sp_plan_artifact(result, request, preprocessing, validation, job_dir)
+            if validation["outcome"] == "PASS_CANDIDATE_ONLY":
+                preprocessing["final_artifact_receipts"] = final_artifact_receipts(result.get("artifacts", []))
+                validation = validate_operator_result(
+                    result, request, preprocessing, require_final_artifacts=True
+                )
+            write_json(job_dir / "preprocessing.json", preprocessing)
+            write_json(job_dir / "result.json", result)
             write_json(job_dir / "validation.json", validation)
-            final_status = "COMPLETED" if validation["outcome"] == "PASS_CANDIDATE_ONLY" else "BLOCKED"
+            final_status = (
+                "COMPLETED"
+                if validation["outcome"] == "PASS_CANDIDATE_ONLY"
+                and result.get("status") == "READY_FOR_HUMAN_REVIEW"
+                else "BLOCKED"
+            )
             request["fields"]["workflow_phase"] = "ANALYZED" if final_status == "COMPLETED" else "ANALYSIS_BLOCKED"
             write_json(job_dir / "request.json", request)
             update_job(
                 job_dir,
                 status=final_status,
                 progress=100,
-                message="广告建议已生成，等待人工确认" if final_status == "COMPLETED" else "Validator已阻断",
+                message="SP 广告优化方案已生成，等待人工确认" if final_status == "COMPLETED" else "Validator已阻断",
                 completed_at=now_iso(),
             )
         except Exception as exc:
@@ -654,7 +1034,7 @@ def public_job(job_dir: Path) -> dict[str, Any]:
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "LuyaoOperator/1.2"
+    server_version = "LuyaoOperator/1.8"
 
     def end_headers(self) -> None:
         origin = self.headers.get("Origin")
@@ -692,8 +1072,9 @@ class Handler(BaseHTTPRequestHandler):
                 {
                     "status": "READY",
                     "project": "陆遥广告智能体",
-                    "version": "V2.0",
-                    "console_version": "V1.3",
+                    "version": "V2.1",
+                    "ruleset_version": "V2.0",
+                    "console_version": "V1.8",
                     "category": "rug",
                     "execution_boundary": "HUMAN_EXECUTION_ONLY",
                     "codex_worker_available": Path(CODEX).is_file() or shutil.which(CODEX) is not None,
@@ -740,8 +1121,9 @@ class Handler(BaseHTTPRequestHandler):
                 return
             body = target.read_bytes()
             self.send_response(200)
-            self.send_header("Content-Type", "application/octet-stream")
-            self.send_header("Content-Disposition", f'attachment; filename="{target.name}"')
+            content_type = mimetypes.guess_type(target.name)[0] or "application/octet-stream"
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Disposition", artifact_content_disposition(target.name))
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
             self.wfile.write(body)
@@ -773,7 +1155,10 @@ class Handler(BaseHTTPRequestHandler):
             fields = payload.get("fields")
             if not isinstance(fields, dict):
                 raise ValueError("fields必须为对象")
-            if any(len(str(value)) > 5000 for value in fields.values()):
+            if any(
+                len(str(value)) > (1024 * 1024 if key == "products_json" else 5000)
+                for key, value in fields.items()
+            ):
                 raise ValueError("输入字段过长")
             job_id = datetime.now().strftime("%Y%m%d-%H%M%S-") + uuid.uuid4().hex[:8]
             job_dir = JOBS_ROOT / job_id
@@ -816,7 +1201,7 @@ class Handler(BaseHTTPRequestHandler):
             if status.get("status") != "COMPLETED":
                 raise ValueError("聚合任务尚未完成")
             if request.get("intent") != "OLD_PRODUCT_OPTIMIZATION":
-                raise ValueError("只有老品优化聚合任务可以继续生成建议")
+                raise ValueError("只有 SP 广告优化聚合任务可以继续生成方案")
             if request.get("fields", {}).get("workflow_phase") != "AGGREGATED":
                 raise ValueError("任务不在等待生成建议状态")
             if preprocessing.get("status") != "READY_FOR_ANALYSIS":

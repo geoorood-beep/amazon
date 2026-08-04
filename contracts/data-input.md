@@ -43,7 +43,11 @@ BusinessMode 只允许 `NORMAL / EVENT / ANOMALY`。库存假设必须显式记�
 
 任一条件不满足时为 `DQ_BLOCKED`，不得用报表文件存在、文件名正确或空表壳替代有效数据。
 
-## 老品标准输入报表
+## 广告架构设计补充数据
+
+Phrase / Broad 匹配方式需另行读取 [`new-product-match-evidence.md`](new-product-match-evidence.md) 定义的 ASIN 相关性表和搜索词月搜索量表。这两类表未提供时可完成 ABA / 产品属性候选，但新广告设置必须阻断。
+
+## SP广告优化标准输入报表
 
 必须：
 

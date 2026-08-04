@@ -11,6 +11,10 @@ _SIZE_PATTERN = re.compile(
     r"(?:x|×|by)\s*(\d+(?:\.\d+)?)\s*(?:ft|feet|foot|['’′])?(?![\d.])",
     re.IGNORECASE,
 )
+_SINGLE_FOOT_LENGTH_PATTERN = re.compile(
+    r"(?<![\d.])(\d+(?:\.\d+)?)\s*(?:ft|feet|foot|['’′])(?![a-z0-9])",
+    re.IGNORECASE,
+)
 
 _DEFAULT_ATTRIBUTE_ALIASES: dict[str, dict[str, list[str]]] = {
     "rug_type": {
@@ -103,7 +107,10 @@ def score_keywords(
         ]
 
     for row in rows:
-        score, missing = _score_one_keyword(row, product, rules, baseline.cvr_baseline)
+        if row.evidence_grain == "ABA_COLD_START":
+            score, missing = _score_cold_start_keyword(row, product, rules)
+        else:
+            score, missing = _score_one_keyword(row, product, rules, baseline.cvr_baseline)
         scores.append(score)
         issues = list(score.attribute_conflicts) + missing
         if issues:
@@ -117,6 +124,130 @@ def score_keywords(
                 )
             )
     return scores, blocked
+
+
+def _score_cold_start_keyword(
+    row: StageMatchedKeyword,
+    product: ProductInfo,
+    rules: CategoryRules,
+) -> tuple[KeywordScore, list[str]]:
+    config = rules.strategy_rules.get("aba_cold_start", {}) or {}
+    conflicts, unconfirmed = _detect_product_attribute_issues(row.search_term, product, rules)
+    type_match = _cold_start_type_match(row, product, rules)
+    secondary_matches = _cold_start_secondary_matches(row, product, rules)
+    minimum_secondary = int(config.get("min_secondary_attribute_matches", 1))
+    reasons = list(row.pool_reasons)
+    hard_conflict = bool(conflicts)
+    if hard_conflict:
+        conclusion = "不建议投放"
+        reasons.extend(conflicts)
+    elif unconfirmed:
+        conclusion = "待人工确认"
+        reasons.extend(unconfirmed)
+    elif not type_match:
+        conclusion = "不建议投放"
+        reasons.append("ABA冷启动强匹配未命中产品Rug类型")
+    elif len(secondary_matches) < minimum_secondary:
+        conclusion = "受限测试"
+        reasons.append(
+            f"ABA冷启动强匹配需要类型外至少 {minimum_secondary} 个属性，当前命中 {len(secondary_matches)} 个"
+        )
+    elif not row.aba_stage_ok:
+        conclusion = "ABA超出阶段范围，受限测试"
+        reasons.append(row.aba_stage_status)
+    else:
+        conclusion = "建议投放"
+        reasons.append(f"ABA冷启动资格通过：Rug类型 + {', '.join(secondary_matches)}")
+
+    score = KeywordScore(
+        asin=product.asin or product.sku,
+        order_stage=row.order_stage,
+        search_term=row.search_term,
+        clicks=0,
+        orders=0,
+        cvr=0,
+        aba_rank=row.aba_rank,
+        transaction_data_score=None,
+        region_score=None,
+        spec_score=None,
+        style_score=None,
+        color_score=None,
+        total_match_score=None,
+        conclusion=conclusion,
+        reasons=list(dict.fromkeys(reasons)),
+        needs_review=True,
+        hard_conflict=hard_conflict,
+        attribute_conflicts=conflicts,
+        aba_stage_ok=row.aba_stage_ok,
+        evidence_grain=row.evidence_grain,
+        source_report_type=row.source_report_type,
+        source_files=row.source_files,
+        aba_sources=row.aba_sources,
+        compliance_status=row.compliance_status,
+        ad_status=row.ad_status,
+        recommendation_tier=row.recommendation_tier,
+        normalized_root=row.normalized_root,
+        category_judgment=row.category_judgment,
+        detailed_category=row.detailed_category,
+        comprehensive_priority=row.comprehensive_priority,
+        advertising_use=row.advertising_use,
+        aba_tags=row.aba_tags,
+        aba_rug_types=row.aba_rug_types,
+        aba_relevance_levels=row.aba_relevance_levels,
+        aba_judgment_reason=row.aba_judgment_reason,
+        **_match_type_evidence_fields(row),
+    )
+    return score, []
+
+
+def _cold_start_type_match(
+    row: StageMatchedKeyword,
+    product: ProductInfo,
+    rules: CategoryRules,
+) -> bool:
+    aliases = {
+        "area_rug": {"area_rug", "area rug", "区域", "小区域", "大区域"},
+        "runner": {"runner", "长条"},
+        "doormat": {"doormat", "door mat", "门垫"},
+        "round": {"round", "圆形"},
+    }
+    expected = aliases.get(product.rug_type or "", {product.rug_type or ""})
+    aba_types = {_normalize_term(value).replace(" ", "_") for value in row.aba_rug_types}
+    normalized_expected = {_normalize_term(value).replace(" ", "_") for value in expected}
+    if aba_types.intersection(normalized_expected):
+        return True
+    term_values = _matched_canonical_values(
+        _normalize_term(row.search_term), _attribute_aliases("rug_type", rules)
+    )
+    return bool(product.rug_type and product.rug_type in term_values)
+
+
+def _cold_start_secondary_matches(
+    row: StageMatchedKeyword,
+    product: ProductInfo,
+    rules: CategoryRules,
+) -> list[str]:
+    haystack = _normalize_term(" ".join([row.search_term, *row.aba_tags]))
+    matches: list[str] = []
+    target_sizes = _extract_sizes(product.size_spec)
+    keyword_sizes = _extract_sizes(haystack)
+    if target_sizes and target_sizes.intersection(keyword_sizes):
+        matches.append("尺寸")
+    if any(_contains_phrase(haystack, tag) for tag in product.scene_tags if tag):
+        matches.append("场景")
+    for key, label, value in (
+        ("style", "风格", product.style),
+        ("color", "颜色", product.color),
+        ("material", "材质", product.material),
+        ("shape", "形状", product.shape),
+    ):
+        if not value:
+            continue
+        expected = _matched_canonical_values(_normalize_term(value), _attribute_aliases(key, rules))
+        found = _matched_canonical_values(haystack, _attribute_aliases(key, rules))
+        if expected and expected.intersection(found):
+            matches.append(label)
+    return list(dict.fromkeys(matches))
 
 
 def _score_one_keyword(
@@ -217,6 +348,23 @@ def _score_one_keyword(
         hard_conflict=hard_conflict,
         attribute_conflicts=attribute_conflicts,
         aba_stage_ok=row.aba_stage_ok,
+        evidence_grain=row.evidence_grain,
+        source_report_type=row.source_report_type,
+        source_files=row.source_files,
+        aba_sources=row.aba_sources,
+        compliance_status=row.compliance_status,
+        ad_status=row.ad_status,
+        recommendation_tier=row.recommendation_tier,
+        normalized_root=row.normalized_root,
+        category_judgment=row.category_judgment,
+        detailed_category=row.detailed_category,
+        comprehensive_priority=row.comprehensive_priority,
+        advertising_use=row.advertising_use,
+        aba_tags=row.aba_tags,
+        aba_rug_types=row.aba_rug_types,
+        aba_relevance_levels=row.aba_relevance_levels,
+        aba_judgment_reason=row.aba_judgment_reason,
+        **_match_type_evidence_fields(row),
     )
     return score, missing
 
@@ -282,6 +430,16 @@ def _detect_product_attribute_issues(
                 "尺寸硬冲突：目标尺寸 "
                 f"{_display_sizes(target_sizes)}，关键词尺寸 {_display_sizes(keyword_sizes)}"
             )
+    if product.rug_type == "runner":
+        keyword_lengths = _extract_single_foot_lengths(search_term)
+        target_sizes = _extract_sizes(product.size_spec)
+        if keyword_lengths and target_sizes:
+            target_lengths = {max((float(width), float(length))) for width, length in target_sizes}
+            if not keyword_lengths.issubset(target_lengths):
+                conflicts.append(
+                    "长条长度硬冲突：目标长度 "
+                    f"{_display_numbers(target_lengths)}ft，关键词长度 {_display_numbers(keyword_lengths)}ft"
+                )
 
     checks = [
         ("rug_type", "地毯类型", product.rug_type),
@@ -317,6 +475,19 @@ def _extract_sizes(value: str | None) -> set[tuple[str, str]]:
         dimensions = sorted((_normalize_dimension(width), _normalize_dimension(length)), key=float)
         sizes.add((dimensions[0], dimensions[1]))
     return sizes
+
+
+def _extract_single_foot_lengths(value: str | None) -> set[float]:
+    if not value:
+        return set()
+    return {float(item) for item in _SINGLE_FOOT_LENGTH_PATTERN.findall(str(value))}
+
+
+def _display_numbers(values: set[float]) -> str:
+    return "/".join(
+        str(int(value)) if float(value).is_integer() else f"{value:g}"
+        for value in sorted(values)
+    )
 
 
 def _normalize_dimension(value: str) -> str:
@@ -375,3 +546,20 @@ def _round_score(value: Any) -> float | None:
     if rounded.is_integer():
         return int(rounded)
     return rounded
+
+
+def _match_type_evidence_fields(row: StageMatchedKeyword) -> dict[str, Any]:
+    return {
+        "relevance_evidence_status": row.relevance_evidence_status,
+        "relevance_level": row.relevance_level,
+        "relevance_score": row.relevance_score,
+        "relevance_reason": row.relevance_reason,
+        "relevance_source_files": row.relevance_source_files,
+        "monthly_search_volume": row.monthly_search_volume,
+        "root_monthly_search_volume": row.root_monthly_search_volume,
+        "root_top3_volume_share": row.root_top3_volume_share,
+        "root_distinct_query_count": row.root_distinct_query_count,
+        "search_volume_months": row.search_volume_months,
+        "search_volume_source_files": row.search_volume_source_files,
+        "match_type_evidence_status": row.match_type_evidence_status,
+    }

@@ -102,7 +102,21 @@ budget_formula:
     default: 1.0
 
 strategy_rules:
-  phrase_priority_aba_rank: 50000
+  match_type_routing:
+    status: "USER_APPROVED_PROVISIONAL_TEST_ONLY"
+    threshold_source: "thresholds/rug/match-type-routing.md"
+    eligible_relevance_levels: ["HIGH", "MEDIUM"]
+    root_monthly_volume_bands:
+      no_standalone_lt: 3000
+      conditional_group_lt: 10000
+      broad_test_lt: 30000
+      phrase_priority_lt: 100000
+    root_concentration:
+      sparse_query_phrase_max: 3
+      mixed_top3_share_gte: 0.35
+      phrase_top3_share_gte: 0.60
+    minimum_complete_months: 1
+    preferred_complete_months: 3
   ad_group_rank_bands:
     single_keyword_max_rank: 30000
     multi_keyword_max_rank: 100000

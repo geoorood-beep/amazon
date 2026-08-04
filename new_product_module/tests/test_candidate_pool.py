@@ -60,6 +60,25 @@ class CandidatePoolTest(unittest.TestCase):
         candidates, _ = build_candidate_pool(rows, self.rules, "area_rug")
         self.assertEqual(candidates[0].pool_status, "偶然成交候选")
 
+    def test_aba_cold_start_does_not_require_historical_click_thresholds(self) -> None:
+        rules = load_rules(ROOT / "config/category_rules.example.yaml")
+        rows = [
+            HistoricalKeyword(
+                search_term="runner rug 2x8",
+                clicks=0,
+                orders=0,
+                cvr=0,
+                aba_rank=171861,
+                evidence_grain="ABA_COLD_START",
+                aba_rug_types=["长条"],
+                compliance_status="安全",
+                ad_status="可投",
+            )
+        ]
+        candidates, _ = build_candidate_pool(rows, rules, "runner")
+        self.assertEqual(candidates[0].pool_status, "进入候选池")
+        self.assertTrue(candidates[0].needs_review)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,3 +1,3 @@
-search_term,clicks,orders,order_dates,cvr,aba_rank
-5x8 vintage blue area rug,35,3,"2026-06-01,2026-06-03,2026-06-05",8.6%,25000
-large living room rug,22,2,"2026-06-01,2026-06-03,2026-06-05",9.1%,8000
+search_term,clicks,orders,order_dates,cvr,aba_rank,normalized_root,relevance_evidence_status,relevance_level,root_monthly_search_volume,root_top3_volume_share,root_distinct_query_count,search_volume_months,match_type_evidence_status
+5x8 vintage blue area rug,35,3,"2026-06-01,2026-06-03,2026-06-05",8.6%,25000,area rug,READY,HIGH,50000,70%,10,"2026-05|2026-06|2026-07",READY
+large living room rug,22,2,"2026-06-01,2026-06-03,2026-06-05",9.1%,8000,living room rug,READY,HIGH,25000,20%,20,"2026-05|2026-06|2026-07",READY

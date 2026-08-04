@@ -5,7 +5,7 @@
 ```text
 HUMAN_EXECUTION_ONLY
 ai_ads = TEST_ONLY
-SP_COLD_START = CAPABILITY_NOT_ACTIVE
+SP_COLD_START = CANDIDATE_ONLY
 Amazon API 自动执行 = OFF
 ```
 
@@ -13,8 +13,9 @@ Amazon API 自动执行 = OFF
 
 ```text
 人工提供数据
-→ Agent 生成候选方案
-→ Validator
+→ Python 生成确定性证据与工具回执
+→ Codex 按八层 AGENTS 上下文生成候选方案
+→ Validator 独立重建上下文并核对回执
 → 人工审批与执行
 → 人工登记实际结果
 → 复盘形成证据

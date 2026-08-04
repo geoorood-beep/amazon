@@ -1,6 +1,7 @@
 {
   "project_name": "陆遥广告智能体",
   "ruleset_version": "V2.0",
+  "runtime_version": "V2.1",
   "allowed_categories": [
     "rug"
   ],
@@ -51,6 +52,7 @@
     "rules/domains/new-product/README.md",
     "rules/domains/new-product/scope-input-sources.md",
     "rules/domains/new-product/attribute-and-selection.md",
+    "rules/domains/new-product/match-type-routing.md",
     "rules/domains/new-product/architecture.md",
     "rules/domains/new-product/negative-isolation.md",
     "rules/domains/old-product/README.md",
@@ -81,6 +83,7 @@
     "thresholds/rug/performance.md",
     "thresholds/rug/new-product-stage.md",
     "thresholds/rug/budget-and-isolation.md",
+    "thresholds/rug/match-type-routing.md",
     "thresholds/rug/traffic-and-scoring.md",
     "thresholds/rug/calibration-eligibility.md",
     "thresholds/rug/pending.md"
@@ -90,6 +93,7 @@
     "contracts/data-input.md",
     "contracts/action-and-plan.md",
     "contracts/new-product-output.md",
+    "contracts/new-product-match-evidence.md",
     "contracts/old-product-output.md",
     "contracts/review.md",
     "contracts/ad-report-aggregation.md",
@@ -108,14 +112,17 @@
   ],
   "required_runtime_paths": [
     "new_product_module/src/reference_adapter.py",
+    "new_product_module/src/match_type_evidence.py",
     "ai_ads/validator.py",
     "scripts/validate_v20_rules.py",
     "scripts/validate_v14_rules.py",
     "scripts/stress_test_v20.py",
+    "scripts/stress_test_v21_provenance.py",
     "scripts/build_ad_decision_packet.py",
     "scripts/build_name_keyed_ad_analysis.py",
     "scripts/stress_test_ad_report_aggregator.py",
     "scripts/v20_release_manifest.py",
+    "scripts/v21_release_manifest.py",
     "scripts/validate_integration_placeholders.py",
     "scripts/validate_threshold_calibration.py",
     "scripts/check_threshold_calibration.py",
@@ -133,6 +140,8 @@
     "config/threshold_monitoring.json",
     "config/operator_intents.json",
     "config/operator_catalog.json",
+    "config/new_product_relevance.example.csv",
+    "config/new_product_search_volume.example.csv",
     "operator_console/README.md",
     "operator_console/package.json",
     "operator_console/package-lock.json",
@@ -141,9 +150,14 @@
     "operator_console/app/system-switcher.tsx",
     "operator_console/app/globals.css",
     "operator_console/backend/server.py",
+    "operator_console/backend/agents_context.py",
+    "operator_console/backend/plan_exporter.py",
     "operator_console/backend/table_recognizer.py",
     "operator_console/backend/validator.py",
     "operator_console/backend/tests/test_table_recognizer.py",
+    "operator_console/backend/tests/test_agents_context.py",
+    "operator_console/backend/tests/test_plan_exporter.py",
+    "operator_console/backend/tests/test_download_headers.py",
     "operator_console/backend/tests/test_validator.py",
     "operator_console/contracts/operator-result.schema.json",
     "operator_console/tests/rendered-html.test.mjs",
@@ -162,11 +176,15 @@
   ],
   "required_release_paths": [
     "releases/v2.0/RELEASE.md",
-    "releases/v2.0/MANIFEST.sha256"
+    "releases/v2.0/MANIFEST.sha256",
+    "releases/v2.1/RELEASE.md",
+    "releases/v2.1/MANIFEST.sha256"
   ],
   "required_reference_paths": [
     "reference/rug-aba",
     "reference/category-history/rug",
+    "reference/rug-relevance",
+    "reference/rug-search-volume",
     "reference/category-threshold/confirmed/20260731_V1.4_人工阈值回填原件.xlsx"
   ],
   "forbidden_reference_paths": [
@@ -178,6 +196,8 @@
     "rug": {
       "aba": "reference/rug-aba/",
       "history": "reference/category-history/rug/",
+      "new_product_relevance": "reference/rug-relevance/",
+      "new_product_search_volume": "reference/rug-search-volume/",
       "thresholds": "thresholds/README.md",
       "new_product_module": "new_product_module/"
     }
@@ -194,6 +214,16 @@
     "path": "new_product_module/config/category_rules.example.yaml",
     "status": "TEST_ONLY",
     "maintenance_source": "thresholds/README.md"
+  },
+  "operator_console": {
+    "version": "V1.8",
+    "local_primary": true,
+    "manual_new_product_limit": 10,
+    "imported_new_product_limit": 100,
+    "multi_product_output_sheets": [
+      "ABA选词表",
+      "新广告设置表"
+    ]
   },
   "integration_gateway": {
     "path": "integrations/external-integration-gateway.md",

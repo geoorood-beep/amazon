@@ -3,11 +3,12 @@
 地毯类目专用 Amazon 广告 AGENTS 项目。
 
 - 项目路径：`/Users/leo/Documents/陆遥广告智能体`
+- 当前运行时：`V2.1`
 - 当前规则版本：`V2.0`
-- 冻结状态：`V2.0_FROZEN`
+- 冻结状态：`V2.1_RUNTIME / V2.0_RULESET_FROZEN`
 - 唯一允许类目：Rug / 地毯（`rug`）
 - 项目边界配置：[config/project_scope.json](config/project_scope.json)
-- 冻结发布：[releases/v2.0/RELEASE.md](releases/v2.0/RELEASE.md)
+- 当前发布：[releases/v2.1/RELEASE.md](releases/v2.1/RELEASE.md)；规则基线：[releases/v2.0/RELEASE.md](releases/v2.0/RELEASE.md)
 - GitHub私有仓库：[geoorood-beep/luyao-ads-agent-v2](https://github.com/geoorood-beep/luyao-ads-agent-v2)
 
 ## 固定数据映射
@@ -60,10 +61,15 @@ python3 -m venv .venv
 .venv/bin/python scripts/validate_phase1_decisions.py
 .venv/bin/python scripts/validate_v20_rules.py
 .venv/bin/python scripts/validate_integration_placeholders.py
+.venv/bin/python scripts/validate_threshold_calibration.py
+.venv/bin/python scripts/stress_test_threshold_calibration.py
+.venv/bin/python scripts/stress_test_v21_provenance.py
 .venv/bin/python -m pytest new_product_module/tests ai_ads/tests -q
+.venv/bin/python -m pytest operator_console/backend/tests -q
+cd operator_console && npm run lint && npm test && npm audit --omit=dev && cd ..
 .venv/bin/python scripts/stress_test_ad_report_aggregator.py
 .venv/bin/python scripts/stress_test_v20.py
-.venv/bin/python scripts/v20_release_manifest.py
+.venv/bin/python scripts/v21_release_manifest.py
 ```
 
-当前规则已于 `2026-08-03` 正式定义为 `V2.0`，采用八层可维护结构。V1.4 拆分前原文已冻结在 [history/v1.4-pre-8layer/](history/v1.4-pre-8layer/MANIFEST.md)，仅作为来源与历史追溯，不参与当前规则读取。
+当前规则已于 `2026-08-03` 正式定义为 `V2.0`，采用八层可维护结构。`2026-08-04` 发布的 V2.1 只升级网页/Codex/Validator 的可信执行链，不改变 V2.0 业务规则真源。V1.4 拆分前原文已冻结在 [history/v1.4-pre-8layer/](history/v1.4-pre-8layer/MANIFEST.md)，仅作为来源与历史追溯，不参与当前规则读取。

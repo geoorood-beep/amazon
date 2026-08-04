@@ -76,7 +76,10 @@ def match_stage(
             )
         matched.append(row)
 
-    return _apply_stage_keyword_limit(matched, stage_rule), []
+    # Attribute conflicts are evaluated after the ABA stage gate.  Limiting here
+    # would let high-ranked but wrong-attribute terms consume the whole quota.
+    # The architecture builder applies max_keyword_count after hard conflicts.
+    return matched, []
 
 
 def _apply_stage_keyword_limit(rows: list[StageMatchedKeyword], stage_rule: StageRule) -> list[StageMatchedKeyword]:

@@ -1,7 +1,14 @@
 # Rug 新品阶段阈值
 
-- 状态：`HUMAN_RULE_FIXED / MACHINE_NOT_ACTIVE`
-- 机器 Threshold ID：`PENDING`
+- 状态：`HUMAN_RULE_FIXED / MACHINE_CANDIDATE_ONLY`
+- 机器 Threshold ID：阶段区间沿用本文件；冷启动不引用历史样本阈值
+
+## 两种证据模式
+
+- `HISTORY_ASSISTED`：历史效果词必须通过已确认的最低点击、最低订单和独立成交日期门；这些样本阈值缺失时不得把历史表现写成稳定结论。
+- `ABA_COLD_START`：适用于没有当前 ASIN 历史表现的广告架构设计。不得要求新品先积累点击；只在 Rug 类型匹配，并额外命中尺寸、场景、风格、颜色、材质或形状至少一项，同时通过 ABA 阶段、合规和广告状态门后，生成 `CANDIDATE_ONLY` 人工候选。
+
+冷启动候选的点击、订单、CVR和综合分保持为空或零事实值，不得伪造历史绩效分。Bid、广告位和风险上限未确认时继续写“待人工配置”，但这不应清空已经通过资格门的选词和广告组结构。
 
 ## 默认阶段
 

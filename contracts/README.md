@@ -8,8 +8,9 @@
 |---|---|
 | [数据输入](data-input.md) | AdContext、数据快照、报表和对象映射 |
 | [动作与方案](action-and-plan.md) | 候选动作、最终方案和执行确认 |
-| [新品输出](new-product-output.md) | Rug 新品两张核心表的必备字段 |
-| [老品输出](old-product-output.md) | 老品完整/有限模式的可见字段 |
+| [广告架构设计输出](new-product-output.md) | Rug 广告架构两张核心表的必备字段 |
+| [新品匹配证据](new-product-match-evidence.md) | ASIN相关性表、搜索词月搜索量表和去重键 |
+| [SP广告优化输出](old-product-output.md) | SP完整/有限模式的可见字段 |
 | [复盘合同](review.md) | 复盘资格、证据和 CANDIDATE 输出 |
 | [广告报表聚合](ad-report-aggregation.md) | 六表输入、标准化粒度、聚合工作簿和数据质量状态 |
 | [外部数据接入](external-ingest.md) | 第 05 层 MCP/API/服务器输入信封与隔离边界；当前仅占位 |

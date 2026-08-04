@@ -12,8 +12,10 @@
     "executive_summary",
     "primary_issue",
     "recommendations",
+    "new_product_architecture",
     "missing_inputs",
     "artifacts",
+    "provenance",
     "safety",
     "next_steps"
   ],
@@ -35,19 +37,77 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["priority", "action", "reason", "evidence", "risk", "approval_required"],
+        "required": ["priority", "action", "reason", "evidence", "evidence_sources", "risk", "approval_required"],
         "properties": {
           "priority": {"enum": ["P0", "P1", "P2", "OBSERVE"]},
           "action": {"type": "string"},
           "reason": {"type": "string"},
           "evidence": {"type": "string"},
+          "evidence_sources": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "string", "minLength": 1},
+            "uniqueItems": true
+          },
           "risk": {"type": "string"},
+          "approval_required": {"type": "boolean", "const": true}
+        }
+      }
+    },
+    "new_product_architecture": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "campaign_name", "ad_group_name", "asin", "structure_mode", "operation",
+          "match_type", "daily_budget", "bid", "bidding_strategy", "placement",
+          "role", "target", "negative_exact", "reason", "evidence_sources",
+          "approval_required"
+        ],
+        "properties": {
+          "campaign_name": {"type": "string"},
+          "ad_group_name": {"type": "string"},
+          "asin": {"type": "string", "pattern": "^B0[A-Z0-9]{8}$"},
+          "structure_mode": {"enum": ["SINGLE_ASIN_CONTROL", "MULTI_ASIN_DISCOVERY_POOL"]},
+          "operation": {"enum": ["新增广告组", "加入原组", "拆分", "重建", "不新建"]},
+          "match_type": {"enum": ["词组", "广泛", "Auto Close", "待补数据"]},
+          "daily_budget": {"type": ["number", "string", "null"]},
+          "bid": {"type": ["number", "string", "null"]},
+          "bidding_strategy": {"type": "string"},
+          "placement": {"type": "string"},
+          "role": {"type": "string"},
+          "target": {"type": "string"},
+          "negative_exact": {"type": "string"},
+          "reason": {"type": "string"},
+          "evidence_sources": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "string", "minLength": 1},
+            "uniqueItems": true
+          },
           "approval_required": {"type": "boolean", "const": true}
         }
       }
     },
     "missing_inputs": {"type": "array", "items": {"type": "string"}},
     "artifacts": {"type": "array", "items": {"type": "string"}},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision_engine", "codex_invoked", "codex_run_id",
+        "agents_context_digest", "sources_read", "tool_receipt_ids"
+      ],
+      "properties": {
+        "decision_engine": {"enum": ["CODEX_AGENTS", "DETERMINISTIC_TOOL_ONLY", "NONE"]},
+        "codex_invoked": {"type": "boolean"},
+        "codex_run_id": {"type": ["string", "null"]},
+        "agents_context_digest": {"type": ["string", "null"]},
+        "sources_read": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "tool_receipt_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      }
+    },
     "safety": {
       "type": "object",
       "additionalProperties": false,

@@ -20,8 +20,8 @@
 | 任务 | 唯一入口 |
 |---|---|
 | Rug 类目与尺寸 | [进入规则](domains/rug-category.md) |
-| 新品推广 | [进入新品规则](domains/new-product/README.md) |
-| 老品推广 | [进入老品规则](domains/old-product/README.md) |
+| 广告架构设计 | [进入新品架构规则](domains/new-product/README.md) |
+| SP广告优化 | [进入 SP 优化规则](domains/old-product/README.md) |
 | 搜索词与词根 | [进入搜索词规则](domains/search-term/README.md) |
 | 类目流量结构 | [进入流量结构规则](domains/category-traffic/README.md) |
 | 历史数据 | [进入历史数据规则](domains/history-data/README.md) |
