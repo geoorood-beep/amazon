@@ -21,7 +21,7 @@ npm run build
 "$OPERATOR_PYTHON" "$OPERATOR_ROOT/scripts/run_operator_console_backend.py" &
 OPERATOR_BACKEND_PID=$!
 
-npm run start &
+npm run start -- --port 3001 &
 OPERATOR_FRONTEND_PID=$!
 
 cleanup_operator_console() {
@@ -30,8 +30,8 @@ cleanup_operator_console() {
 trap cleanup_operator_console EXIT INT TERM
 
 sleep 2
-open "http://localhost:3000/"
+open "http://localhost:3001/"
 
-echo "陆遥广告运营台已启动：http://localhost:3000/"
+echo "陆遥广告运营台已启动：http://localhost:3001/"
 echo "关闭本窗口即可停止。"
 wait

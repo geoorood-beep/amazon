@@ -23,6 +23,7 @@ test("server-renders the Luyao operator console", async () => {
   assert.match(html, /老品优化/);
   assert.match(html, /更新广告数据/);
   assert.match(html, /查看本周建议/);
+  assert.match(html, /智能补货/);
   assert.match(html, /HUMAN_EXECUTION_ONLY/);
   assert.doesNotMatch(html, /Your site is taking shape|SkeletonPreview|codex-preview/);
 });
@@ -38,6 +39,9 @@ test("client source keeps the local safety boundary visible", async () => {
   assert.match(page, /本地主版本/);
   assert.match(page, /分享演示版/);
   assert.match(page, /PUBLIC_DEMO_URL/);
+  assert.match(page, /LOCAL_REPLENISHMENT_URL\s*=\s*"http:\/\/localhost:3000\/"/);
+  assert.match(page, /luyao-replenishment-v2-20260804\.louie847918852\.chatgpt\.site/);
+  assert.match(page, /SystemSwitcher/);
   assert.match(page, /只生成建议/);
   assert.match(page, /Amazon 自动执行关闭/);
   assert.match(page, /Rug 专用/);
@@ -64,4 +68,6 @@ test("client source keeps the local safety boundary visible", async () => {
   assert.match(styles, /\.side-nav/);
   assert.match(styles, /\.intent-card/);
   assert.match(styles, /\.demo-notice/);
+  assert.match(styles, /\.system-switcher/);
+  assert.doesNotMatch(styles, /\.replenishment-module-grid/);
 });

@@ -658,7 +658,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def end_headers(self) -> None:
         origin = self.headers.get("Origin")
-        if origin in {"http://localhost:3000", "http://127.0.0.1:3000"}:
+        if origin in {"http://localhost:3001", "http://127.0.0.1:3001"}:
             self.send_header("Access-Control-Allow-Origin", origin)
             self.send_header("Vary", "Origin")
         self.send_header(
@@ -693,7 +693,7 @@ class Handler(BaseHTTPRequestHandler):
                     "status": "READY",
                     "project": "陆遥广告智能体",
                     "version": "V2.0",
-                    "console_version": "V1.2",
+                    "console_version": "V1.3",
                     "category": "rug",
                     "execution_boundary": "HUMAN_EXECUTION_ONLY",
                     "codex_worker_available": Path(CODEX).is_file() or shutil.which(CODEX) is not None,

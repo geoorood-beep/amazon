@@ -22,7 +22,7 @@
 - `new_product_module/`：新品人工架构辅助；
 - `ai_ads/`：V2 `TEST_ONLY` 合同、仲裁和 Validator；
 - [广告报表聚合工具](../../tools/ad_report_aggregator/README.md)：六类 SP 报表本地聚合，状态为 `ACTIVE_LOCAL_TOOL`；
-- [本地运营网页](../../operator_console/README.md)：新品、老品、报表更新和本周建议四入口，状态为 `ACTIVE_LOCAL_UI_V1_1`；
+- [本地运营网页](../../operator_console/README.md)：独立广告网站，保留新品、老品、报表更新和本周建议四入口；顶部链接可跳转到独立补货网站，状态为 `ACTIVE_LOCAL_UI_V1_3`；
 - [运营属性库](../../config/operator_catalog.json)：新品尺寸、类型、风格、颜色、材质和场景选项，状态为 `ACTIVE_LOCAL_CATALOG`；
 - `operator_console/backend/table_recognizer.py`：上传表格字段、ASIN和日期识别，状态为 `ACTIVE_LOCAL_TOOL`；
 - [历史阈值校准合同](../../contracts/threshold-calibration.md)：本地累计日粒度历史数据、生成候选阈值和一次性提醒，状态为 `CANDIDATE_ONLY`；
@@ -57,13 +57,15 @@
 
 本地聚合工具与外部接入网关是两件事：本地聚合已经启用；MCP、API、Webhook 和外部服务器仍未启用。
 
-## 本地运营网页（V1.2 已启用）
+## 本地运营网页（V1.3 已启用）
 
-双击项目根目录的 `运行广告运营台.command`，打开 `http://localhost:3000/`。新品属性可从本地属性库选择，也可上传产品表自动识别；导入模式只在识别完成后生成可编辑基础信息。老品和报表更新可多选、拖拽或选择文件夹上传原始广告报表，Python 自动识别 ASIN 和数据周期。用户不再手填本机路径或日期。任务和上传文件分别保存在被 Git 忽略的 `runtime/operator-jobs/` 与 `runtime/operator-uploads/`。
+双击项目根目录的 `运行广告运营台.command`，打开 `http://localhost:3001/`。新品属性可从本地属性库选择，也可上传产品表自动识别；导入模式只在识别完成后生成可编辑基础信息。老品和报表更新可多选、拖拽或选择文件夹上传原始广告报表，Python 自动识别 ASIN 和数据周期。用户不再手填本机路径或日期。任务和上传文件分别保存在被 Git 忽略的 `runtime/operator-jobs/` 与 `runtime/operator-uploads/`。
 
 老品网页取消单独工作簿入口。用户先点击“聚合数据报表”，只运行本地 Python；成套 7/14/30 天报表使用报表内 ASIN 生成重叠安全分析包。聚合成功后才出现“生成广告建议方案”，第二步复用数据包并调用只读 Codex，最后由独立 Validator 校验。ASIN 输入为空表示自动识别，填写一个或多个表示只分析指定对象。
 
 四个入口及其规则/阈值路由登记在 `config/operator_intents.json`，字段与状态读取[运营任务合同](../../contracts/operator-job.md)。网页不得复制或维护业务阈值，不得把 `PASS_CANDIDATE_ONLY` 解释为已经执行。后台只监听本机 `127.0.0.1:8766`，不属于外部 API 接入激活。
+
+网站结构已经拆分：广告系统仅在本项目的 `localhost:3001` 运行；智能补货在独立项目的 `localhost:3000` 运行。顶部系统切换器只做站点跳转，不共享规则、阈值、上传文件、任务状态或执行权限。
 
 ## 本地候选阈值监控（已启用）
 

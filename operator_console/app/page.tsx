@@ -1,9 +1,12 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import SystemSwitcher from "./system-switcher";
 
 const API = "http://127.0.0.1:8766";
 const PUBLIC_DEMO_URL = "https://luyao-rug-ads-v2-20260804.louie847918852.chatgpt.site";
+const LOCAL_REPLENISHMENT_URL = "http://localhost:3000/";
+const PUBLIC_REPLENISHMENT_URL = "https://luyao-replenishment-v2-20260804.louie847918852.chatgpt.site";
 
 type Intent =
   | "NEW_PRODUCT_PROMOTION"
@@ -409,6 +412,7 @@ export default function Home() {
         <header className="topbar">
           <div className="breadcrumb"><span>广告运营系统</span><i>›</i><strong>{currentIntent?.title ?? "运营驾驶舱"}</strong></div>
           <div className="mobile-brand"><span className="brand-mark">L</span><strong>陆遥广告智能体</strong></div>
+          <SystemSwitcher replenishmentHref={publicDemo ? PUBLIC_REPLENISHMENT_URL : LOCAL_REPLENISHMENT_URL} />
           <div className="system-state">
             <span className={`online-dot ${backendOnline === false ? "offline" : ""}`} />
             {publicDemo ? "公开演示版" : backendOnline === null ? "正在连接" : backendOnline ? "本机已连接" : "后台未启动"}

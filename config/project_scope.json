@@ -138,6 +138,7 @@
     "operator_console/package-lock.json",
     "operator_console/app/layout.tsx",
     "operator_console/app/page.tsx",
+    "operator_console/app/system-switcher.tsx",
     "operator_console/app/globals.css",
     "operator_console/backend/server.py",
     "operator_console/backend/table_recognizer.py",
