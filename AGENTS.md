@@ -11,14 +11,18 @@
 当任务涉及 Amazon、亚马逊、Amazon US、Title / Bullet Points / Product Description / Search Terms / CDQ / `$listing` 时，读取：
 
 1. `AGENTS.md`
-2. `agents/listing-generation.md`
+2. `agents/listing-generator-architecture.md`
 3. `agents/category-routing.md`
 4. `agents/keyword-library-contract.md`
-5. `agents/risk-cdq-audit.md`
-6. 对应类目文件：
+5. `agents/listing-generation.md`
+6. `agents/output-contract.md`
+7. `agents/risk-cdq-audit.md`
+8. 对应类目文件：
    - `agents/categories/rug.md`
    - `agents/categories/chair.md`
    - `agents/categories/pet-water-fountain.md`
+   - 新类目参考 `agents/categories/new-category-template.md`
+9. 如果任务涉及本地 Web App、API、前端高亮、fallback 生成或代码实现，再读 `agents/web-app-implementation.md`
 
 Amazon 当前支持类目：
 
@@ -32,6 +36,8 @@ Amazon 的核心数据源设计：
 - `amazon-listing-webapp/lib/categoryKeywordRouting.ts`
 - `amazon-listing-webapp/lib/localListingGenerator.ts`
 - `amazon-listing-webapp/lib/audit.ts`
+
+Amazon 的 AGENTS 目标是替代旧的 `$listing` 生成器说明层：规则、类目路由、词库契约、输出格式和 CDQ 审核必须在 AGENTS 中固定；词库数据仍通过项目数据文件或 AGENTS 完整安装包提供，不把长表内容复制进 Markdown 正文。
 
 ### Walmart Listing
 
@@ -76,5 +82,6 @@ Wayfair 的核心设计是：使用仓库内置 workbook 作为 Pattern、Color�
 - 改 Amazon 规则，只动 `agents/` 下 Amazon 相关文件。
 - 改 Walmart 规则，只动 `agents/walmart/` 下 Walmart 相关文件。
 - 改 Wayfair 规则，只动 `agents/wayfair/` 下 Wayfair 相关文件。
+- 如果要新增 Amazon 类目，按 `agents/categories/new-category-template.md` 增加类目说明，并按 `agents/keyword-library-contract.md` 准备关键词库和风险库。
 - 如果要新增 Walmart 类目，按 `agents/walmart/categories/new-category-template.md` 增加类目说明，并按 `agents/walmart/knowledge-base-contract.md` 准备关键词表。
 - 如果未来引入代码实现，必须保留 prepare -> draft JSON -> audit 的确定性发布链路。

@@ -63,6 +63,16 @@
 7. 运行确定性审核。
 8. 失败模块必须重写后再输出。
 
+生成状态必须记录为：
+
+- `DATA_BLOCKED`：缺少关键输入或类目词库。
+- `DRAFT_READY`：已生成但未通过 audit。
+- `REWRITE_REQUIRED`：至少一个硬 gate 失败。
+- `REVIEW_READY`：硬 gate 通过，但存在需人工确认项。
+- `APPROVED`：硬 gate 通过且无阻塞型确认项。
+
+最终不要把 `REVIEW_READY` 写成完全可发布。
+
 ## 关键词评分
 
 关键词库是候选池，不是自动文案。
@@ -105,6 +115,23 @@
 
 Title 只放简短且已确认的事实。多数功能细节放到 Item Highlights、五点或描述。
 
+## Item Highlights 规则
+
+必须输出 1 条 Item Highlights，除非用户明确说不要。
+
+规则：
+
+- 目标 115-125 English characters。
+- 放 Title 放不下但买家和搜索都需要的确认事实。
+- 不写竞品词、风险词、未确认材质、认证、安全、保修、促销或绝对化效果。
+- 不堆关键词，不把五点压缩成一条长句。
+
+类目方向：
+
+- Rug：style、pattern、color、low pile、easy care、high traffic 等确认事实。
+- Chair：seat、back、headrest、armrest、footrest、room fit、adjustment 等确认事实。
+- Pet water fountain：capacity、bowl/tank material、flow mode、filter、battery、quiet operation 等确认事实。
+
 ## 五点规则
 
 必须正好 5 条。
@@ -142,3 +169,18 @@ Title 只放简短且已确认的事实。多数功能细节放到 Item Highligh
 - 无禁用 / 风险词。
 - 无重复 root。
 - 优先放安全、高相关、Title 没完整覆盖的词。
+
+Root 去重：
+
+1. lowercase。
+2. 标点转空格。
+3. 拆分长短语为有意义 searchable roots。
+4. 合并单复数、hyphen / space 变体。
+5. 保留优先级更高的首次出现。
+6. 超过 250 bytes 时，先删低相关、已覆盖或弱流量 token。
+
+## 输出格式
+
+标准输出必须按 `agents/output-contract.md` 的 11 个模块交付。
+
+简版 Listing 可以少写审计明细，但内部不能跳过风险筛查、Search Terms byte 检查和 CDQ 一致性检查。

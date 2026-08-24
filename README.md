@@ -11,10 +11,13 @@ Listing 智能体规则仓库。
 Amazon AGENTS 入口：
 
 - `AGENTS.md`
+- `agents/listing-generator-architecture.md`
 - `agents/listing-generation.md`
 - `agents/category-routing.md`
 - `agents/keyword-library-contract.md`
+- `agents/output-contract.md`
 - `agents/risk-cdq-audit.md`
+- `agents/web-app-implementation.md`
 - `agents/categories/*.md`
 
 当前 Amazon 类目：
@@ -22,6 +25,18 @@ Amazon AGENTS 入口：
 - `rug`
 - `chair`
 - `pet_water_fountain`
+
+Amazon Listing 生成器已经按 AGENTS 拆分为：
+
+- 平台路由
+- 类目路由
+- 关键词库 / 风险库契约
+- 生成流程
+- 输出格式
+- CDQ 审核
+- 本地 Web App 实现边界
+
+完整可迁移安装包可以额外携带 `knowledge-bases/amazon/` 下的来源表和转换后的 CSV。GitHub 规则仓库不强制保存完整生产词库。
 
 ### Walmart
 
