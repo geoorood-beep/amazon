@@ -1,0 +1,181 @@
+{
+  "$defs": {
+    "AdProductType": {
+      "enum": [
+        "SP",
+        "SB",
+        "SD"
+      ],
+      "title": "AdProductType",
+      "type": "string"
+    },
+    "BusinessMode": {
+      "enum": [
+        "NORMAL",
+        "EVENT",
+        "ANOMALY"
+      ],
+      "title": "BusinessMode",
+      "type": "string"
+    },
+    "InventoryState": {
+      "enum": [
+        "ASSUMED_SUFFICIENT",
+        "KNOWN_SUFFICIENT",
+        "RISK",
+        "UNKNOWN"
+      ],
+      "title": "InventoryState",
+      "type": "string"
+    },
+    "PrimaryObjective": {
+      "enum": [
+        "ACOS",
+        "CPA",
+        "ORDERS",
+        "PROFIT",
+        "STRUCTURE"
+      ],
+      "title": "PrimaryObjective",
+      "type": "string"
+    },
+    "StrategyProfile": {
+      "enum": [
+        "SP_STANDARD_OPTIMIZATION",
+        "SP_COLD_START"
+      ],
+      "title": "StrategyProfile",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "account_id": {
+      "title": "Account Id",
+      "type": "string"
+    },
+    "ad_context_version": {
+      "title": "Ad Context Version",
+      "type": "string"
+    },
+    "ad_product_type": {
+      "$ref": "#/$defs/AdProductType"
+    },
+    "batch_budget_change_cap": {
+      "anyOf": [
+        {
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Batch Budget Change Cap"
+    },
+    "budget_cap": {
+      "anyOf": [
+        {
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Budget Cap"
+    },
+    "business_mode": {
+      "$ref": "#/$defs/BusinessMode",
+      "default": "NORMAL"
+    },
+    "category": {
+      "title": "Category",
+      "type": "string"
+    },
+    "inventory_state": {
+      "$ref": "#/$defs/InventoryState"
+    },
+    "link_id": {
+      "title": "Link Id",
+      "type": "string"
+    },
+    "margin_floor": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Margin Floor"
+    },
+    "marketplace": {
+      "title": "Marketplace",
+      "type": "string"
+    },
+    "price_state": {
+      "additionalProperties": true,
+      "title": "Price State",
+      "type": "object"
+    },
+    "primary_objective": {
+      "$ref": "#/$defs/PrimaryObjective"
+    },
+    "promotion_state": {
+      "additionalProperties": true,
+      "title": "Promotion State",
+      "type": "object"
+    },
+    "protected_entities": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Protected Entities",
+      "type": "array"
+    },
+    "schema_version": {
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "strategy_profile": {
+      "$ref": "#/$defs/StrategyProfile"
+    },
+    "valid_until": {
+      "format": "date-time",
+      "title": "Valid Until",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "ad_context_version",
+    "valid_until",
+    "marketplace",
+    "account_id",
+    "link_id",
+    "category",
+    "ad_product_type",
+    "strategy_profile",
+    "primary_objective",
+    "inventory_state"
+  ],
+  "title": "AdContext",
+  "type": "object"
+}

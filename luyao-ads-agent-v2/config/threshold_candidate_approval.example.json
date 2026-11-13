@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0",
+  "candidate_id": "THRCAND-example",
+  "candidate_sha256": "replace_with_candidate_file_sha256",
+  "decision": "APPROVED",
+  "reviewer": "replace_with_reviewer",
+  "reviewed_at": "2026-08-04T09:00:00+08:00",
+  "approved_scope": "one calibration segment only",
+  "notes": "人工确认后仍需回归、压力测试和版本清单校验"
+}

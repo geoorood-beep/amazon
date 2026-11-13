@@ -1,0 +1,93 @@
+{
+  "schema_version": "1.0",
+  "config_version": "V2.0-20260804",
+  "status": "TEST_ONLY",
+  "category": "rug",
+  "maintenance_source": "thresholds/rug/calibration-eligibility.md",
+  "timezone": "Asia/Shanghai",
+  "reference_candidate": {
+    "threshold_id": "THR-CAL-001",
+    "minimum_valid_clicks": 2000,
+    "minimum_ad_orders": 50,
+    "minimum_distinct_days": 14,
+    "allowed_dq_statuses": [
+      "DQ_PASS",
+      "DQ_WARNING"
+    ]
+  },
+  "high_confidence_candidate": {
+    "threshold_id": "THR-CAL-002",
+    "minimum_valid_clicks": 5000,
+    "minimum_ad_orders": 100,
+    "minimum_distinct_days": 30,
+    "minimum_validation_windows": 3,
+    "allowed_dq_statuses": [
+      "DQ_PASS"
+    ]
+  },
+  "zero_order_risk_candidate": {
+    "threshold_id": "THR-CAL-003",
+    "minimum_valid_clicks": 300,
+    "required_ad_orders": 0,
+    "minimum_distinct_days": 14,
+    "allowed_dq_statuses": [
+      "DQ_PASS",
+      "DQ_WARNING"
+    ]
+  },
+  "candidate_generation": {
+    "minimum_daily_metric_observations": 7,
+    "historical_validation": {
+      "method": "CHRONOLOGICAL_TRAIN_HOLDOUT",
+      "train_fraction": 0.7,
+      "minimum_holdout_days": 4
+    },
+    "quantiles": [
+      0.25,
+      0.5,
+      0.75
+    ],
+    "auto_apply": false,
+    "human_approval_required": true
+  },
+  "historical_better_proof": {
+    "status": "TEST_ONLY",
+    "applicable_grain": "SKU_SIZE",
+    "current_threshold_source": "thresholds/rug/performance.md",
+    "current_threshold_source_sha256": "a8475815f9f3c6648f29fa7ad1250e8051279d6aa16b541028b386e0e081193a",
+    "minimum_candidate_objects": 7,
+    "minimum_evaluable_objects": 20,
+    "minimum_comparable_pairs": 100,
+    "minimum_train_clicks_per_object": 30,
+    "minimum_holdout_clicks_per_object": 10,
+    "minimum_train_orders_for_cpa": 2,
+    "minimum_holdout_orders_for_cpa": 1,
+    "minimum_concordance_improvement": 0.05,
+    "bootstrap_iterations": 1000,
+    "bootstrap_seed": 20260804,
+    "minimum_better_metrics": 2,
+    "reject_if_any_metric_worse": true,
+    "current_profiles": {
+      "doormat": {
+        "cvr": {"direction": "higher_is_better", "excellent": 0.075, "normal": 0.05, "warning": 0.035},
+        "cpa": {"direction": "lower_is_better", "excellent": 10, "normal": 13, "warning": 18},
+        "acos": {"direction": "lower_is_better", "excellent": 0.30, "normal": 0.55, "warning": 0.75}
+      },
+      "runner": {
+        "cvr": {"direction": "higher_is_better", "excellent": 0.08, "normal": 0.055, "warning": 0.035},
+        "cpa": {"direction": "lower_is_better", "excellent": 9, "normal": 13, "warning": 20},
+        "acos": {"direction": "lower_is_better", "excellent": 0.25, "normal": 0.45, "warning": 0.65}
+      },
+      "area_small": {
+        "cvr": {"direction": "higher_is_better", "excellent": 0.055, "normal": 0.035, "warning": 0.025},
+        "cpa": {"direction": "lower_is_better", "excellent": 15, "normal": 22, "warning": 35},
+        "acos": {"direction": "lower_is_better", "excellent": 0.25, "normal": 0.45, "warning": 0.65}
+      },
+      "area_large": {
+        "cvr": {"direction": "higher_is_better", "excellent": 0.05, "normal": 0.03, "warning": 0.02},
+        "cpa": {"direction": "lower_is_better", "excellent": 15, "normal": 24, "warning": 40},
+        "acos": {"direction": "lower_is_better", "excellent": 0.20, "normal": 0.35, "warning": 0.50}
+      }
+    }
+  }
+}

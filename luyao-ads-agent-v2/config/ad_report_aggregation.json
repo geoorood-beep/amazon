@@ -1,0 +1,174 @@
+{
+  "schema_version": "1.0",
+  "tool_status": "ACTIVE_LOCAL_TOOL",
+  "allowed_category": "rug",
+  "data_mode": "FULL",
+  "required_report_ids": [
+    "sp_search_terms_daily",
+    "sp_search_terms_summary",
+    "sp_targeting",
+    "sp_placement",
+    "sp_advertised_product",
+    "campaign_ad_group_settings"
+  ],
+  "input_extensions": [
+    ".csv",
+    ".tsv",
+    ".xlsx"
+  ],
+  "technical_reconciliation_tolerance": {
+    "count_absolute": "0",
+    "money_absolute": "0.01",
+    "purpose": "仅用于处理金额二位小数舍入差，不是广告业务阈值"
+  },
+  "report_requirements": {
+    "sp_search_terms_daily": {
+      "required": [
+        "date",
+        "campaign_id",
+        "ad_group_id",
+        "target_id",
+        "search_term",
+        "impressions",
+        "clicks",
+        "orders",
+        "spend",
+        "sales"
+      ],
+      "optional": [
+        "currency",
+        "marketplace"
+      ]
+    },
+    "sp_search_terms_summary": {
+      "required": [
+        "campaign_id",
+        "ad_group_id",
+        "target_id",
+        "search_term",
+        "impressions",
+        "clicks",
+        "orders",
+        "spend",
+        "sales"
+      ],
+      "optional": [
+        "period_start",
+        "period_end",
+        "currency",
+        "marketplace"
+      ]
+    },
+    "sp_targeting": {
+      "required": [
+        "campaign_id",
+        "ad_group_id",
+        "target_id",
+        "target_text",
+        "match_type",
+        "bid",
+        "target_status"
+      ],
+      "optional": [
+        "period_start",
+        "period_end",
+        "currency",
+        "marketplace",
+        "impressions",
+        "clicks",
+        "orders",
+        "spend",
+        "sales"
+      ]
+    },
+    "sp_placement": {
+      "required": [
+        "campaign_id",
+        "placement",
+        "impressions",
+        "clicks",
+        "orders",
+        "spend",
+        "sales"
+      ],
+      "optional": [
+        "period_start",
+        "period_end",
+        "currency",
+        "marketplace"
+      ]
+    },
+    "sp_advertised_product": {
+      "required": [
+        "campaign_id",
+        "ad_group_id",
+        "impressions",
+        "clicks",
+        "orders",
+        "spend",
+        "sales"
+      ],
+      "one_of": [
+        [
+          "sku",
+          "asin"
+        ]
+      ],
+      "optional": [
+        "period_start",
+        "period_end",
+        "currency",
+        "marketplace",
+        "sku",
+        "asin"
+      ]
+    },
+    "campaign_ad_group_settings": {
+      "required": [
+        "campaign_id",
+        "campaign_name",
+        "campaign_status",
+        "daily_budget",
+        "ad_group_id",
+        "ad_group_name",
+        "ad_group_status",
+        "default_bid"
+      ],
+      "optional": [
+        "period_start",
+        "period_end",
+        "currency",
+        "marketplace"
+      ]
+    }
+  },
+  "column_aliases": {
+    "date": ["Date", "日期", "报告日期"],
+    "period_start": ["Start Date", "Report Start Date", "开始日期", "报告开始日期"],
+    "period_end": ["End Date", "Report End Date", "结束日期", "报告结束日期"],
+    "marketplace": ["Marketplace", "站点", "市场"],
+    "currency": ["Currency", "Currency Code", "币种", "货币"],
+    "campaign_id": ["Campaign ID", "Campaign Id", "广告活动ID", "广告活动 Id"],
+    "campaign_name": ["Campaign Name", "Campaign", "广告活动名称", "广告活动"],
+    "campaign_status": ["Campaign Status", "Campaign State", "广告活动状态"],
+    "daily_budget": ["Daily Budget", "Campaign Budget", "预算", "每日预算", "广告活动预算"],
+    "ad_group_id": ["Ad Group ID", "Ad Group Id", "广告组ID", "广告组 Id"],
+    "ad_group_name": ["Ad Group Name", "Ad Group", "广告组名称", "广告组"],
+    "ad_group_status": ["Ad Group Status", "Ad Group State", "广告组状态"],
+    "default_bid": ["Default Bid", "Ad Group Default Bid", "默认竞价", "广告组默认竞价"],
+    "target_id": ["Target ID", "Targeting ID", "Keyword ID", "投放对象ID", "关键词ID"],
+    "target_text": ["Targeting", "Targeting Expression", "Keyword Text", "Keyword", "投放对象", "关键词"],
+    "match_type": ["Match Type", "Keyword Type", "匹配类型", "关键词类型"],
+    "bid": ["Bid", "Keyword Bid", "Targeting Bid", "竞价", "关键词竞价", "投放对象竞价"],
+    "target_status": ["Target Status", "Target State", "Keyword Status", "Keyword State", "投放对象状态", "关键词状态", "状态"],
+    "search_term": ["Customer Search Term", "Search Term", "客户搜索词", "搜索词"],
+    "placement": ["Placement", "Placement Type", "广告位", "广告位置"],
+    "sku": ["Advertised SKU", "SKU", "广告商品SKU", "广告SKU"],
+    "asin": ["Advertised ASIN", "ASIN", "广告商品ASIN", "广告ASIN"],
+    "impressions": ["Impressions", "Impression", "展示量", "曝光量", "曝光"],
+    "clicks": ["Clicks", "Click", "点击量", "点击"],
+    "orders": ["7 Day Total Orders (#)", "7 Day Total Orders", "14 Day Total Orders (#)", "14 Day Total Orders", "Orders", "广告订单量", "订单量", "订单"],
+    "spend": ["Spend", "Cost", "广告花费", "花费", "支出"],
+    "sales": ["7 Day Total Sales", "14 Day Total Sales", "Sales", "广告销售额", "销售额"]
+  }
+}

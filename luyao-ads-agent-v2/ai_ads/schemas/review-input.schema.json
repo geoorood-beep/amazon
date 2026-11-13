@@ -1,0 +1,275 @@
+{
+  "$defs": {
+    "ActionExecutionRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "action_id": {
+          "title": "Action Id",
+          "type": "string"
+        },
+        "actual_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Actual Value"
+        },
+        "executed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Executed At"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "planned_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Planned Value"
+        },
+        "status": {
+          "$ref": "#/$defs/ExecutionStatus"
+        }
+      },
+      "required": [
+        "action_id",
+        "status"
+      ],
+      "title": "ActionExecutionRecord",
+      "type": "object"
+    },
+    "ExecutionConfirmation": {
+      "additionalProperties": false,
+      "properties": {
+        "action_records": {
+          "items": {
+            "$ref": "#/$defs/ActionExecutionRecord"
+          },
+          "title": "Action Records",
+          "type": "array"
+        },
+        "batch_id": {
+          "title": "Batch Id",
+          "type": "string"
+        },
+        "executed_as_planned": {
+          "title": "Executed As Planned",
+          "type": "boolean"
+        },
+        "executed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Executed At"
+        },
+        "operator": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Operator"
+        },
+        "plan_id": {
+          "title": "Plan Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "plan_id",
+        "batch_id",
+        "executed_as_planned"
+      ],
+      "title": "ExecutionConfirmation",
+      "type": "object"
+    },
+    "ExecutionStatus": {
+      "enum": [
+        "EXECUTED",
+        "SKIPPED",
+        "PARTIAL",
+        "FAILED"
+      ],
+      "title": "ExecutionStatus",
+      "type": "string"
+    },
+    "ExternalEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "event_type": {
+          "title": "Event Type",
+          "type": "string"
+        },
+        "isolated": {
+          "title": "Isolated",
+          "type": "boolean"
+        },
+        "occurred_at": {
+          "format": "date-time",
+          "title": "Occurred At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_type",
+        "occurred_at",
+        "description",
+        "isolated"
+      ],
+      "title": "ExternalEvent",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "after_snapshot_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "After Snapshot Id"
+    },
+    "attribution_complete_at": {
+      "format": "date-time",
+      "title": "Attribution Complete At",
+      "type": "string"
+    },
+    "batch_id": {
+      "title": "Batch Id",
+      "type": "string"
+    },
+    "before_snapshot_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Before Snapshot Id"
+    },
+    "execution_confirmation": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExecutionConfirmation"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "external_events": {
+      "items": {
+        "$ref": "#/$defs/ExternalEvent"
+      },
+      "title": "External Events",
+      "type": "array"
+    },
+    "metrics_comparable": {
+      "title": "Metrics Comparable",
+      "type": "boolean"
+    },
+    "observed_at": {
+      "format": "date-time",
+      "title": "Observed At",
+      "type": "string"
+    },
+    "overlapping_action_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Overlapping Action Ids",
+      "type": "array"
+    },
+    "plan_id": {
+      "title": "Plan Id",
+      "type": "string"
+    },
+    "secondary_adjustments_marked": {
+      "title": "Secondary Adjustments Marked",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "plan_id",
+    "batch_id",
+    "execution_confirmation",
+    "before_snapshot_id",
+    "after_snapshot_id",
+    "observed_at",
+    "attribution_complete_at",
+    "metrics_comparable",
+    "secondary_adjustments_marked"
+  ],
+  "title": "ReviewInput",
+  "type": "object"
+}

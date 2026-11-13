@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "category": "rug",
+  "marketplace": "US",
+  "account_id": "请填写广告账户ID",
+  "link_id": "请填写当前ASIN或父体链接ID",
+  "timezone": "America/Los_Angeles",
+  "currency": "USD",
+  "attribution_window_days": 7,
+  "period_start": "2026-07-01",
+  "period_end": "2026-07-30",
+  "notes": "报表必须全部属于同一账户、同一链接和同一观察周期"
+}

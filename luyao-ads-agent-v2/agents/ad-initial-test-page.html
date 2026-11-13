@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>广告初版测试页面</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --panel: #ffffff;
+      --panel-soft: #f8fafc;
+      --ink: #111827;
+      --muted: #475569;
+      --subtle: #64748b;
+      --line: #d7dee8;
+      --teal: #087568;
+      --teal-soft: #e6f5f2;
+      --blue: #2563eb;
+      --blue-soft: #eff6ff;
+      --amber: #a8550a;
+      --amber-soft: #fff7ed;
+      --green: #15803d;
+      --green-soft: #f0fdf4;
+      --red: #b91c1c;
+      --red-soft: #fef2f2;
+      --radius: 8px;
+      --shadow: 0 16px 42px rgba(15, 23, 42, .08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
+      letter-spacing: 0;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+    }
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 22px 18px;
+      color: #e5edf7;
+      background: #0f172a;
+      border-right: 1px solid rgba(255,255,255,.08);
+    }
+    .brand { padding-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,.12); }
+    .brand h1 { margin: 0 0 8px; font-size: 23px; line-height: 1.16; }
+    .brand p { margin: 0; color: #aab8cc; font-size: 13px; }
+    .side-card {
+      margin-top: 16px;
+      padding: 12px;
+      color: #bfdbfe;
+      background: rgba(37,99,235,.12);
+      border: 1px solid rgba(147,197,253,.2);
+      border-radius: var(--radius);
+      font-size: 12px;
+    }
+    .main { min-width: 0; padding: 24px; }
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    .topbar h2 { margin: 0 0 6px; font-size: 28px; line-height: 1.15; }
+    .topbar p { margin: 0; color: var(--muted); }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 6px 10px;
+      color: var(--teal);
+      background: var(--teal-soft);
+      border: 1px solid #b7e4dc;
+      border-radius: var(--radius);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .stack { display: grid; gap: 18px; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .panel-header h3 { margin: 0; font-size: 18px; }
+    .panel-header p { margin: 3px 0 0; color: var(--subtle); font-size: 13px; }
+    .panel-body { padding: 18px; }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .field { display: grid; gap: 6px; }
+    .field label { color: var(--muted); font-size: 13px; font-weight: 800; }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--ink);
+      outline: none;
+    }
+    input, select { height: 40px; padding: 0 10px; }
+    textarea { min-height: 78px; resize: vertical; padding: 10px; }
+    input:focus, select:focus, textarea:focus {
+      border-color: #0f9284;
+      box-shadow: 0 0 0 3px rgba(15,146,132,.15);
+    }
+
+    .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    .btn {
+      min-height: 40px;
+      padding: 0 15px;
+      border-radius: var(--radius);
+      border: 1px solid transparent;
+      font-weight: 800;
+    }
+    .btn.primary { color: #fff; background: var(--teal); }
+    .btn.secondary { color: var(--teal); background: var(--teal-soft); border-color: #b7e4dc; }
+    .btn.neutral { color: var(--muted); background: #fff; border-color: var(--line); }
+
+    .status-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .status-card {
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+    .status-card strong { display: block; margin-bottom: 4px; }
+    .status-card span { display: block; color: var(--subtle); font-size: 12px; }
+    .status-pill {
+      display: inline-flex;
+      margin-top: 8px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .status-pill.good { color: var(--green); background: var(--green-soft); }
+    .status-pill.warn { color: var(--amber); background: var(--amber-soft); }
+    .status-pill.stop { color: var(--red); background: var(--red-soft); }
+
+    .preview-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      overflow: hidden;
+    }
+    .preview-card + .preview-card { margin-top: 12px; }
+    .preview-card h4 {
+      margin: 0;
+      padding: 12px 14px;
+      color: var(--teal);
+      background: #fbffff;
+      border-bottom: 1px solid var(--line);
+      font-size: 15px;
+    }
+    .preview-card .content { padding: 14px; }
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+    table {
+      width: 100%;
+      min-width: 900px;
+      border-collapse: collapse;
+      background: #fff;
+    }
+    th, td { padding: 10px 11px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: #fff; background: var(--teal); font-size: 13px; white-space: nowrap; }
+    td { color: var(--ink); font-size: 13px; }
+    tr:last-child td { border-bottom: 0; }
+    .logic {
+      margin-top: 12px;
+      padding: 12px 14px;
+      color: var(--ink);
+      background: var(--amber-soft);
+      border: 1px solid #fed7aa;
+      border-radius: var(--radius);
+      font-size: 13px;
+    }
+    .empty {
+      padding: 22px;
+      color: var(--muted);
+      background: var(--panel-soft);
+      border: 1px dashed #b9c5d4;
+      border-radius: var(--radius);
+    }
+    .record-list { display: grid; gap: 10px; }
+    .record {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      font-size: 13px;
+    }
+    .record strong { display: block; color: var(--teal); margin-bottom: 3px; }
+
+    @media (max-width: 1100px) {
+      .app { display: block; }
+      .sidebar { position: static; height: auto; }
+      .status-grid, .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 700px) {
+      .main { padding: 16px; }
+      .topbar, .panel-header { display: grid; align-items: start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <h1>广告初版测试页面</h1>
+        <p>用于测试新品/老品广告初版结构，不替代正式导出表格。</p>
+      </div>
+      <div class="side-card">
+        静态测试版：可录入产品信息、检查引用数据状态、生成初版方案预览、保存测试记录。真实 Excel 解析、数据库写入和 .xlsx 导出需要后端接入。
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h2>广告初版方案测试台</h2>
+          <p>先验证类目、阶段、预算、产品属性和引用数据是否能支撑一版广告架构，再进入正式方案导出。</p>
+        </div>
+        <div class="badge">v0.1 初版测试</div>
+      </div>
+
+      <div class="stack">
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h3>测试输入</h3>
+              <p>先选择推广类型和类目，再录入产品属性、预算和目标。</p>
+            </div>
+            <span class="badge">测试对象</span>
+          </div>
+          <div class="panel-body">
+            <div class="grid-4">
+              <div class="field"><label>推广类型</label><select id="promoType"><option>新品推广</option><option>老品推广</option></select></div>
+              <div class="field"><label>产品类目</label><select id="category"><option>地毯</option></select></div>
+              <div class="field"><label>ASIN / SKU</label><input id="asin" type="text" placeholder="如 B0TEST123"></div>
+              <div class="field"><label>日预算 USD</label><input id="budget" type="number" min="1" step="1" placeholder="如 200"></div>
+            </div>
+            <div class="grid-4" style="margin-top:12px">
+              <div class="field"><label>订单阶段 / 目标</label><select id="stage"><option>0-15 单/日</option><option>15-30 单/日</option><option>30-50 单/日</option><option>50+ 单/日</option><option>待确认</option></select></div>
+              <div class="field"><label>目标推广尺寸</label><input id="size" type="text" placeholder="如 8x10 / 2.5x6 / 6ft round"></div>
+              <div class="field"><label>颜色 / 材质</label><input id="colorMaterial" type="text" placeholder="如 红色 / 不锈钢 / 黑色网布"></div>
+              <div class="field"><label>核心定位</label><input id="positioning" type="text" placeholder="如 复古、无线、护腰、大体重"></div>
+            </div>
+            <div class="field" style="margin-top:12px">
+              <label>其他产品信息</label>
+              <textarea id="notes" placeholder="补充功能、场景、人群、价格、库存、Review、竞品等"></textarea>
+            </div>
+            <div class="btn-row">
+              <button class="btn secondary" id="checkData">检查引用数据</button>
+              <button class="btn primary" id="generatePlan">生成初版测试方案</button>
+              <button class="btn neutral" id="clearForm">清空</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h3>引用数据检查</h3>
+              <p>这里只显示测试所需引用数据是否可用；固定规则仍由 AGENTS 后台文件引用。</p>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="status-grid" id="dataStatus"></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h3>初版方案预览</h3>
+              <p>预览只用于验证结构和判断逻辑，正式方案仍以导出的 Excel 模板为准。</p>
+            </div>
+            <button class="btn secondary" id="exportText">导出测试文本</button>
+          </div>
+          <div class="panel-body" id="planPreview">
+            <div class="empty">等待生成初版测试方案。</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h3>测试记录</h3>
+              <p>每次生成方案会在本浏览器保存一条记录，便于回看测试输入和缺失数据。</p>
+            </div>
+            <button class="btn neutral" id="clearRecords">清空记录</button>
+          </div>
+          <div class="panel-body">
+            <div class="record-list" id="records"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const storeKey = "luyao_rug_ad_initial_test_page_v14";
+    const state = JSON.parse(localStorage.getItem(storeKey) || '{"records":[]}');
+
+    const dataMap = {
+      "地毯": {
+        aba: ["good", "系统已有：reference/rug-aba/，只读各文件广告词库"],
+        history: ["warn", "已有 Rug 关键词分析汇总；粒度为投放关键词效果，不视为 Customer Search Term"],
+        forbidden: ["good", "按 ABA 合规状态、广告状态和产品属性冲突门隔离"],
+        threshold: ["warn", "门垫、长条、小区域和大区域阈值已确认；圆形仍阻断"]
+      }
+    };
+
+    function value(id, fallback = "") {
+      const el = document.querySelector("#" + id);
+      return (el && el.value && el.value.trim()) || fallback;
+    }
+
+    function persist() {
+      localStorage.setItem(storeKey, JSON.stringify(state));
+    }
+
+    function renderDataStatus() {
+      const category = value("category", "地毯");
+      const data = dataMap[category];
+      const labels = [
+        ["aba", "ABA词库"],
+        ["history", "历史搜索词库"],
+        ["forbidden", "违禁词库"],
+        ["threshold", "品类阈值"]
+      ];
+      document.querySelector("#dataStatus").innerHTML = labels.map(([key, label]) => {
+        const [status, desc] = data[key];
+        const text = status === "good" ? "可用" : status === "stop" ? "缺失" : "可选缺失";
+        return `<div class="status-card"><strong>${label}</strong><span>${desc}</span><span class="status-pill ${status}">${text}</span></div>`;
+      }).join("");
+    }
+
+    function generatePlan() {
+      renderDataStatus();
+      const promoType = value("promoType", "新品推广");
+      const category = value("category", "地毯");
+      const asin = value("asin", "待填写 ASIN/SKU");
+      const budget = value("budget", "待填写");
+      const stage = value("stage", "待确认");
+      const size = value("size", "待确认规格");
+      const colorMaterial = value("colorMaterial", "待确认颜色/材质");
+      const positioning = value("positioning", "待确认定位");
+      const notes = value("notes", "未填写补充信息");
+      const categoryData = dataMap[category];
+      const canUseRealKeywords = categoryData.aba[0] !== "stop";
+      const baseKeyword = `${size} ${positioning} ${category}`.replace(/\s+/g, " ").trim();
+      const longTail = `${colorMaterial} ${positioning} ${category}`.replace(/\s+/g, " ").trim();
+      const warning = canUseRealKeywords
+        ? `<div class="status-pill good">可生成初版测试结构</div>`
+        : `<div class="status-pill stop">缺 ABA，不能输出真实关键词，只能看结构</div>`;
+
+      document.querySelector("#planPreview").innerHTML = `
+        ${warning}
+        <div class="preview-card">
+          <h4>ABA选词表测试预览</h4>
+          <div class="content">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>层级</th><th>关键词 / 投放对象</th><th>标签</th><th>动作</th><th>原因</th></tr></thead>
+                <tbody>
+                  <tr><td>核心属性</td><td>${baseKeyword}</td><td>${size}；${positioning}</td><td>${canUseRealKeywords ? "投放" : "待 ABA 入库"}</td><td>先验证产品属性和 ABA 阶段是否匹配</td></tr>
+                  <tr><td>长尾验证</td><td>${longTail}</td><td>${colorMaterial}；${positioning}</td><td>低预算测试</td><td>新品/初版先验证属性词，不直接抢大词</td></tr>
+                  <tr><td>自动紧密</td><td>Close Match</td><td>系统识别</td><td>小预算测试</td><td>自动广告只保留紧密匹配，不跑自动宽泛</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="preview-card">
+          <h4>新广告设置表测试预览</h4>
+          <div class="content">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Campaign</th><th>Ad Group</th><th>预算</th><th>策略</th><th>投放词</th><th>否定规则</th><th>测试结论</th></tr></thead>
+                <tbody>
+                  <tr><td>${promoType}-${category}-属性验证</td><td>${size}-${positioning}-Phrase</td><td>${budget}</td><td>低预算验证</td><td>${baseKeyword}</td><td>只否定已投且命中规则的词</td><td>可进入初版测试</td></tr>
+                  <tr><td>${promoType}-${category}-长尾拓词</td><td>${positioning}-LongTail</td><td>${budget}</td><td>低 Bid 拓词</td><td>${longTail}</td><td>品牌/不相关词人工复核</td><td>${categoryData.forbidden[0] === "good" ? "风险词库可用" : "需人工复核"}</td></tr>
+                  <tr><td>${promoType}-${category}-自动紧密</td><td>Auto Close</td><td>小预算</td><td>紧密匹配</td><td>系统识别</td><td>无</td><td>只做识别和补词</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="logic">判断依据与设计逻辑：【ABA/产品属性】${categoryData.aba[1]}；【历史数据】${categoryData.history[1]}；【用户固定规则】新品初版不使用短期 ACOS/CPA/CVR 强判暂停或放量；【人工输入/预算目标】预算 ${budget}，阶段 ${stage}；【缺失数据】${categoryData.forbidden[0] === "good" ? "暂无关键缺失" : "违禁词库或类目风险词仍需人工复核"}。补充信息：${notes}</div>
+          </div>
+        </div>
+      `;
+
+      state.records.unshift({
+        time: new Date().toLocaleString("zh-CN"),
+        title: `${promoType} / ${category} / ${asin}`,
+        detail: `预算 ${budget}；阶段 ${stage}；规格 ${size}；定位 ${positioning}`
+      });
+      state.records = state.records.slice(0, 12);
+      persist();
+      renderRecords();
+    }
+
+    function renderRecords() {
+      const box = document.querySelector("#records");
+      if (!state.records.length) {
+        box.innerHTML = `<div class="empty">暂无测试记录。</div>`;
+        return;
+      }
+      box.innerHTML = state.records.map(record => `
+        <div class="record">
+          <strong>${record.title}</strong>
+          <span>${record.detail}</span><br>
+          <span>${record.time}</span>
+        </div>
+      `).join("");
+    }
+
+    function exportText() {
+      const text = document.querySelector("#planPreview").innerText.trim() || "当前还没有生成方案。";
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `广告初版测试方案_${new Date().toISOString().slice(0, 10)}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    document.querySelector("#checkData").onclick = renderDataStatus;
+    document.querySelector("#generatePlan").onclick = generatePlan;
+    document.querySelector("#exportText").onclick = exportText;
+    document.querySelector("#clearRecords").onclick = () => {
+      state.records = [];
+      persist();
+      renderRecords();
+    };
+    document.querySelector("#clearForm").onclick = () => {
+      ["asin", "budget", "size", "colorMaterial", "positioning", "notes"].forEach(id => document.querySelector("#" + id).value = "");
+      document.querySelector("#planPreview").innerHTML = `<div class="empty">等待生成初版测试方案。</div>`;
+    };
+    document.querySelector("#category").onchange = renderDataStatus;
+    renderDataStatus();
+    renderRecords();
+  </script>
+</body>
+</html>

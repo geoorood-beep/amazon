@@ -1,0 +1,626 @@
+{
+  "$defs": {
+    "ActionType": {
+      "enum": [
+        "INCREASE_BUDGET",
+        "DECREASE_BUDGET",
+        "INCREASE_BID",
+        "DECREASE_BID",
+        "SET_PLACEMENT",
+        "PAUSE",
+        "ENABLE",
+        "NEGATIVE_EXACT",
+        "CREATE_STRUCTURE",
+        "OBSERVE"
+      ],
+      "title": "ActionType",
+      "type": "string"
+    },
+    "AdProductType": {
+      "enum": [
+        "SP",
+        "SB",
+        "SD"
+      ],
+      "title": "AdProductType",
+      "type": "string"
+    },
+    "BudgetType": {
+      "enum": [
+        "STANDARD_MINIMUM",
+        "OBSERVATION",
+        "EXPANSION",
+        "COPY_VALIDATION",
+        "RISK_CAP"
+      ],
+      "title": "BudgetType",
+      "type": "string"
+    },
+    "CandidateAction": {
+      "additionalProperties": false,
+      "properties": {
+        "action_level": {
+          "title": "Action Level",
+          "type": "string"
+        },
+        "action_pack_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Action Pack Id"
+        },
+        "action_type": {
+          "$ref": "#/$defs/ActionType"
+        },
+        "ad_product_type": {
+          "$ref": "#/$defs/AdProductType"
+        },
+        "batch_id": {
+          "title": "Batch Id",
+          "type": "string"
+        },
+        "budget_purpose": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Budget Purpose"
+        },
+        "budget_type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BudgetType"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "calculation_basis": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Calculation Basis"
+        },
+        "candidate_action_id": {
+          "title": "Candidate Action Id",
+          "type": "string"
+        },
+        "confidence": {
+          "$ref": "#/$defs/DecisionConfidence"
+        },
+        "current_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Current Value"
+        },
+        "dependencies": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Dependencies",
+          "type": "array"
+        },
+        "evidence_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "expansion_execution_object": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExpansionExecutionObject"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "expected_current_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Current Value"
+        },
+        "expected_impact": {
+          "title": "Expected Impact",
+          "type": "string"
+        },
+        "is_primary": {
+          "default": true,
+          "title": "Is Primary",
+          "type": "boolean"
+        },
+        "migrated_winner_object_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Migrated Winner Object Ids",
+          "type": "array"
+        },
+        "migration_state": {
+          "$ref": "#/$defs/MigrationState",
+          "default": "NOT_APPLICABLE"
+        },
+        "object_id": {
+          "title": "Object Id",
+          "type": "string"
+        },
+        "object_type": {
+          "$ref": "#/$defs/ObjectType"
+        },
+        "observation_days": {
+          "minimum": 0,
+          "title": "Observation Days",
+          "type": "integer"
+        },
+        "overlap_intent": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OverlapIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "preconditions": {
+          "additionalProperties": true,
+          "title": "Preconditions",
+          "type": "object"
+        },
+        "priority_tier": {
+          "$ref": "#/$defs/PriorityTier"
+        },
+        "proposed_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Proposed Value"
+        },
+        "reversible": {
+          "title": "Reversible",
+          "type": "boolean"
+        },
+        "review_metrics": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Review Metrics",
+          "type": "array"
+        },
+        "risk_level": {
+          "$ref": "#/$defs/RiskLevel"
+        },
+        "rollback_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rollback Value"
+        },
+        "rule_id": {
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "setting_change_point_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Setting Change Point Id"
+        },
+        "source_module": {
+          "title": "Source Module",
+          "type": "string"
+        },
+        "strategy_profile": {
+          "$ref": "#/$defs/StrategyProfile"
+        },
+        "strategy_stage": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Strategy Stage"
+        },
+        "target_orders_per_day": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Orders Per Day"
+        },
+        "threshold_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Threshold Id"
+        },
+        "traffic_role": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TrafficRole"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "valid_until": {
+          "format": "date-time",
+          "title": "Valid Until",
+          "type": "string"
+        }
+      },
+      "required": [
+        "candidate_action_id",
+        "batch_id",
+        "ad_product_type",
+        "strategy_profile",
+        "object_type",
+        "object_id",
+        "action_level",
+        "action_type",
+        "priority_tier",
+        "source_module",
+        "rule_id",
+        "confidence",
+        "expected_impact",
+        "risk_level",
+        "reversible",
+        "valid_until",
+        "observation_days"
+      ],
+      "title": "CandidateAction",
+      "type": "object"
+    },
+    "DecisionConfidence": {
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW"
+      ],
+      "title": "DecisionConfidence",
+      "type": "string"
+    },
+    "ExpansionExecutionObject": {
+      "enum": [
+        "VERIFIED_SEARCH_TERM",
+        "REAL_TARGET",
+        "ROOT_AGGREGATE"
+      ],
+      "title": "ExpansionExecutionObject",
+      "type": "string"
+    },
+    "MigrationState": {
+      "enum": [
+        "NOT_APPLICABLE",
+        "WINNERS_EXTRACTED",
+        "RECEIVER_CREATED",
+        "RECEIVER_ENABLED",
+        "LEGACY_REMAINDER_READY_TO_CLOSE"
+      ],
+      "title": "MigrationState",
+      "type": "string"
+    },
+    "ObjectType": {
+      "enum": [
+        "CAMPAIGN",
+        "AD_GROUP",
+        "TARGET",
+        "SEARCH_TERM",
+        "PLACEMENT",
+        "ADVERTISED_PRODUCT",
+        "STRUCTURE"
+      ],
+      "title": "ObjectType",
+      "type": "string"
+    },
+    "OverlapIntent": {
+      "enum": [
+        "NO_OVERLAP",
+        "INTENTIONAL_DISTINCT_ROLE",
+        "UNINTENTIONAL_DUPLICATE",
+        "UNKNOWN"
+      ],
+      "title": "OverlapIntent",
+      "type": "string"
+    },
+    "PlanMetadata": {
+      "additionalProperties": false,
+      "properties": {
+        "ad_context_version": {
+          "title": "Ad Context Version",
+          "type": "string"
+        },
+        "ad_product_type": {
+          "$ref": "#/$defs/AdProductType"
+        },
+        "batch_id": {
+          "title": "Batch Id",
+          "type": "string"
+        },
+        "data_snapshot_id": {
+          "title": "Data Snapshot Id",
+          "type": "string"
+        },
+        "generated_at": {
+          "format": "date-time",
+          "title": "Generated At",
+          "type": "string"
+        },
+        "model_version": {
+          "title": "Model Version",
+          "type": "string"
+        },
+        "plan_id": {
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "prompt_version": {
+          "title": "Prompt Version",
+          "type": "string"
+        },
+        "rule_package_checksum": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Rule Package Checksum",
+          "type": "string"
+        },
+        "rule_package_version": {
+          "title": "Rule Package Version",
+          "type": "string"
+        },
+        "schema_version": {
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "strategy_profile": {
+          "$ref": "#/$defs/StrategyProfile"
+        },
+        "valid_until": {
+          "format": "date-time",
+          "title": "Valid Until",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "plan_id",
+        "batch_id",
+        "data_snapshot_id",
+        "ad_context_version",
+        "ad_product_type",
+        "strategy_profile",
+        "rule_package_version",
+        "rule_package_checksum",
+        "model_version",
+        "prompt_version",
+        "generated_at",
+        "valid_until"
+      ],
+      "title": "PlanMetadata",
+      "type": "object"
+    },
+    "PriorityTier": {
+      "enum": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "title": "PriorityTier",
+      "type": "integer"
+    },
+    "RejectedAction": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_action_id": {
+          "title": "Candidate Action Id",
+          "type": "string"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "reason_code": {
+          "title": "Reason Code",
+          "type": "string"
+        }
+      },
+      "required": [
+        "candidate_action_id",
+        "reason_code",
+        "reason"
+      ],
+      "title": "RejectedAction",
+      "type": "object"
+    },
+    "RiskLevel": {
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH",
+        "CRITICAL"
+      ],
+      "title": "RiskLevel",
+      "type": "string"
+    },
+    "StrategyProfile": {
+      "enum": [
+        "SP_STANDARD_OPTIMIZATION",
+        "SP_COLD_START"
+      ],
+      "title": "StrategyProfile",
+      "type": "string"
+    },
+    "TrafficRole": {
+      "enum": [
+        "HARVEST",
+        "DISCOVERY",
+        "RANKING",
+        "DEFENSE",
+        "ISOLATION",
+        "OBSERVE"
+      ],
+      "title": "TrafficRole",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "actions": {
+      "items": {
+        "$ref": "#/$defs/CandidateAction"
+      },
+      "title": "Actions",
+      "type": "array"
+    },
+    "metadata": {
+      "$ref": "#/$defs/PlanMetadata"
+    },
+    "rejected_actions": {
+      "items": {
+        "$ref": "#/$defs/RejectedAction"
+      },
+      "title": "Rejected Actions",
+      "type": "array"
+    }
+  },
+  "required": [
+    "metadata"
+  ],
+  "title": "AdPlanCandidate",
+  "type": "object"
+}

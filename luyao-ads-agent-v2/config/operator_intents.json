@@ -1,0 +1,130 @@
+{
+  "schema_version": "2.1",
+  "version": "V2.0",
+  "runtime_version": "V2.1",
+  "category": "rug",
+  "execution_boundary": "HUMAN_EXECUTION_ONLY",
+  "intents": {
+    "NEW_PRODUCT_PROMOTION": {
+      "label": "广告架构设计",
+      "required_fields": ["asin", "size_spec", "rug_type", "marketplace", "order_target_daily"],
+      "manual_product_limit": 10,
+      "imported_product_limit": 100,
+      "batch_field": "products_json",
+      "preprocessor": "NEW_PRODUCT_MODULE",
+      "rule_entry": "rules/domains/new-product/scope-input-sources.md",
+      "rule_entries": [
+        "rules/core/scope-and-capability.md",
+        "rules/core/data-quality.md",
+        "rules/domains/new-product/scope-input-sources.md",
+        "rules/domains/new-product/attribute-and-selection.md",
+        "rules/domains/new-product/match-type-routing.md",
+        "rules/domains/new-product/architecture.md",
+        "rules/domains/new-product/negative-isolation.md",
+        "rules/output/output-rules.md"
+      ],
+      "threshold_entry": "thresholds/rug/new-product-stage.md",
+      "threshold_entries": [
+        "thresholds/rug/size-routing.md",
+        "thresholds/rug/new-product-stage.md",
+        "thresholds/rug/budget-and-isolation.md",
+        "thresholds/rug/match-type-routing.md",
+        "thresholds/rug/performance.md"
+      ],
+      "knowledge_entries": [
+        "knowledge/README.md",
+        "reference/rug-aba",
+        "reference/category-history/rug/normalized/20260707_rug_historical_search_terms_normalized.xlsx",
+        "reference/rug-relevance",
+        "reference/rug-search-volume"
+      ],
+      "tool_entries": [
+        "new_product_module/README.md",
+        "new_product_module/cli.py"
+      ],
+      "config_entries": [
+        "new_product_module/config/category_rules.example.yaml",
+        "config/operator_catalog.json"
+      ],
+      "output_contract": "contracts/new-product-output.md",
+      "input_contracts": ["contracts/new-product-match-evidence.md"]
+    },
+    "OLD_PRODUCT_OPTIMIZATION": {
+      "label": "SP广告优化",
+      "required_fields": ["marketplace", "report_source_path"],
+      "preprocessor": "AD_REPORT_AGGREGATOR",
+      "rule_entry": "rules/domains/old-product/input-and-modes.md",
+      "rule_entries": [
+        "rules/core/scope-and-capability.md",
+        "rules/core/data-quality.md",
+        "rules/core/sample-and-attribution.md",
+        "rules/core/action-arbitration-validator.md",
+        "rules/domains/old-product/input-and-modes.md",
+        "rules/domains/old-product/diagnosis.md",
+        "rules/domains/old-product/budget-bid-placement.md",
+        "rules/domains/old-product/product-and-trend.md",
+        "rules/domains/old-product/growth-and-structure.md",
+        "rules/output/output-rules.md"
+      ],
+      "threshold_entry": "thresholds/rug/performance.md",
+      "threshold_entries": [
+        "thresholds/rug/performance.md",
+        "thresholds/rug/governance.md",
+        "thresholds/rug/traffic-and-scoring.md"
+      ],
+      "knowledge_entries": [
+        "knowledge/README.md"
+      ],
+      "tool_entries": [
+        "tools/ad_report_aggregator/README.md",
+        "scripts/build_ad_decision_packet.py",
+        "scripts/build_name_keyed_ad_analysis.py"
+      ],
+      "config_entries": ["config/ad_report_aggregation.json"],
+      "output_contract": "contracts/old-product-output.md"
+    },
+    "AGGREGATE_REPORTS": {
+      "label": "更新广告数据",
+      "required_fields": ["marketplace", "report_source_path"],
+      "preprocessor": "AD_REPORT_AGGREGATOR",
+      "rule_entry": "rules/core/data-quality.md",
+      "rule_entries": [
+        "rules/core/scope-and-capability.md",
+        "rules/core/data-quality.md",
+        "rules/core/sample-and-attribution.md"
+      ],
+      "threshold_entry": null,
+      "threshold_entries": [],
+      "knowledge_entries": ["knowledge/README.md"],
+      "tool_entries": [
+        "tools/ad_report_aggregator/README.md",
+        "scripts/build_ad_decision_packet.py",
+        "scripts/build_name_keyed_ad_analysis.py"
+      ],
+      "config_entries": ["config/ad_report_aggregation.json"],
+      "output_contract": "contracts/ad-report-aggregation.md"
+    },
+    "WEEKLY_REVIEW": {
+      "label": "查看本周建议",
+      "required_fields": [],
+      "preprocessor": "WEEKLY_THRESHOLD_MONITOR",
+      "rule_entry": "contracts/review.md",
+      "rule_entries": [
+        "contracts/review.md",
+        "contracts/threshold-calibration.md"
+      ],
+      "threshold_entry": "thresholds/rug/calibration-eligibility.md",
+      "threshold_entries": ["thresholds/rug/calibration-eligibility.md"],
+      "knowledge_entries": ["knowledge/README.md"],
+      "tool_entries": [
+        "tools/threshold_calibrator/README.md",
+        "scripts/monitor_threshold_candidates.py"
+      ],
+      "config_entries": [
+        "config/threshold_calibration.json",
+        "config/threshold_monitoring.json"
+      ],
+      "output_contract": "contracts/review.md"
+    }
+  }
+}

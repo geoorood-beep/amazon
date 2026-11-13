@@ -1,0 +1,628 @@
+{
+  "$defs": {
+    "AdGroupFact": {
+      "additionalProperties": false,
+      "properties": {
+        "ad_group_id": {
+          "title": "Ad Group Id",
+          "type": "string"
+        },
+        "ad_group_name": {
+          "title": "Ad Group Name",
+          "type": "string"
+        },
+        "campaign_id": {
+          "title": "Campaign Id",
+          "type": "string"
+        },
+        "default_bid": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Default Bid"
+        },
+        "status": {
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ad_group_id",
+        "campaign_id",
+        "ad_group_name",
+        "status"
+      ],
+      "title": "AdGroupFact",
+      "type": "object"
+    },
+    "CampaignFact": {
+      "additionalProperties": false,
+      "properties": {
+        "campaign_id": {
+          "title": "Campaign Id",
+          "type": "string"
+        },
+        "campaign_name": {
+          "title": "Campaign Name",
+          "type": "string"
+        },
+        "daily_budget": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Daily Budget"
+        },
+        "status": {
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "campaign_id",
+        "campaign_name",
+        "daily_budget",
+        "status"
+      ],
+      "title": "CampaignFact",
+      "type": "object"
+    },
+    "DataMode": {
+      "enum": [
+        "FULL",
+        "LIMITED"
+      ],
+      "title": "DataMode",
+      "type": "string"
+    },
+    "ImportedDataIssue": {
+      "additionalProperties": false,
+      "properties": {
+        "blocking": {
+          "default": false,
+          "title": "Blocking",
+          "type": "boolean"
+        },
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "object_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Object Id"
+        },
+        "object_type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObjectType"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "title": "ImportedDataIssue",
+      "type": "object"
+    },
+    "MetricSample": {
+      "additionalProperties": false,
+      "properties": {
+        "clicks": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Clicks",
+          "type": "integer"
+        },
+        "impressions": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Impressions",
+          "type": "integer"
+        },
+        "orders": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0",
+          "title": "Orders"
+        },
+        "period_end": {
+          "format": "date",
+          "title": "Period End",
+          "type": "string"
+        },
+        "period_start": {
+          "format": "date",
+          "title": "Period Start",
+          "type": "string"
+        },
+        "sales": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0",
+          "title": "Sales"
+        },
+        "spend": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0",
+          "title": "Spend"
+        },
+        "window": {
+          "$ref": "#/$defs/MetricWindow"
+        }
+      },
+      "required": [
+        "window",
+        "period_start",
+        "period_end"
+      ],
+      "title": "MetricSample",
+      "type": "object"
+    },
+    "MetricWindow": {
+      "enum": [
+        "D3",
+        "D7",
+        "D14",
+        "D30",
+        "CUSTOM"
+      ],
+      "title": "MetricWindow",
+      "type": "string"
+    },
+    "ObjectMetricFact": {
+      "additionalProperties": false,
+      "properties": {
+        "object_id": {
+          "title": "Object Id",
+          "type": "string"
+        },
+        "object_type": {
+          "$ref": "#/$defs/ObjectType"
+        },
+        "samples": {
+          "items": {
+            "$ref": "#/$defs/MetricSample"
+          },
+          "title": "Samples",
+          "type": "array"
+        }
+      },
+      "required": [
+        "object_type",
+        "object_id"
+      ],
+      "title": "ObjectMetricFact",
+      "type": "object"
+    },
+    "ObjectType": {
+      "enum": [
+        "CAMPAIGN",
+        "AD_GROUP",
+        "TARGET",
+        "SEARCH_TERM",
+        "PLACEMENT",
+        "ADVERTISED_PRODUCT",
+        "STRUCTURE"
+      ],
+      "title": "ObjectType",
+      "type": "string"
+    },
+    "ReconciliationStatus": {
+      "enum": [
+        "NOT_CONFIGURED",
+        "PASS",
+        "WARNING",
+        "BLOCKED"
+      ],
+      "title": "ReconciliationStatus",
+      "type": "string"
+    },
+    "ReportSource": {
+      "additionalProperties": false,
+      "properties": {
+        "file_name": {
+          "title": "File Name",
+          "type": "string"
+        },
+        "imported_at": {
+          "format": "date-time",
+          "title": "Imported At",
+          "type": "string"
+        },
+        "period_end": {
+          "format": "date",
+          "title": "Period End",
+          "type": "string"
+        },
+        "period_start": {
+          "format": "date",
+          "title": "Period Start",
+          "type": "string"
+        },
+        "report_type": {
+          "$ref": "#/$defs/ReportType"
+        },
+        "row_count": {
+          "minimum": 0,
+          "title": "Row Count",
+          "type": "integer"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "worksheet": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Worksheet"
+        }
+      },
+      "required": [
+        "report_type",
+        "file_name",
+        "sha256",
+        "imported_at",
+        "period_start",
+        "period_end",
+        "row_count"
+      ],
+      "title": "ReportSource",
+      "type": "object"
+    },
+    "ReportType": {
+      "enum": [
+        "SEARCH_TERM_DAILY",
+        "SEARCH_TERM_SUMMARY",
+        "TARGETING",
+        "PLACEMENT",
+        "ADVERTISED_PRODUCT",
+        "CAMPAIGN_SETTINGS",
+        "PLACEMENT_DAILY",
+        "KEYWORD_DAILY",
+        "HOURLY_SPEND",
+        "BUSINESS_TARGET"
+      ],
+      "title": "ReportType",
+      "type": "string"
+    },
+    "SearchTermFact": {
+      "additionalProperties": false,
+      "properties": {
+        "ad_group_id": {
+          "title": "Ad Group Id",
+          "type": "string"
+        },
+        "campaign_id": {
+          "title": "Campaign Id",
+          "type": "string"
+        },
+        "search_term": {
+          "title": "Search Term",
+          "type": "string"
+        },
+        "search_term_key": {
+          "title": "Search Term Key",
+          "type": "string"
+        },
+        "target_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Id"
+        }
+      },
+      "required": [
+        "search_term_key",
+        "campaign_id",
+        "ad_group_id",
+        "search_term"
+      ],
+      "title": "SearchTermFact",
+      "type": "object"
+    },
+    "SettingChangePoint": {
+      "additionalProperties": false,
+      "properties": {
+        "changed_fields": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Changed Fields",
+          "type": "array"
+        },
+        "effective_at": {
+          "format": "date-time",
+          "title": "Effective At",
+          "type": "string"
+        },
+        "object_id": {
+          "title": "Object Id",
+          "type": "string"
+        },
+        "object_type": {
+          "$ref": "#/$defs/ObjectType"
+        },
+        "setting_change_point_id": {
+          "title": "Setting Change Point Id",
+          "type": "string"
+        },
+        "source_ref": {
+          "title": "Source Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "setting_change_point_id",
+        "object_type",
+        "object_id",
+        "effective_at",
+        "changed_fields",
+        "source_ref"
+      ],
+      "title": "SettingChangePoint",
+      "type": "object"
+    },
+    "SnapshotMetadata": {
+      "additionalProperties": false,
+      "properties": {
+        "attribution_window_days": {
+          "minimum": 0,
+          "title": "Attribution Window Days",
+          "type": "integer"
+        },
+        "currency": {
+          "pattern": "^[A-Z]{3}$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "data_mode": {
+          "$ref": "#/$defs/DataMode"
+        },
+        "data_snapshot_id": {
+          "title": "Data Snapshot Id",
+          "type": "string"
+        },
+        "generated_at": {
+          "format": "date-time",
+          "title": "Generated At",
+          "type": "string"
+        },
+        "marketplace": {
+          "title": "Marketplace",
+          "type": "string"
+        },
+        "period_end": {
+          "format": "date",
+          "title": "Period End",
+          "type": "string"
+        },
+        "period_start": {
+          "format": "date",
+          "title": "Period Start",
+          "type": "string"
+        },
+        "reconciliation_status": {
+          "$ref": "#/$defs/ReconciliationStatus"
+        },
+        "schema_version": {
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "timezone": {
+          "title": "Timezone",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "data_snapshot_id",
+        "generated_at",
+        "period_start",
+        "period_end",
+        "marketplace",
+        "timezone",
+        "currency",
+        "attribution_window_days",
+        "data_mode",
+        "reconciliation_status"
+      ],
+      "title": "SnapshotMetadata",
+      "type": "object"
+    },
+    "TargetFact": {
+      "additionalProperties": false,
+      "properties": {
+        "ad_group_id": {
+          "title": "Ad Group Id",
+          "type": "string"
+        },
+        "bid": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Bid"
+        },
+        "campaign_id": {
+          "title": "Campaign Id",
+          "type": "string"
+        },
+        "match_type": {
+          "title": "Match Type",
+          "type": "string"
+        },
+        "status": {
+          "title": "Status",
+          "type": "string"
+        },
+        "target_id": {
+          "title": "Target Id",
+          "type": "string"
+        },
+        "target_text": {
+          "title": "Target Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "target_id",
+        "campaign_id",
+        "ad_group_id",
+        "target_text",
+        "match_type",
+        "bid",
+        "status"
+      ],
+      "title": "TargetFact",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "ad_groups": {
+      "items": {
+        "$ref": "#/$defs/AdGroupFact"
+      },
+      "title": "Ad Groups",
+      "type": "array"
+    },
+    "campaigns": {
+      "items": {
+        "$ref": "#/$defs/CampaignFact"
+      },
+      "title": "Campaigns",
+      "type": "array"
+    },
+    "imported_issues": {
+      "items": {
+        "$ref": "#/$defs/ImportedDataIssue"
+      },
+      "title": "Imported Issues",
+      "type": "array"
+    },
+    "metadata": {
+      "$ref": "#/$defs/SnapshotMetadata"
+    },
+    "metrics": {
+      "items": {
+        "$ref": "#/$defs/ObjectMetricFact"
+      },
+      "title": "Metrics",
+      "type": "array"
+    },
+    "report_sources": {
+      "items": {
+        "$ref": "#/$defs/ReportSource"
+      },
+      "title": "Report Sources",
+      "type": "array"
+    },
+    "search_terms": {
+      "items": {
+        "$ref": "#/$defs/SearchTermFact"
+      },
+      "title": "Search Terms",
+      "type": "array"
+    },
+    "setting_change_points": {
+      "items": {
+        "$ref": "#/$defs/SettingChangePoint"
+      },
+      "title": "Setting Change Points",
+      "type": "array"
+    },
+    "targets": {
+      "items": {
+        "$ref": "#/$defs/TargetFact"
+      },
+      "title": "Targets",
+      "type": "array"
+    }
+  },
+  "required": [
+    "metadata"
+  ],
+  "title": "AdDecisionPacket",
+  "type": "object"
+}

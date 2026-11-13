@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+.DS_Store
+._*
+imports/
+outputs/
+config/connectors.yaml
+config/connectors.local.yaml
+integrations/runtime/
+runtime/operator-jobs/
+runtime/operator-uploads/

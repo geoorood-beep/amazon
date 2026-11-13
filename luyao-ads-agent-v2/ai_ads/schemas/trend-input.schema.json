@@ -1,0 +1,32 @@
+{
+  "$defs": {
+    "MetricDirection": {
+      "enum": [
+        "IMPROVING",
+        "WORSENING",
+        "STABLE",
+        "UNKNOWN"
+      ],
+      "title": "MetricDirection",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "auxiliary_directions": {
+      "items": {
+        "$ref": "#/$defs/MetricDirection"
+      },
+      "title": "Auxiliary Directions",
+      "type": "array"
+    },
+    "primary_direction": {
+      "$ref": "#/$defs/MetricDirection"
+    }
+  },
+  "required": [
+    "primary_direction"
+  ],
+  "title": "TrendInput",
+  "type": "object"
+}

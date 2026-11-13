@@ -1,0 +1,47 @@
+# 陆遥广告智能体版本
+
+当前运行时：`V2.1`
+
+当前业务规则集：`V2.0`
+
+冻结状态：`V2.1_RUNTIME / V2.0_RULESET_FROZEN`
+
+V2.1 发布日期：`2026-08-04`
+
+当前冻结清单：`releases/v2.1/MANIFEST.sha256`
+
+V2.0 规则基线：`releases/v2.0/MANIFEST.sha256`
+
+GitHub：`https://github.com/geoorood-beep/luyao-ads-agent-v2`（private）
+
+架构形态：`V2.1-RUNTIME / V2.0-8L-RULESET` 人工可维护版
+
+项目拆分日期：`2026-08-03`
+
+V2.0 生效日期：`2026-08-03`
+
+允许类目：
+
+- Rug / 地毯（`rug`）
+
+固定范围：
+
+- V2.0 继承 V1.4 的数据质量门、低样本权限、唯一整体状态、趋势门、动作仲裁、可回滚字段和独立 Validator。
+- 保留 Rug 属性硬冲突、尺寸类型自动识别、阶段主投门槛、强匹配低预算例外和高流量核心隔离规则。
+- 固定 Rug ABA、Rug 历史词、Rug 已确认阈值原件和 Rug 新品辅助模块。
+- 已接入 V2.0 的八层架构、来源校验、固定数据适配、两张标准输出表、七段式命名和一致性 Validator；不改变人工执行边界。
+- 禁止调用宠物喂水器、办公椅及其他项目数据。
+- 当前人工正文已拆分为 `architecture/`、`rules/`、`thresholds/`、`contracts/`、`knowledge/`；旧全文冻结于 `history/v1.4-pre-8layer/`。
+- `agents/*.md` 保持旧路径兼容，不再是规则或阈值真源。
+- V2.0 已合并压力测试发现的 P0/P1/P2 修复；当前发布必须通过新品/ai_ads、运营后台、前端渲染、来源防伪、广告报表聚合、阈值校准、标准压力脚本和冻结清单校验。
+- 第 05 层已预留 `integrations/` 外部接入网关，包含 MCP、HTTP API、外部服务器和统一入库位置；全部固定为 `PLACEHOLDER_NOT_ACTIVE`。
+- 第 05 层已启用本地六表聚合工具，生成 `ad_decision_packet.json/xlsx`、跨表对账和数据质量结果；它不属于外部连接器，也不启用 Amazon 后台执行。
+- V2.1 已固定可信网页执行链：Python 证据包、八层 AGENTS 来源 SHA、Codex 运行回执、独立 Validator 重建校验、通过后渲染页面与工作簿。
+
+未完成事项：
+
+- 圆形 Rug 阈值仍待配置。
+- V2.0 仍为人工执行版本；`ai_ads/` 保持 `TEST_ONLY`。
+- 机器执行的唯一规则源和 Amazon 后台自动执行未启用。
+- Rug O<2 点击/花费停止线缺可执行 Threshold ID，机器强收缩动作保持阻断。
+- MCP/API/外部服务器目前只有目录、合同和禁用配置模板，尚未连接真实 Endpoint。

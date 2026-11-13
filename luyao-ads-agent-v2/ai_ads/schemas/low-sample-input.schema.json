@@ -1,0 +1,45 @@
+{
+  "$defs": {
+    "DataQualityStatus": {
+      "enum": [
+        "DQ_PASS",
+        "DQ_WARNING",
+        "DQ_BLOCKED"
+      ],
+      "title": "DataQualityStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "attribution_mature": {
+      "title": "Attribution Mature",
+      "type": "boolean"
+    },
+    "category_stop_line_hit": {
+      "title": "Category Stop Line Hit",
+      "type": "boolean"
+    },
+    "data_quality": {
+      "$ref": "#/$defs/DataQualityStatus"
+    },
+    "orders": {
+      "minimum": 0,
+      "title": "Orders",
+      "type": "integer"
+    },
+    "target_mapping_complete": {
+      "title": "Target Mapping Complete",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "orders",
+    "attribution_mature",
+    "category_stop_line_hit",
+    "target_mapping_complete",
+    "data_quality"
+  ],
+  "title": "LowSampleInput",
+  "type": "object"
+}

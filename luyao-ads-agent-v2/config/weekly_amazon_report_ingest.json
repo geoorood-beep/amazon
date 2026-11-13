@@ -1,0 +1,44 @@
+{
+  "imap": {
+    "host_env": "AMAZON_REPORT_IMAP_HOST",
+    "port": 993,
+    "username_env": "AMAZON_REPORT_MAIL_USER",
+    "password_env": "AMAZON_REPORT_MAIL_APP_PASSWORD",
+    "mailbox": "INBOX"
+  },
+  "search": {
+    "lookback_days": 10,
+    "from_contains": [
+      "amazon",
+      "advertising.amazon",
+      "sellercentral.amazon"
+    ],
+    "subject_contains": [
+      "report",
+      "reports",
+      "广告",
+      "报表",
+      "sponsored",
+      "campaign"
+    ],
+    "unseen_only": false
+  },
+  "output": {
+    "save_root": "imports/amazon_ads_weekly",
+    "write_latest_pointer": true
+  },
+  "attachments": {
+    "allowed_extensions": [
+      ".xlsx",
+      ".xls",
+      ".csv",
+      ".tsv",
+      ".zip"
+    ],
+    "extract_zip": true
+  },
+  "analysis": {
+    "default_product_stage": "老品推广",
+    "output_root": "outputs/weekly_amazon_ads"
+  }
+}
