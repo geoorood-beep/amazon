@@ -1,0 +1,32 @@
+# macOS / editor noise
+.DS_Store
+._*
+*.swp
+*.tmp
+*.log
+.~*
+
+# Python / Node caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+node_modules/
+node_modules
+**/node_modules
+
+# Generated outputs and local backups
+outputs/
+imports/
+.agents-backup/
+
+# Temporary SOP extraction artifacts
+comments_extract.json
+sop_extract/
+
+# Root-level source/output documents kept locally, not part of the AGENTS repo
+/新品推广模块SOP_批注修订版.docx
+/老品推广表格_已按批注修改.xlsx
+
+# Local packaged handoff artifacts
+*.zip
+*.tar.gz

@@ -1,0 +1,156 @@
+version: "2026-06-25-v1"
+site: "US"
+category: "Rugs"
+effective_date: "2026-06-25"
+owner: "运营负责人姓名"
+
+rug_type_baselines:
+  area_rug:
+    ctr_baseline: null          # CTR 不分类型，全局统一，见 global_ctr_baseline
+    cvr_baseline: null          # 待运营配置
+    cpa_normal_line: null       # 正常线 CPA，待运营配置
+    cpa_high_risk_line: null    # 高风险线 CPA，待运营配置
+    acos_target: null           # 待运营配置
+    min_click_sample: null      # 待运营配置
+    min_order_sample: null      # 待运营配置
+  runner:
+    ctr_baseline: null          # CTR 不分类型，全局统一，见 global_ctr_baseline
+    cvr_baseline: null          # 待运营配置
+    cpa_normal_line: null       # 待运营配置
+    cpa_high_risk_line: null    # 待运营配置
+    acos_target: null           # 待运营配置
+    min_click_sample: null      # 待运营配置
+    min_order_sample: null      # 待运营配置
+  doormat:
+    ctr_baseline: null          # CTR 不分类型，全局统一，见 global_ctr_baseline
+    cvr_baseline: null          # 待运营配置
+    cpa_normal_line: null       # 待运营配置
+    cpa_high_risk_line: null    # 待运营配置
+    acos_target: null           # 待运营配置
+    min_click_sample: null      # 待运营配置
+    min_order_sample: null      # 待运营配置
+  round:
+    ctr_baseline: null          # CTR 不分类型，全局统一，见 global_ctr_baseline
+    cvr_baseline: null          # 待运营配置
+    cpa_normal_line: null       # 待运营配置
+    cpa_high_risk_line: null    # 待运营配置
+    acos_target: null           # 待运营配置
+    min_click_sample: null      # 待运营配置
+    min_order_sample: null      # 待运营配置
+
+global_ctr_baseline: null       # 待运营配置，CTR 基准不分地毯类型
+
+order_stage_aba_table:
+  - stage: "0-15单/日"
+    min_daily_orders: 0
+    max_daily_orders: 15
+    area_rug_aba_range: [60000, 500000]
+    runner_aba_range: [50000, 800000]
+    doormat_aba_range: null     # 待运营配置
+    round_aba_range: null       # 待运营配置
+    keyword_types: ["长尾词", "尺寸词", "场景词", "属性组合词"]
+    min_match_score: 90
+    max_keyword_count: 5
+  - stage: "15-30单/日"
+    min_daily_orders: 15
+    max_daily_orders: 30
+    area_rug_aba_range: [30000, 180000]
+    runner_aba_range: [20000, 200000]
+    doormat_aba_range: null     # 待运营配置
+    round_aba_range: null       # 待运营配置
+    keyword_types: ["中等流量词", "成熟入口词"]
+    min_match_score: 80
+    max_keyword_count: 8
+  - stage: "30-50单/日"
+    min_daily_orders: 30
+    max_daily_orders: 50
+    area_rug_aba_range: [8000, 100000]
+    runner_aba_range: [10000, 120000]
+    doormat_aba_range: null     # 待运营配置
+    round_aba_range: null       # 待运营配置
+    keyword_types: ["排名投资词", "中高流量词"]
+    min_match_score: 75
+    max_keyword_count: 15
+  - stage: "50单+/日"
+    min_daily_orders: 50
+    max_daily_orders: 100
+    area_rug_aba_range: [2000, 60000]
+    runner_aba_range: [2000, 80000]
+    doormat_aba_range: null     # 待运营配置
+    round_aba_range: null       # 待运营配置
+    keyword_types: ["核心词", "防守词", "规模化词"]
+    min_match_score: 70
+    max_keyword_count: 20
+  - stage: "100单+/日"
+    min_daily_orders: 100
+    max_daily_orders: null
+    area_rug_aba_range: [500, 30000]
+    runner_aba_range: [500, 50000]
+    doormat_aba_range: null     # 待运营配置
+    round_aba_range: null       # 待运营配置
+    keyword_types: ["头部词", "类目大词", "竞品词"]
+    min_match_score: 65
+    min_match_score_upper: 70
+    max_keyword_count: 30
+
+candidate_pool_thresholds:
+  min_independent_order_dates: 3
+  min_click_sample: null        # 待运营按地毯类型配置
+  min_order_sample: null        # 待运营按地毯类型配置
+
+scoring_weights:
+  transaction_data: 0.60
+  region_match: 0.15
+  spec_match: 0.15
+  style_match: 0.05
+  color_match: 0.05
+  cvr_score_multiplier: 2
+
+attribute_scoring:
+  region:
+    partial_match_score: null   # 待运营配置
+    hard_conflict_terms: []
+    known_terms: ["living room", "bedroom", "hallway", "entryway", "kitchen"]
+  spec:
+    partial_match_score: null   # 待运营配置
+    hard_conflict_terms: []
+    known_terms: []
+  style:
+    partial_match_score: null   # 待运营配置
+    hard_conflict_terms: []
+    known_terms: ["vintage", "modern", "boho", "traditional", "farmhouse"]
+  color:
+    partial_match_score: null   # 待运营配置
+    neutral_score: null         # 待运营配置
+    hard_conflict_terms: []
+    known_terms: ["blue", "red", "green", "black", "white", "gray", "grey", "pink", "brown"]
+  keyword_score_overrides: {}
+
+budget_formula:
+  product_coefficient_by_stage:
+    new_test: 0.8
+    scaling: 1.2
+    default: 1.0
+
+strategy_rules:
+  phrase_priority_aba_rank: 50000
+  category_big_word_terms: ["rug", "rugs", "area rug", "area rugs", "runner rug", "runner rugs", "washable rugs"]
+
+bid_defaults:
+  词组: null                    # 待运营配置
+  广泛: null                    # 待运营配置
+  自动: null                    # 待运营配置
+  商品投放: null                # 待运营配置
+  default: null                 # 待运营配置
+
+placement_defaults:
+  词组: null                    # 待运营配置
+  广泛: null                    # 待运营配置
+  自动: null                    # 待运营配置
+  商品投放: null                # 待运营配置
+  default: null                 # 待运营配置
+
+risk_constraints:
+  inventory_redline: null       # 待定
+  profit_redline: null          # 待定
+  max_test_spend: null          # 待运营配置
