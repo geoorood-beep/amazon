@@ -1,0 +1,4 @@
+interface:
+  display_name: "amz预测2.0"
+  short_description: "基于父体总需求与子体份额预测SKU补货和库存风险决策"
+  default_prompt: "Use $amz预测2.0 to forecast Amazon parent and SKU sales and produce replenishment and risk recommendations."
