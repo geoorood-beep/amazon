@@ -37,7 +37,7 @@ def render_report(res: EngineResult, rep: LoadedReports, profile: dict, maturity
     L.append(f"- ASIN / SKU：{asin}；型号：{engine.model}；SPU：{profile.get('spu') or 'SPU待补'}")
     L.append(f"- 整体（{('投放对象报告' if 'targeting' in rep.files else '搜索词报告')}口径）：{t.brief()}")
     L.append(f"- 竞价口径：{engine.target_cpa_src} ${engine.target_cpa:g}；单次调整上限 {engine.cap:.0%}"
-             f"{'' if engine.cap_confirmed else '（用户未确认，按默认 20%，竞价动作全部需二次确认）'}")
+             f"（{engine.cap_src}）")
     L.append(f"- 可执行动作 {len(exe)} 条；成熟度或缺数据拦截 {len(blocked)} 条；观察/保持 {len(watch)} 条")
     L.append(f"- 数据置信度：{conf}\n")
 
@@ -83,7 +83,7 @@ def render_report(res: EngineResult, rep: LoadedReports, profile: dict, maturity
         f"高风险 ${engine.th['cpa']['high_risk']}，点击<2单高风险 {engine.th['clicks_no_order']['high_risk']} 次，花费<2单高风险 ${engine.th['spend_no_order']['high_risk']}；"
         f"搜索词点击≥15 且 0 单默认 Negative Exact。本次生成否定 {neg} 条、降竞价 {down} 条、提竞价 {up} 条。"
         f"先否定和降价（止损）再考虑放量，订单不足 2 单的对象一律只观察，不用短期 ACOS 直接暂停。"
-        f"【人工输入/预算目标】{engine.target_cpa_src}；竞价上限 {engine.cap:.0%}{'' if engine.cap_confirmed else '（待用户确认）'}；"
+        f"【人工输入/预算目标】{engine.target_cpa_src}；竞价上限 {engine.cap:.0%}（{engine.cap_src}）；"
         f"成熟度 {maturity} 只解锁：{', '.join(sorted(engine.unlocked)) or '无'}。"
         f"【缺失数据】{('缺 ' + '、'.join(REPORT_NAMES[k] for k in missing)) if missing else '必须报表齐全'}；广告商品层诊断、小时花费、跨 SPV/SB/SBV 拓量本版引擎未实现，需分析方人工补充。\n"
     )

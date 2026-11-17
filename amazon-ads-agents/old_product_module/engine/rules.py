@@ -132,17 +132,36 @@ class FountainEngine:
         self.profile = profile
         self.maturity = maturity
         self.unlocked = set(cfg["maturity_unlocks"].get(maturity, []))
-        self.cap = profile.get("bid_cap_pct")
-        self.cap_confirmed = self.cap is not None
-        if self.cap is None:
-            self.cap = 0.20
+        # 竞价调整上限：填数字=人工固定；不填或 "auto"=按历史数据自动（用户 2026-11-17 决定）
+        cap = profile.get("bid_cap_pct")
+        if isinstance(cap, (int, float)):
+            self.cap, self.cap_src = float(cap), "人工设定"
+        else:
+            self.cap, self.cap_src = float(cfg.get("auto_bid_cap_default", 0.20)), "自动：默认值，待 change-history 满 30 条 14 天效果后按实际效果校准"
+        self.cap_confirmed = True  # 自动模式是用户确认的策略，不再逐条二次确认
         self.floor = float(profile.get("bid_floor") or 0.20)
-        self.target_cpa = profile.get("target_cpa")
-        self.target_cpa_src = "用户目标CPA"
-        if not self.target_cpa:
-            self.target_cpa = self.th["cpa"]["normal_high"]
-            self.target_cpa_src = f"品类CPA正常线上限（{model}，未提供用户目标CPA）"
-        self.protected = [norm_text(t) for t in profile.get("protected_terms", []) if str(t).strip()]
+        # 目标 CPA：填数字=人工固定；不填或 "auto"=运行时按链接历史 CPA 推导（见 _resolve_target）
+        tc = profile.get("target_cpa")
+        self.target_cpa = float(tc) if isinstance(tc, (int, float)) and tc > 0 else None
+        self.target_cpa_src = "人工目标CPA" if self.target_cpa else ""
+        terms = list(cfg.get("brand_terms", [])) + list(profile.get("brand_terms", [])) + list(profile.get("protected_terms", []))
+        self.protected = [norm_text(t) for t in terms if str(t).strip()]
+
+    def _resolve_target(self, totals: "Metrics") -> None:
+        """自动目标 CPA = 链接自身历史 CPA，限定在品类优质线 ~ 正常线上限之间：
+        表现好于优质线时不逼着继续压价，差于正常线上限时按品类标准往回拉。"""
+        if self.target_cpa:
+            return
+        th = self.th["cpa"]
+        min_orders = int(self.cfg.get("auto_target_min_orders", 10))
+        if totals.orders >= min_orders and totals.cpa:
+            t = min(max(totals.cpa, th["good"]), th["normal_high"])
+            self.target_cpa = round(t, 2)
+            self.target_cpa_src = (f"自动：链接历史CPA ${totals.cpa:.2f}（{totals.orders:g}单），"
+                                   f"限定在{self.model}品类优质线${th['good']}~正常线上限${th['normal_high']}")
+        else:
+            self.target_cpa = th["normal_high"]
+            self.target_cpa_src = f"自动：历史订单 {totals.orders:g} < {min_orders} 单，暂用{self.model}品类CPA正常线上限"
 
     # 统一出口：成熟度门控 + 二次确认
     def _emit(self, res: EngineResult, a: Action) -> None:
@@ -183,6 +202,7 @@ class FountainEngine:
                 "budget": settings.budgets.get(camp),
             })
 
+        self._resolve_target(res.totals)
         self._search_terms(res, st_rows, settings)
         self._targets(res, rep.perf.get("targeting", []), settings)
         self._placements(res, rep.perf.get("placement", []), camp_m, settings)
@@ -206,7 +226,7 @@ class FountainEngine:
             if m.clicks < min_clicks and m.spend < spend_hr:
                 continue
             if any(p and p in term for p in self.protected):
-                self._emit(res, Action("搜索词", camp, ag, term, "", "观察", "", "", "命中保护词（品牌/战略/防守），按规则先降竞价或单独观察，不直接否定", m.brief()))
+                self._emit(res, Action("搜索词", camp, ag, term, "", "观察", "", "", "【用户固定规则】命中自有品牌词/保护词（meandu、pokpet 等），品牌防守词不否定，只观察或单独控竞价", m.brief()))
                 continue
             if term in targets_in_group[(camp, ag)]:
                 continue  # 精准投放词本身，交给投放对象层降竞价

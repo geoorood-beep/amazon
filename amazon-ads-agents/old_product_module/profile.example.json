@@ -5,10 +5,11 @@
   "site": "US",
   "operator": "lulu",
   "asins": ["B0XXXXXXXX"],
-  "target_cpa": null,
+  "target_cpa": "auto",
   "target_acos": null,
-  "bid_cap_pct": null,
+  "bid_cap_pct": "auto",
   "bid_floor": 0.2,
   "total_daily_budget": null,
+  "brand_terms": ["meandu", "pokpet"],
   "protected_terms": []
 }

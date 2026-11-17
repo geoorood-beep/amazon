@@ -3,6 +3,9 @@
   "category_cn": "喂水器",
   "source": "agents/category data thresholds.md 喂水器 10L / 5L 不锈钢",
   "min_orders_for_judgement": 2,
+  "brand_terms": ["meandu", "pokpet"],
+  "auto_target_min_orders": 10,
+  "auto_bid_cap_default": 0.20,
   "models": {
     "10L": {
       "cvr":   {"good": 0.085, "normal_low": 0.065, "high_risk": 0.05},

@@ -23,15 +23,26 @@ macOS / Linux 用 `python3` 代替 `py`。
 
 | 模块 | 规则 | 来源 |
 |---|---|---|
-| 搜索词否定 | 同一广告组内搜索词点击 ≥15 且 0 单，或花费达到花费<2单高风险线 → `Negative Exact`；ASIN 搜索词 → 否定商品；命中 `protected_terms` 只观察；精准投放词本身不否定 | search-term-reinvestment.md 否词 |
+| 搜索词否定 | 同一广告组内搜索词点击 ≥15 且 0 单，或花费达到花费<2单高风险线 → `Negative Exact`；ASIN 搜索词 → 否定商品；含自有品牌词（配置里固定 `meandu`、`pokpet`，档案可追加 `brand_terms` / `protected_terms`）只观察；精准投放词本身不否定 | search-term-reinvestment.md 否词 |
 | 投放对象竞价 | 近 14 天订单 <2 且达到点击<2单/花费<2单线：高风险降满幅，警戒降半幅；订单 ≥2 按 CPA 分级：警戒/高风险下调，优质且 ≥3 单且近 3 天未转差才上调 | old-product-promotion.md Bid 诊断 + 品类阈值 |
-| 竞价公式 | `建议竞价 = 目标 CPA × 近14天 CVR`，单次调整不超过 `bid_cap_pct`（默认 20%），最低 `bid_floor`；无用户目标 CPA 时用品类 CPA 正常线上限 | 待用户确认 |
+| 竞价公式 | `建议竞价 = 目标 CPA × 近14天 CVR`，单次调整不超过上限，最低 `bid_floor` | 用户确认 2026-11-17 |
+| 目标 CPA（自动） | `target_cpa` 不填或 `"auto"`：取链接自身历史 CPA，限定在品类优质线 ~ 正常线上限之间（10L：$20~$25；5L：$24~$30）；历史不足 10 单时用正常线上限。填数字则人工固定 | 用户决定按历史数据调控 |
+| 调整上限（自动） | `bid_cap_pct` 不填或 `"auto"`：当前默认 20%，不逐条二次确认；L4 起按 `change-history.csv` 校准（见下） | 用户决定按历史数据调控 |
 | 广告位 | 活动整体 CPA 优质/正常时不分析；整体不达标时，花费占比 ≥30% 且 CPA 警戒/高风险的位置溢价减半/降到 0；优质且占比 <20% 的位置 +10pp | old-product-promotion.md 广告位诊断 |
 | 预算 | 日均花费 ≥ 预算 90% 且 CPA 优质/正常 → +20%（需二次确认） | old-product-promotion.md 整体效果 |
 | 出单词拓量 | 点击 ≥20、订单 ≥2、CPA ≤ 链接平均且未单独投放 → 新建词组组；点击 >20 且订单 ≥4 → 精准；竞价不超过实际 CPC×(1+上限)；预算 = CPA 正常线上限 | search-term-reinvestment.md + 统一命名 |
 | 成熟度门控 | L2 只解锁否定、降竞价、降溢价、暂停；L3 起解锁提竞价、提溢价、加预算、加关键词 | ops/pet_water_fountain/README.md |
 
 缺当前竞价、预算或溢价的动作不进入指令单，只在报告里列为“被拦截”。
+
+## 调整上限校准（L4 起，分析方执行）
+
+`change-history.csv` 有 ≥30 条改竞价记录回填了 14 天效果后，按下面的口径校准 `auto_bid_cap_default`（在 `config/pet_water_fountain.json`）：
+
+- 降竞价后 14 天订单下降超过 50% 的占比 > 30%：降得太猛，上限下调到 15%，再不行到 10%。
+- 降竞价后 14 天 CPA 没有改善（未下降）的占比 > 50%：降得不够，上限上调到 25%。
+- 提竞价后 14 天 CPA 进入警戒线的占比 > 30%：提价太猛，提价单独用更低上限。
+- 校准结果和依据写进 `ops/pet_water_fountain/handoff.md`，改配置时提交说明写 `config(pet_water_fountain): 校准竞价上限`。
 
 ## 未实现（需分析方人工补充）
 

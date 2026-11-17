@@ -46,7 +46,8 @@ def build_reports(d: Path) -> None:
             st.append([date, camp, ag, target, mt, term, c * 10, round(c, 3), round(s, 3), o, sa])
     add_st(CAMP_A, "自动组", "close-match", "-", "pet water dispenser plastic", 20, 18, 0, 0)       # 否词
     add_st(CAMP_A, "自动组", "close-match", "-", "b0abcdefgh", 16, 14, 0, 0)                         # 否 ASIN
-    add_st(CAMP_A, "自动组", "close-match", "-", "mybrand fountain", 30, 25, 0, 0)                   # 保护词
+    add_st(CAMP_A, "自动组", "close-match", "-", "meandu fountain", 30, 25, 0, 0)                    # 自有品牌词
+    add_st(CAMP_A, "自动组", "close-match", "-", "pokpet water fountain", 18, 15, 0, 0)               # 自有品牌词
     add_st(CAMP_A, "自动组", "close-match", "-", "stainless steel cat fountain", 40, 30, 4, 160)     # 拓量
     add_st(CAMP_A, "自动组", "close-match", "-", "fountain small", 5, 4, 0, 0)                       # 样本不足
     write_csv(d / "SP搜索词-按词-每日明细_20261102_20261115.csv",
@@ -90,7 +91,7 @@ def build_reports(d: Path) -> None:
 def run(maturity, profile_extra=None):
     tmp = Path(tempfile.mkdtemp())
     build_reports(tmp)
-    profile = {"model": "10L", "spu": "WF10", "protected_terms": ["mybrand"]}
+    profile = {"model": "10L", "spu": "WF10", "brand_terms": ["meandu", "pokpet"]}
     profile.update(profile_extra or {})
     rep = load_reports(tmp)
     res = FountainEngine(CFG, profile, maturity).run(rep)
@@ -118,19 +119,20 @@ class EngineTest(unittest.TestCase):
 
     def test_protected_term_not_negated(self):
         _, res = run("L2")
-        self.assertIsNone(find(res, "加否定-精准", "mybrand fountain"))
-        self.assertIsNotNone(find(res, "观察", "mybrand fountain"))
+        for term in ("meandu fountain", "pokpet water fountain"):
+            self.assertIsNone(find(res, "加否定-精准", term))
+            self.assertIsNotNone(find(res, "观察", term))
 
     def test_no_order_high_risk_bid_down_full_cap(self):
         _, res = run("L2")
         a = find(res, "降竞价", "cat water fountain")
         self.assertEqual((a.current, a.new), ("$1.00", "$0.80"))
-        self.assertTrue(a.needs_confirm)  # 上限未经用户确认
+        self.assertFalse(a.needs_confirm)  # 自动上限是用户确认的策略，不逐条二次确认
 
     def test_warning_cpa_bid_formula(self):
         _, res = run("L2", {"bid_cap_pct": 0.2})
         a = find(res, "降竞价", "dog water fountain")
-        # 公式 25 * (2/30) = 1.67 >= 当前 1.50 -> 半幅下调 10% -> 1.35
+        # 自动目标 CPA 23.23 × (2/30) = 1.55 >= 当前 1.50 -> 半幅下调 10% -> 1.35
         self.assertEqual(a.new, "$1.35")
         self.assertFalse(a.needs_confirm)
 
@@ -162,6 +164,30 @@ class EngineTest(unittest.TestCase):
         a = find(res3, "加关键词", "stainless steel cat fountain")
         self.assertTrue(a.executable and a.needs_confirm)
         self.assertEqual(a.campaign, "WF10-SP-stainless steel cat fountain-精准-喂水器-10L-lulu")  # 点击>20 且订单>=4 -> 精准
+
+    def test_brand_terms_protected_even_if_profile_omits(self):
+        _, res = run("L2", {"brand_terms": []})
+        self.assertIsNone(find(res, "加否定-精准", "pokpet water fountain"))
+
+    def test_auto_target_cpa_from_history(self):
+        # 投放对象合计：花费 302、订单 13 -> 历史 CPA 23.23，落在 10L 优质线 20 ~ 正常线上限 25 之间
+        _, res = run("L2", {"target_cpa": "auto", "bid_cap_pct": "auto"})
+        self.assertIn("链接历史CPA $23.23", res.actions[0].reason + " ".join(a.reason for a in res.actions))
+
+    def test_auto_target_clamped_and_fallback(self):
+        from engine.rules import Metrics
+        eng = FountainEngine(CFG, {"model": "10L"}, "L2")
+        eng._resolve_target(Metrics(clicks=500, spend=600, orders=15))   # 历史 CPA 40 -> 拉回正常线上限 25
+        self.assertEqual(eng.target_cpa, 25)
+        eng = FountainEngine(CFG, {"model": "10L"}, "L2")
+        eng._resolve_target(Metrics(clicks=500, spend=150, orders=15))   # 历史 CPA 10 -> 不低于优质线 20
+        self.assertEqual(eng.target_cpa, 20)
+        eng = FountainEngine(CFG, {"model": "5L"}, "L2")
+        eng._resolve_target(Metrics(clicks=50, spend=60, orders=3))      # 不足 10 单 -> 5L 正常线上限 30
+        self.assertEqual(eng.target_cpa, 30)
+        eng = FountainEngine(CFG, {"model": "10L", "target_cpa": 18}, "L2")
+        eng._resolve_target(Metrics(clicks=500, spend=600, orders=15))   # 人工设定优先
+        self.assertEqual(eng.target_cpa, 18)
 
     def test_L0_has_no_executable(self):
         _, res = run("L0")
