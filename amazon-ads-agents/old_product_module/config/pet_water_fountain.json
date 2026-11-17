@@ -4,6 +4,10 @@
   "source": "agents/category data thresholds.md 喂水器 10L / 5L 不锈钢",
   "min_orders_for_judgement": 2,
   "brand_terms": ["meandu", "pokpet"],
+  "competitor_brand_terms": ["selene", "doggy spout", "fresh flow"],
+  "placement_manual_review": true,
+  "new_group_budget_cpa_multiple": 1,
+  "kb_test_budget_cpa_multiple": [3, 5],
   "auto_target_min_orders": 10,
   "auto_bid_cap_default": 0.20,
   "models": {

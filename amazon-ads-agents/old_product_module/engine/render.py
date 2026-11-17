@@ -85,6 +85,9 @@ def render_report(res: EngineResult, rep: LoadedReports, profile: dict, maturity
         f"先否定和降价（止损）再考虑放量，订单不足 2 单的对象一律只观察，不用短期 ACOS 直接暂停。"
         f"【人工输入/预算目标】{engine.target_cpa_src}；竞价上限 {engine.cap:.0%}（{engine.cap_src}）；"
         f"成熟度 {maturity} 只解锁：{', '.join(sorted(engine.unlocked)) or '无'}。"
+        f"【知识库-口径】按 pet-supplies-amazon-ads 口径（agents/knowledge-base.md）：投放词零转化先对比精准/词组/广泛出单分布再决定停或降（docs/09）；"
+        f"竞品品牌词（{', '.join(engine.competitors) or '无'}）不自动否定、不自动加词（docs/07）；广告位动作只做人工复核（第十四章第17、18条待补充）。"
+        f"【知识库-总纲】同词竞价保持 精准>词组>广泛>自动（docs/05），会造成倒挂的提价已拦截。"
         f"【缺失数据】{('缺 ' + '、'.join(REPORT_NAMES[k] for k in missing)) if missing else '必须报表齐全'}；广告商品层诊断、小时花费、跨 SPV/SB/SBV 拓量本版引擎未实现，需分析方人工补充。\n"
     )
 

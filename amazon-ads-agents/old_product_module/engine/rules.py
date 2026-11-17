@@ -146,6 +146,9 @@ class FountainEngine:
         self.target_cpa_src = "人工目标CPA" if self.target_cpa else ""
         terms = list(cfg.get("brand_terms", [])) + list(profile.get("brand_terms", [])) + list(profile.get("protected_terms", []))
         self.protected = [norm_text(t) for t in terms if str(t).strip()]
+        # 竞品品牌词：知识库 docs/07 —— 可投放但默认不进手动词表，不自动否定、不自动加词
+        comp = list(cfg.get("competitor_brand_terms", [])) + list(profile.get("competitor_brand_terms", []))
+        self.competitors = [norm_text(t) for t in comp if str(t).strip()]
 
     def _resolve_target(self, totals: "Metrics") -> None:
         """自动目标 CPA = 链接自身历史 CPA，限定在品类优质线 ~ 正常线上限之间：
@@ -167,6 +170,9 @@ class FountainEngine:
     def _emit(self, res: EngineResult, a: Action) -> None:
         if a.action in ("观察", "保持"):
             a.executable = False
+        elif a.layer == "广告位" and self.cfg.get("placement_manual_review", True):
+            a.executable = False
+            a.blocked_by = "【知识库-口径】广告位好坏指标和调价最低数据量待补充（总纲第十四章第17、18条），只做人工复核"
         elif a.action not in self.unlocked:
             a.executable = False
             a.blocked_by = f"成熟度 {self.maturity} 未解锁该动作"
@@ -204,11 +210,47 @@ class FountainEngine:
 
         self._resolve_target(res.totals)
         self._search_terms(res, st_rows, settings)
-        self._targets(res, rep.perf.get("targeting", []), settings)
+        self._targets(res, rep.perf.get("targeting", []), settings, st_rows)
         self._placements(res, rep.perf.get("placement", []), camp_m, settings)
         self._budgets(res, camp_m, settings, dates)
         self._harvest(res, st_rows, settings, res.totals)
+        self._check_bid_ladder(res, settings)
         return res
+
+    # ---- 竞价层级检查：知识库 docs/05 精准 > 词组 > 广泛 > 自动 ----
+    RANK = {"精准": 3, "词组": 2, "广泛": 1}
+
+    def _check_bid_ladder(self, res: EngineResult, settings: Settings) -> None:
+        def money(s: str) -> float | None:
+            try:
+                return float(s.replace("$", "")) if s.startswith("$") else None
+            except ValueError:
+                return None
+
+        # 同一关键词文本，各匹配方式的最终竞价（有调整动作时取新值）
+        final: dict[str, dict[str, float]] = defaultdict(dict)
+        for (camp, ag, text, mt), bid in settings.bids.items():
+            if mt in self.RANK:
+                final[text][mt] = max(final[text].get(mt, 0), bid)
+        changes = [a for a in res.actions if a.action in ("提竞价", "降竞价") and a.match_type in self.RANK]
+        for a in changes:
+            v = money(a.new)
+            if v is not None and a.executable:
+                final[norm_text(a.target)][a.match_type] = v
+        for a in changes:
+            if a.action != "提竞价" or not a.executable:
+                continue
+            v = money(a.new)
+            for mt, b in final[norm_text(a.target)].items():
+                if self.RANK[mt] > self.RANK[a.match_type] and v is not None and v > b:
+                    a.executable = False
+                    a.blocked_by = f"【知识库-总纲】docs/05 竞价层级：提价后 ${v:.2f} 会高于同词{mt}竞价 ${b:.2f}"
+                    break
+        for text, bids in final.items():
+            order = sorted(bids.items(), key=lambda x: -self.RANK[x[0]])
+            for (hi_mt, hi_b), (lo_mt, lo_b) in zip(order, order[1:]):
+                if lo_b > hi_b:
+                    res.notes.append(f"【知识库-总纲】竞价层级倒挂：「{text}」{lo_mt} ${lo_b:.2f} 高于 {hi_mt} ${hi_b:.2f}，建议人工复核（docs/05 精准>词组>广泛>自动）")
 
     # ---- 1. 搜索词否定 ----
     def _search_terms(self, res: EngineResult, rows: list[PerfRow], settings: Settings) -> None:
@@ -224,6 +266,9 @@ class FountainEngine:
             if not term or m.orders > 0:
                 continue
             if m.clicks < min_clicks and m.spend < spend_hr:
+                continue
+            if any(c and c in term for c in self.competitors):
+                self._emit(res, Action("搜索词", camp, ag, term, "", "观察", "", "", "【知识库-口径】docs/07 竞品品牌词可作为广告投放选项，不自动否定，由负责人决定是否单独开活动或手动否定", m.brief()))
                 continue
             if any(p and p in term for p in self.protected):
                 self._emit(res, Action("搜索词", camp, ag, term, "", "观察", "", "", "【用户固定规则】命中自有品牌词/保护词（meandu、pokpet 等），品牌防守词不否定，只观察或单独控竞价", m.brief()))
@@ -257,10 +302,16 @@ class FountainEngine:
             new = min(formula, hi) if formula is not None and formula > bid else bid
         return round(max(new, self.floor), 2)
 
-    def _targets(self, res: EngineResult, rows: list[PerfRow], settings: Settings) -> None:
+    def _targets(self, res: EngineResult, rows: list[PerfRow], settings: Settings, st_rows: list[PerfRow] | None = None) -> None:
         groups: dict[tuple, list[PerfRow]] = defaultdict(list)
         for r in rows:
             groups[(r.campaign, r.ad_group, r.targeting, r.match_type)].append(r)
+        # 同一关键词文本在各匹配方式的近 14 天表现（全账户），用于知识库 docs/09 §3 零转化判断
+        by_text_mt: dict[str, dict[str, Metrics]] = defaultdict(lambda: defaultdict(Metrics))
+        for r in self._window(rows, 14):
+            if r.match_type in self.RANK:
+                by_text_mt[norm_text(r.targeting)][r.match_type].add(r)
+        st_window = self._window(st_rows or [], 14)
         for (camp, ag, target, mt), rs in groups.items():
             m14, m7, m3 = Metrics(), Metrics(), Metrics()
             for r in self._window(rs, 14):
@@ -274,12 +325,31 @@ class FountainEngine:
             cur = f"${bid:.2f}" if bid else "待补"
             base = Action("投放对象", camp, ag, target, mt, "", cur, "", "", m14.brief())
             nol = no_order_level(m14, self.th)
+            if nol and mt in self.RANK:
+                # 知识库 docs/09 §3：零转化不一刀切，先看同词在其他匹配方式是否出单
+                text = norm_text(target)
+                others = {m2: mm for m2, mm in by_text_mt[text].items() if m2 != mt and mm.orders >= self.cfg["min_orders_for_judgement"]}
+                if others:
+                    where = "、".join(f"{m2} {mm.orders:g}单（CPA ${mm.cpa:.2f}）" for m2, mm in others.items())
+                    base.action, base.current, base.new = "暂停", ("启用" if bid else "待补"), "暂停"
+                    base.reason = (f"【当前报表】近14天本{mt}匹配 {m14.brief()}，同词在 {where}；"
+                                   f"【知识库-口径】docs/09 §3：出单不在本匹配方式 → 停本匹配，把预算转到出单的匹配方式")
+                    self._emit(res, base)
+                    continue
+                words = text.split()
+                root_orders = sum(r.orders for r in st_window if words and all(w in r.search_term.split() for w in words))
+                if root_orders > 0:
+                    nol_note = f"；【知识库-口径】docs/09 §3：词根在搜索词中仍有 {root_orders:g} 单，只降价观察，不停"
+                else:
+                    nol_note = ""
+            else:
+                nol_note = ""
             if nol:
                 factor = 1 - self.cap if nol == "高风险" else 1 - self.cap / 2
                 base.action = "降竞价"
                 base.new = f"${max(round(bid * factor, 2), self.floor):.2f}" if bid else "待补"
                 base.reason = (f"【当前报表】近14天 {m14.brief()}；【品类阈值】{self.model} 点击<2单/花费<2单 达到{nol}线 → 降竞价"
-                               f"{'（上限 ' + format(self.cap, '.0%') + '）' if nol == '高风险' else '（半幅）'}；未直接暂停，先降价再观察")
+                               f"{'（上限 ' + format(self.cap, '.0%') + '）' if nol == '高风险' else '（半幅）'}；未直接暂停，先降价再观察{nol_note}")
                 self._emit(res, base)
                 continue
             if m14.orders < self.cfg["min_orders_for_judgement"]:
@@ -378,11 +448,19 @@ class FountainEngine:
         avg_cpa = totals.cpa
         spu = self.profile.get("spu") or "SPU待补"
         op = self.profile.get("operator") or "lulu"
-        budget = self.th["cpa"]["normal_high"]
+        mult = float(self.cfg.get("new_group_budget_cpa_multiple", 1))
+        budget = round(self.th["cpa"]["normal_high"] * mult, 2)
+        kb_lo, kb_hi = self.cfg.get("kb_test_budget_cpa_multiple", [3, 5])
+        kb_note = (f"；【知识库-口径】测试期参考每活动 {kb_lo}–{kb_hi} 个目标 CPA ≈ "
+                   f"${self.target_cpa * kb_lo:.0f}–${self.target_cpa * kb_hi:.0f}/日，审批时可选")
         for term, m in sorted(agg.items(), key=lambda x: -x[1].orders):
             if m.clicks < hc["min_clicks"] or m.orders < hc["min_orders"] or term in targeted:
                 continue
             if avg_cpa is not None and m.cpa is not None and m.cpa > avg_cpa:
+                continue
+            if any(c and c in term for c in self.competitors):
+                self._emit(res, Action("新增", "", "", term, "", "观察", "", "",
+                                       "【知识库-口径】docs/07 竞品品牌词出单：默认不进手动词表，可作为单独活动的投放选项，由负责人决定", m.brief()))
                 continue
             exact = m.clicks >= hc["exact_min_clicks"] and m.orders >= hc["exact_min_orders"]
             mt = "精准" if exact else "词组"
@@ -394,5 +472,6 @@ class FountainEngine:
             self._emit(res, Action("新增", name, name, term, mt, "加关键词", "未投放", f"Bid ${bid:.2f}，日预算 ${budget:g}",
                                    f"【当前报表】搜索词累计 {m.brief()}，CPA ≤ 链接平均 CPA "
                                    f"{'$' + format(avg_cpa, '.2f') if avg_cpa is not None else '（无）'}，且未单独投放；"
-                                   f"来源 {', '.join(sorted(src[term]))}；预算=品类 CPA 正常线上限（{self.model}）",
+                                   f"来源 {', '.join(sorted(src[term]))}；预算=品类 CPA 正常线上限（{self.model}）×{mult:g}{kb_note}；"
+                                   f"【知识库-总纲】属于放量方式 {'S3 精准' if exact else 'S2 长尾/词组承接'}",
                                    m.brief()))

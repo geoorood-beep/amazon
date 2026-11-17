@@ -32,6 +32,7 @@ V1.1 固定内容：广告组统一命名、CPA 正常线上限预算、Rug 输�
 6. 品类阈值标准，包括喂水器和地毯：读 `agents/category data thresholds.md`
 7. 输出表格、老广告优化、新广告设置：读 `agents/promo-output-templates.md`
 8. Grok 云端电脑取数、补数、照执行指令单在领星操作：读 `agents/grok-operator.md`
+9. 宠物用品广告知识库（口径、总纲框架、准词表、西柚周扫描）的接入、优先级和冲突裁决：读 `agents/knowledge-base.md`。**宠物喂水器的任何诊断、选词、架构或方案任务都必须同时读它。**
 
 如果任务同时涉及多个模块，按上面顺序合并判断。新品推广和老品推广先判断数据阶段，再选择对应 AGENT。搜索词再投放规则是老品推广 SOP 的子模块，不是总入口。只用 ABA 判断类目流量结构或打法时，先读 `agents/category-traffic-strategy.md`；如果要进一步判断某个具体产品如何投放，再进入新品推广或搜索词模块。
 

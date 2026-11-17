@@ -20,6 +20,7 @@ END = dt.date(2026, 11, 15)
 CAMP_A = "WF10-SP-自动-喂水器-10L-lulu"
 CAMP_B = "WF10-SP-cat water fountain-精准-喂水器-10L-lulu"
 CAMP_C = "WF10-SP-water fountain for cats-广泛-喂水器-10L-lulu"
+CAMP_D = "WF10-SP-dog water fountain-词组-喂水器-10L-lulu"
 
 
 def write_csv(path: Path, header: list[str], rows: list[list]) -> None:
@@ -50,6 +51,7 @@ def build_reports(d: Path) -> None:
     add_st(CAMP_A, "自动组", "close-match", "-", "pokpet water fountain", 18, 15, 0, 0)               # 自有品牌词
     add_st(CAMP_A, "自动组", "close-match", "-", "stainless steel cat fountain", 40, 30, 4, 160)     # 拓量
     add_st(CAMP_A, "自动组", "close-match", "-", "fountain small", 5, 4, 0, 0)                       # 样本不足
+    add_st(CAMP_A, "自动组", "close-match", "-", "selene dog water fountain", 20, 18, 0, 0)          # 竞品品牌词
     write_csv(d / "SP搜索词-按词-每日明细_20261102_20261115.csv",
               ["日期", "广告活动", "广告组", "投放", "匹配类型", "用户搜索词", "曝光量", "点击", "花费", "广告订单", "广告销售额"], st)
 
@@ -63,6 +65,8 @@ def build_reports(d: Path) -> None:
     add_tg(CAMP_B, "精准组", "pet fountain stainless", "EXACT", 50, 45, 5, 200)    # CPA 9 优质 -> 提价
     add_tg(CAMP_A, "自动组", "close-match", "-", 111, 91, 4, 160)
     add_tg(CAMP_C, "广泛组", "water fountain for cats", "BROAD", 80, 80, 2, 80)  # 活动 C 整体 CPA 40 高风险
+    add_tg(CAMP_D, "词组组", "dog water fountain", "PHRASE", 31, 25, 0, 0)        # 词组零转化，同词精准出单 -> 暂停词组
+    add_tg(CAMP_D, "广泛组", "pet fountain stainless", "BROAD", 40, 20, 4, 160)   # 广泛优质要提价，但会高于同词精准 -> 拦截
     write_csv(d / "SP投放对象报告_20261102_20261115.csv",
               ["Date", "Campaign Name", "Ad Group Name", "Targeting", "Match Type", "Impressions", "Clicks", "Spend",
                "7 Day Total Orders (#)", "7 Day Total Sales "], tg)
@@ -85,7 +89,10 @@ def build_reports(d: Path) -> None:
                [CAMP_A, "", "", "", "", 6, "", ""],
                [CAMP_A, "自动组", "close-match", "自动", 0.90, "", "", ""],
                [CAMP_C, "", "", "", "", 30, 40, 0],
-               [CAMP_C, "广泛组", "water fountain for cats", "广泛", 1.00, "", "", ""]])
+               [CAMP_C, "广泛组", "water fountain for cats", "广泛", 1.00, "", "", ""],
+               [CAMP_D, "", "", "", "", 15, "", ""],
+               [CAMP_D, "词组组", "dog water fountain", "词组", 1.20, "", "", ""],
+               [CAMP_D, "广泛组", "pet fountain stainless", "广泛", 0.85, "", "", ""]])
 
 
 def run(maturity, profile_extra=None):
@@ -130,9 +137,9 @@ class EngineTest(unittest.TestCase):
         self.assertFalse(a.needs_confirm)  # 自动上限是用户确认的策略，不逐条二次确认
 
     def test_warning_cpa_bid_formula(self):
-        _, res = run("L2", {"bid_cap_pct": 0.2})
+        _, res = run("L2", {"bid_cap_pct": 0.2, "target_cpa": 25})
         a = find(res, "降竞价", "dog water fountain")
-        # 自动目标 CPA 23.23 × (2/30) = 1.55 >= 当前 1.50 -> 半幅下调 10% -> 1.35
+        # 目标 CPA 25 × (2/30) = 1.67 >= 当前 1.50 -> 半幅下调 10% -> 1.35
         self.assertEqual(a.new, "$1.35")
         self.assertFalse(a.needs_confirm)
 
@@ -151,6 +158,34 @@ class EngineTest(unittest.TestCase):
         pls = [a for a in res.actions if a.layer == "广告位"]
         self.assertEqual([(a.campaign, a.target, a.current, a.new) for a in pls], [(CAMP_C, "TOS", "40%", "0%")])
         self.assertTrue(any(CAMP_B in n and "不进入广告位优化" in n for n in res.notes))
+        # 知识库：广告位门槛待补充，只做人工复核，不进指令单
+        self.assertFalse(pls[0].executable)
+        self.assertIn("第十四章", pls[0].blocked_by)
+
+    def test_competitor_brand_term_not_negated(self):
+        _, res = run("L2")
+        self.assertIsNone(find(res, "加否定-精准", "selene dog water fountain"))
+        self.assertIn("docs/07", find(res, "观察", "selene dog water fountain").reason)
+
+    def test_zero_conversion_phrase_paused_when_exact_converts(self):
+        _, res = run("L2")
+        a = [x for x in res.actions if x.campaign == CAMP_D and x.target == "dog water fountain"][0]
+        self.assertEqual((a.action, a.current, a.new), ("暂停", "启用", "暂停"))
+        self.assertTrue(a.executable and a.needs_confirm)
+        self.assertIn("docs/09", a.reason)
+
+    def test_bid_ladder_blocks_broad_above_exact(self):
+        _, res = run("L3", {"bid_cap_pct": 0.2})
+        broad = [x for x in res.actions if x.campaign == CAMP_D and x.target == "pet fountain stainless"][0]
+        self.assertEqual(broad.action, "提竞价")
+        self.assertFalse(broad.executable)
+        self.assertIn("docs/05", broad.blocked_by)  # 广泛 $1.02 会高于精准 $0.96
+
+    def test_harvest_budget_shows_kb_test_range(self):
+        _, res = run("L3", {"target_cpa": 20})
+        a = find(res, "加关键词", "stainless steel cat fountain")
+        self.assertIn("日预算 $25", a.new)
+        self.assertIn("$60–$100/日", a.reason)
 
     def test_new_keyword_bid_capped_by_cpc(self):
         _, res = run("L3", {"bid_cap_pct": 0.2})
@@ -170,9 +205,9 @@ class EngineTest(unittest.TestCase):
         self.assertIsNone(find(res, "加否定-精准", "pokpet water fountain"))
 
     def test_auto_target_cpa_from_history(self):
-        # 投放对象合计：花费 302、订单 13 -> 历史 CPA 23.23，落在 10L 优质线 20 ~ 正常线上限 25 之间
+        # 投放对象合计：花费 347、订单 17 -> 历史 CPA 20.41，落在 10L 优质线 20 ~ 正常线上限 25 之间
         _, res = run("L2", {"target_cpa": "auto", "bid_cap_pct": "auto"})
-        self.assertIn("链接历史CPA $23.23", res.actions[0].reason + " ".join(a.reason for a in res.actions))
+        self.assertIn("链接历史CPA $20.41", " ".join(a.reason for a in res.actions))
 
     def test_auto_target_clamped_and_fallback(self):
         from engine.rules import Metrics
