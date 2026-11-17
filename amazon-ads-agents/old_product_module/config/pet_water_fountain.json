@@ -1,0 +1,33 @@
+{
+  "category": "pet_water_fountain",
+  "category_cn": "喂水器",
+  "source": "agents/category data thresholds.md 喂水器 10L / 5L 不锈钢",
+  "min_orders_for_judgement": 2,
+  "models": {
+    "10L": {
+      "cvr":   {"good": 0.085, "normal_low": 0.065, "high_risk": 0.05},
+      "acos":  {"good": 0.30, "normal_high": 0.40, "high_risk": 0.55},
+      "cpa":   {"good": 20, "normal_high": 25, "high_risk": 32},
+      "clicks_no_order": {"warn": 15, "high_risk": 25},
+      "spend_no_order":  {"warn": 25, "high_risk": 30}
+    },
+    "5L": {
+      "cvr":   {"good": 0.09, "normal_low": 0.07, "high_risk": 0.055},
+      "acos":  {"good": 0.45, "normal_high": 0.55, "high_risk": 0.68},
+      "cpa":   {"good": 24, "normal_high": 30, "high_risk": 38},
+      "clicks_no_order": {"warn": 15, "high_risk": 25},
+      "spend_no_order":  {"warn": 28, "high_risk": 30}
+    }
+  },
+  "search_term_negative": {"min_clicks_no_order": 15},
+  "harvest": {"min_clicks": 20, "min_orders": 2, "exact_min_clicks": 21, "exact_min_orders": 4},
+  "placement": {"min_clicks": 15, "bad_share": 0.30, "good_share": 0.20, "raise_step_pct": 10},
+  "budget": {"limited_ratio": 0.90, "raise_pct": 0.20},
+  "maturity_unlocks": {
+    "L0": [],
+    "L1": [],
+    "L2": ["加否定-精准", "加否定-商品", "降竞价", "降广告位溢价", "暂停"],
+    "L3": ["加否定-精准", "加否定-商品", "降竞价", "降广告位溢价", "暂停", "提竞价", "提广告位溢价", "加预算", "加关键词"],
+    "L4": ["加否定-精准", "加否定-商品", "降竞价", "降广告位溢价", "暂停", "提竞价", "提广告位溢价", "加预算", "加关键词"]
+  }
+}

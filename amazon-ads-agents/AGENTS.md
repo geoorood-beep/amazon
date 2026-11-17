@@ -37,7 +37,7 @@ Grok 每周把领星报表、产品档案、缺失项、执行日志累积到 `o
 
 - 宠物喂水器：`ops/pet_water_fountain/`
 
-分析方处理某类目老品方案时，先读 `ops/<类目>/README.md` 的 `当前成熟度` 和最新一条 `handoff.md`，只输出当前成熟度允许的动作；方案报告和执行指令单草稿放进 `ops/<类目>/weekly/<周>/plan/`，执行指令单格式按 `ops/<类目>/templates/execution-order-template.md`。`ops/` 下的数据是当前链接真实报表，可作为老品诊断数据源；`reference/category-history/` 仍只做选词参考。
+分析方处理某类目老品方案时，先读 `ops/<类目>/README.md` 的 `当前成熟度` 和最新一条 `handoff.md`，只输出当前成熟度允许的动作。喂水器先运行 `old_product_module/cli.py` 生成方案草稿（否词、竞价、广告位、预算、加词的数字以引擎结果为准，不得自行改数），分析方再复核搜索词相关性、补充引擎未覆盖的广告商品层和跨广告产品判断；方案报告和执行指令单草稿放进 `ops/<类目>/weekly/<周>/plan/`，执行指令单格式按 `ops/<类目>/templates/execution-order-template.md`。`ops/` 下的数据是当前链接真实报表，可作为老品诊断数据源；`reference/category-history/` 仍只做选词参考。
 
 ## 默认数据源
 

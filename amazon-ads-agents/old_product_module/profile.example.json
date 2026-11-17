@@ -1,0 +1,14 @@
+{
+  "category": "pet_water_fountain",
+  "model": "10L",
+  "spu": "SPU待补",
+  "site": "US",
+  "operator": "lulu",
+  "asins": ["B0XXXXXXXX"],
+  "target_cpa": null,
+  "target_acos": null,
+  "bid_cap_pct": null,
+  "bid_floor": 0.2,
+  "total_daily_budget": null,
+  "protected_terms": []
+}
