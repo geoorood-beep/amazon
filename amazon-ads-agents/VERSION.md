@@ -13,8 +13,8 @@
 - **三层架构**：通用规则 `agents/` ＋ 通用知识 `knowledge/ads-framework/` ＋ 品类层 `categories/<品类>/`。换品类只加品类目录，不改通用层。
 - **品类注册表** `categories/README.md`：状态分已开通 / 知识中 / 待建；`_template/` 复制即开通新品类。喂水器 `pet_water_fountain` 已开通；喂食器 `pet_feeder`、智能猫厕所 `smart_litter_box` 占位。
 - 喂水器迁到品类目录：品类卡 `category.md`、阈值 `thresholds.md`（从 `agents/category data thresholds.md` 拆出，唯一权威来源）、引擎配置 `engine.json`、运营数据仓 `ops/`。
-- **课程知识分解**：总纲 V2.0、两份 Soju 导图和负责人口径改写为通用方法论——【标准】49 条、【建议】14 条、【待补】30 条，每条写明触发、动作、出处章节、引擎落地状态。课程原文不进本公开仓库。
-- **宠物用品知识库并入**：负责人口径原件进 `knowledge/ads-framework/decisions/`；狗猫准词表、投放词池、历史出单词、初版架构、首推词表、西柚周扫描进 `categories/pet_water_fountain/knowledge/`。私有原仓库 `geoorood-beep/pet-supplies-amazon-ads` 归档（保留课程原文）。
+- **课程知识分解**：总纲 V2.0、两份 Soju 导图和负责人口径改写为通用方法论——【标准】49 条、【建议】14 条、【待补】30 条，每条写明触发、动作、出处章节、引擎落地状态。课程原文不复制进本仓库，仍可在原仓库（公开、已归档）查阅。
+- **宠物用品知识库并入**：负责人口径原件进 `knowledge/ads-framework/decisions/`；狗猫准词表、投放词池、历史出单词、初版架构、首推词表、西柚周扫描进 `categories/pet_water_fountain/knowledge/`。原仓库 `geoorood-beep/pet-supplies-amazon-ads` 归档并保持公开（用户确认 2026-11-17，保留课程原文）。
 - 引擎按 `--category` 读取 `categories/<品类>/engine.json`；未开通品类或无阈值时明确报错。
 - `GROK.md` 增加“定品类”一步，复述检查改为 6 项；Grok 不再需要登录私有仓库。
 

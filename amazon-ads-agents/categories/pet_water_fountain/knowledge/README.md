@@ -1,6 +1,6 @@
 # 宠物喂水器 品类知识
 
-2026-11-17 从私有知识库 `geoorood-beep/pet-supplies-amazon-ads` 迁入（狗、猫喂水器，美国站）。只做选词、架构和相关性参考，不作为否词、降价、暂停、加预算的依据（优先级见 `agents/knowledge-base.md`）。
+2026-11-17 从原知识库 `geoorood-beep/pet-supplies-amazon-ads`（公开，已归档） 迁入（狗、猫喂水器，美国站）。只做选词、架构和相关性参考，不作为否词、降价、暂停、加预算的依据（优先级见 `agents/knowledge-base.md`）。
 
 | 文件 / 目录 | 内容 | 原位置 |
 |---|---|---|

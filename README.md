@@ -19,7 +19,7 @@
 
 | 仓库 | 说明 |
 |---|---|
-| [geoorood-beep/pet-supplies-amazon-ads](https://github.com/geoorood-beep/pet-supplies-amazon-ads)（私有，**已归档 2026-11-17**） | 宠物用品广告知识库，**已并入** `amazon-ads-agents/`：口径与方法论在 `knowledge/ads-framework/`（课程知识已改写为标准 / 建议 / 待补规则），狗猫喂水器词表与西柚周扫描在 `categories/pet_water_fountain/knowledge/`。原仓库只保留课程原文 `source/` 备查 |
+| [geoorood-beep/pet-supplies-amazon-ads](https://github.com/geoorood-beep/pet-supplies-amazon-ads)（公开，**已归档 2026-11-17**，用户确认保持公开） | 宠物用品广告知识库，**已并入** `amazon-ads-agents/`：口径与方法论在 `knowledge/ads-framework/`（课程知识已改写为标准 / 建议 / 待补规则），狗猫喂水器词表与西柚周扫描在 `categories/pet_water_fountain/knowledge/`。原仓库只保留课程原文 `source/` 备查 |
 
 ## 广告智能体入口
 
