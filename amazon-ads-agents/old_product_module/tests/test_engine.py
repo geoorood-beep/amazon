@@ -289,5 +289,25 @@ class EngineTest(unittest.TestCase):
         self.assertEqual(read_table(tmp), [{"广告活动": "A", "点击": 12, "花费": 3.5}])
 
 
+class VersionConsistencyTest(unittest.TestCase):
+    """GROK.md / VERSION.md / AGENTS.md / README.md 版本号必须一致，VERSION.md 当前版本必须写“Grok 须知”。"""
+
+    def test_version_consistency(self):
+        import re
+        root = HERE.parent
+        version_md = (root / "VERSION.md").read_text(encoding="utf-8")
+        current = re.search(r"当前版本：`(V\d+\.\d+)`", version_md).group(1)
+        grok = (root / "GROK.md").read_text(encoding="utf-8")
+        self.assertIn(f"（UTA-amazon-ads {current}）", grok.splitlines()[0])
+        self.assertIn(f"本文件版本：**{current}**", grok)
+        self.assertIn(f"版本：{current}（读自 VERSION.md", grok)
+        for name in ("AGENTS.md", "README.md"):
+            text = (root / name).read_text(encoding="utf-8")
+            self.assertEqual(text.splitlines()[0], f"# UTA-amazon-ads {current}", name)
+            self.assertIn(f"当前版本：`{current}`", text, name)
+        section = version_md.split(f"## {current} 新增范围", 1)[1].split("\n## ", 1)[0]
+        self.assertIn("### Grok 须知", section)
+
+
 if __name__ == "__main__":
     unittest.main()

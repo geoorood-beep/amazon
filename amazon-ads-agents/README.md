@@ -1,8 +1,10 @@
-# UTA-amazon-ads V1.3
+# UTA-amazon-ads V1.4
 
 `UTA-amazon-ads` 是本仓库的亚马逊广告智能体系统，用于管理 AGENTS 规则、固定参考数据、类目历史选词数据、运营数据仓和新品 / 老品推广模块。系统名称统一为 `UTA-amazon-ads`；`lulu` 只是广告组命名里的运营名。
 
-当前版本：`V1.3`（版本说明见 `VERSION.md`）
+当前版本：`V1.4`（版本说明见 `VERSION.md`）
+
+V1.4 重点升级：Grok 自动读取 `main` 最新规则（`GROK.md` 第 0 步版本核对与更新提示），自定义指令设置一次即可；各版本写“Grok 须知”；版本号一致性测试。
 
 V1.3 重点升级：多品类架构 `categories/`（喂水器已开通，喂食器、智能猫厕所占位）；课程知识分解为通用方法论 `knowledge/ads-framework/`（标准 49 条、建议 14 条、待补 30 条）；宠物用品知识库并入；引擎按 `--category` 读取品类配置。
 

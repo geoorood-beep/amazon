@@ -4,11 +4,29 @@
 
 `lulu` 只是广告组命名中的**运营名**（`SPU-广告产品-定向维度-匹配方式-场景分类-尺寸-运营名`），不是系统名称。
 
-当前版本：`V1.3`
+当前版本：`V1.4`
 
 版本日期：`2026-11-17`
 
+## V1.4 新增范围
+
+### Grok 须知
+
+- 每次任务都从 `raw.githubusercontent.com/.../main/` 重新读最新文件，不用记忆里的旧规则；`GROK.md` 和 `VERSION.md` 版本不一致时加 `?v=时间` 重读。
+- 版本和上次不同时，先读本节“Grok 须知”并告诉用户变化，再开始任务。
+- 复述 6 项里的版本一行，写明读自 `VERSION.md`、本次是否有更新。
+
+### 内容
+
+- **自动跟随最新版**：`GROK.md` 新增第 0 步（读最新版、版本核对、更新提示）；Grok 自定义指令改为指向 `main` 分支原始文件，**以后规则更新不用再改自定义指令**。
+- 每个版本在本文件写“Grok 须知”，Grok 遇到新版本先读这里。
+- 维护规则：改动影响 Grok 时版本号加一，`GROK.md` / `VERSION.md` / `AGENTS.md` / `README.md` 版本号必须一致，由引擎测试 `test_version_consistency` 检查。
+
 ## V1.3 新增范围
+
+### Grok 须知
+
+- 先定品类（`categories/README.md`），复述检查改为 6 项。
 
 - **三层架构**：通用规则 `agents/` ＋ 通用知识 `knowledge/ads-framework/` ＋ 品类层 `categories/<品类>/`。换品类只加品类目录，不改通用层。
 - **品类注册表** `categories/README.md`：状态分已开通 / 知识中 / 待建；`_template/` 复制即开通新品类。喂水器 `pet_water_fountain` 已开通；喂食器 `pet_feeder`、智能猫厕所 `smart_litter_box` 占位。
