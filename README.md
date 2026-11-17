@@ -8,7 +8,7 @@
 
 | 子目录 | 原仓库 | 状态 | 用途 |
 |---|---|---|---|
-| `amazon-ads-agents` | [geoorood-beep/amazon-ads-agents](https://github.com/geoorood-beep/amazon-ads-agents) | **原仓库已归档（2026-11-17）**，以本目录为准，继续在这里开发 | UTA-amazon-ads 广告智能体（V1.4）：Grok 入口 `GROK.md`、通用规则、通用广告方法论、多品类目录（喂水器已开通）、老品规则引擎 |
+| `amazon-ads-agents` | [geoorood-beep/amazon-ads-agents](https://github.com/geoorood-beep/amazon-ads-agents) | **原仓库已归档（2026-11-17）**，以本目录为准，继续在这里开发 | UTA-amazon-ads 广告智能体（V1.5）：Grok 入口 `GROK.md`、通用规则、通用广告方法论、多品类目录（喂水器已开通）、老品规则引擎 |
 | `luyao-ads-agent-v2` | [geoorood-beep/luyao-ads-agent-v2](https://github.com/geoorood-beep/luyao-ads-agent-v2) | **原仓库已归档（2026-11-17）**，以本目录为准 | 陆遥广告智能体：地毯类目专用的 Amazon 广告 AGENTS 项目（运行时 V2.1） |
 | `Listing` | [geoorood-beep/Listing](https://github.com/geoorood-beep/Listing) | 原仓库保留 | Amazon、Walmart 与 Wayfair 的 Listing AGENTS 规则，用于按平台、类目、关键词库和风险库生成合规 Listing |
 | `amz-sales-forecast` | [geoorood-beep/amz-sales-forecast](https://github.com/geoorood-beep/amz-sales-forecast) | 原仓库保留 | 亚马逊销量预测智能体说明（由本地「amz预测2.0」转换而来） |

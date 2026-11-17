@@ -16,16 +16,17 @@ _NS = {"m": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
 _REL_NS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
 
 
-def read_table(path: Path) -> list[dict[str, object]]:
+def read_table(path: Path, header_hints: tuple[str, ...] = ()) -> list[dict[str, object]]:
+    """header_hints：表头行必须包含其中某个关键词（忽略大小写和空格），用于前面有元数据行的报表（如 SQP）。"""
     suffix = path.suffix.lower()
     if suffix in (".csv", ".tsv", ".txt"):
-        return _read_delimited(path, "\t" if suffix == ".tsv" else None)
+        return _rows_to_dicts(_read_delimited(path, "\t" if suffix == ".tsv" else None), header_hints)
     if suffix in (".xlsx", ".xlsm"):
-        return _rows_to_dicts(_read_xlsx_rows(path))
+        return _rows_to_dicts(_read_xlsx_rows(path), header_hints)
     raise ValueError(f"不支持的文件类型：{path.name}（只支持 .xlsx / .csv / .tsv）")
 
 
-def _read_delimited(path: Path, delimiter: str | None) -> list[dict[str, object]]:
+def _read_delimited(path: Path, delimiter: str | None) -> list[list[str]]:
     raw = path.read_bytes()
     for enc in ("utf-8-sig", "gb18030"):
         try:
@@ -38,17 +39,21 @@ def _read_delimited(path: Path, delimiter: str | None) -> list[dict[str, object]
     if delimiter is None:
         first = text.splitlines()[0] if text else ""
         delimiter = "\t" if first.count("\t") > first.count(",") else ","
-    rows = list(csv.reader(io.StringIO(text), delimiter=delimiter))
-    return _rows_to_dicts(rows)
+    return list(csv.reader(io.StringIO(text), delimiter=delimiter))
 
 
-def _rows_to_dicts(rows: list[list[object]]) -> list[dict[str, object]]:
-    # Skip leading blank / title rows: header = first row with >= 3 non-empty cells.
+def _rows_to_dicts(rows: list[list[object]], header_hints: tuple[str, ...] = ()) -> list[dict[str, object]]:
+    # Skip leading blank / title rows: header = first row with >= 3 non-empty cells
+    # (and, when header_hints is given, containing one of the hints).
     start = 0
+    hints = [h.lower().replace(" ", "") for h in header_hints]
     for i, row in enumerate(rows):
-        if sum(1 for c in row if str(c).strip()) >= 3:
-            start = i
-            break
+        if sum(1 for c in row if str(c).strip()) < 3:
+            continue
+        if hints and not any(any(h in str(c).lower().replace(" ", "") and len(str(c)) < 60 for h in hints) for c in row):
+            continue
+        start = i
+        break
     if not rows:
         return []
     header = [str(h).strip() for h in rows[start]]

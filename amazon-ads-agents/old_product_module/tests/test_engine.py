@@ -235,7 +235,7 @@ class EngineTest(unittest.TestCase):
         build_reports(raw)
         prof = tmp / "p.json"
         prof.write_text(json.dumps({"model": "10L", "spu": "WF10"}), encoding="utf-8")
-        self.assertEqual(main(["--reports", str(raw), "--profile", str(prof), "--maturity", "L2"]), 0)
+        self.assertEqual(main(["--reports", str(raw), "--profile", str(prof), "--maturity", "L2", "--no-benchmarks"]), 0)
         report = (tmp / "plan" / "方案报告.md").read_text(encoding="utf-8")
         order = (tmp / "plan" / "执行指令单草稿.md").read_text(encoding="utf-8")
         self.assertIn("判断依据与设计逻辑", report)
@@ -253,7 +253,7 @@ class EngineTest(unittest.TestCase):
         build_reports(raw)
         prof = tmp / "p.json"
         prof.write_text(json.dumps({"model": "10L"}), encoding="utf-8")
-        self.assertEqual(main(["--category", "pet_water_fountain", "--reports", str(raw), "--profile", str(prof), "--maturity", "L2"]), 0)
+        self.assertEqual(main(["--category", "pet_water_fountain", "--reports", str(raw), "--profile", str(prof), "--maturity", "L2", "--no-benchmarks"]), 0)
         # 待建品类没有 engine.json：明确报错，不借用其他品类阈值
         with self.assertRaises(SystemExit) as cm:
             main(["--category", "pet_feeder", "--reports", str(raw), "--profile", str(prof)])
@@ -287,6 +287,121 @@ class EngineTest(unittest.TestCase):
                        '<row r="2"><c r="A2" t="s"><v>3</v></c><c r="B2"><v>12</v></c><c r="C2"><v>3.5</v></c></row>'
                        '</sheetData></worksheet>')
         self.assertEqual(read_table(tmp), [{"广告活动": "A", "点击": 12, "花费": 3.5}])
+
+
+# ---------------- V1.5 行业基准 ----------------
+
+from engine import benchmarks as bmk  # noqa: E402
+
+SQP_HEADER = ["Search Query", "Search Query Score", "Search Query Volume", "Impressions: Total Count", "Impressions: Brand Count",
+              "Impressions: Brand Share %", "Clicks: Total Count", "Clicks: Click Rate %", "Clicks: Brand Count", "Clicks: Brand Share %",
+              "Clicks: Price (Median)", "Cart Adds: Total Count", "Purchases: Total Count", "Purchases: Purchase Rate %",
+              "Purchases: Brand Count", "Purchases: Brand Share %"]
+
+
+def sqp_row(term, vol, impr, clicks, bclicks, purchases, bpur):
+    return [term, 1, vol, impr, 0, "0%", clicks, "1%", bclicks, "1%", "$39.99", 0, purchases, "1%", bpur, "1%"]
+
+
+def write_sqp(path: Path, rows: list[list]) -> None:
+    with path.open("w", encoding="utf-8-sig", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(['Brand=["meandu"]', 'Reporting Range=["Weekly"]', 'Select week=["Week 46 | 2026"]'])  # SQP 元数据行
+        w.writerow(SQP_HEADER)
+        w.writerows(rows)
+
+
+def build_ops(root: Path, weeks=("2026-W42", "2026-W43", "2026-W44", "2026-W45", "2026-W46")) -> Path:
+    """5 周自有搜索词（10L 每词每周 30 点击 / $20 / 2 单 → CPA $10），最后一周带 SQP。"""
+    ops = root / "ops"
+    terms = ["cat water fountain", "dog water fountain", "stainless fountain", "pet water dispenser", "fountain 10l", "big dog fountain"]
+    for w in weeks:
+        raw = ops / "weekly" / w / "raw"
+        raw.mkdir(parents=True)
+        rows = [[CAMP_A, "自动组", "close-match", "-", t, 300, 30, 20, 2, 80] for t in terms]
+        rows.append(["WF05-SP-自动-喂水器-5L-lulu", "自动组", "close-match", "-", "cat water fountain", 300, 30, 90, 1, 40])  # 5L 不计入 10L
+        write_csv(raw / "SP搜索词-按词-汇总_20261001_20261030.csv",
+                  ["广告活动", "广告组", "投放", "匹配类型", "用户搜索词", "曝光量", "点击", "花费", "广告订单", "广告销售额"], rows)
+    write_sqp(ops / "weekly" / weeks[-1] / "raw" / "搜索查询表现_2026-W46.csv", [
+        sqp_row("cat water fountain", 50000, 100000, 5000, 200, 600, 10),   # 市场 CVR 12%，CTR 5%
+        sqp_row("dog water fountain", 30000, 60000, 3000, 100, 300, 5),
+        sqp_row("pet fountain stainless", 20000, 40000, 2000, 0, 200, 0),   # 未投放 → 起始竞价参考
+        sqp_row("meandu fountain", 9000, 9000, 900, 800, 90, 80),            # 自有品牌词，不进新词参考
+        sqp_row("selene fountain", 8000, 9000, 900, 0, 90, 0),               # 竞品品牌词，不进新词参考
+        sqp_row("tiny query", 10, 100, 10, 0, 1, 0),                         # 市场点击太少，不计入
+    ])
+    return ops
+
+
+class BenchmarkTest(unittest.TestCase):
+    def setUp(self):
+        self.root = Path(tempfile.mkdtemp())
+        self.ops = build_ops(self.root)
+        self.th = CFG["models"]["10L"]
+
+    def test_sqp_parse_skips_metadata_row(self):
+        rows, warns = bmk.read_sqp(self.ops / "weekly" / "2026-W46" / "raw" / "搜索查询表现_2026-W46.csv")
+        self.assertEqual(warns, [])
+        cat = next(r for r in rows if r["term"] == "cat water fountain")
+        self.assertEqual((cat["impr"], cat["clicks"], cat["purchases"], cat["brand_clicks"], cat["brand_purchases"]), (100000, 5000, 600, 200, 10))
+
+    def test_sqp_chinese_headers(self):
+        p = self.root / "搜索查询表现_cn.csv"
+        write_csv(p, ["搜索查询", "搜索查询量", "展示量：总数", "点击量：总数", "点击量：品牌数量", "点击量：品牌份额 %", "购买量：总数", "购买量：品牌数量"],
+                  [["cat water fountain", 100, 1000, 100, 10, "10%", 12, 1]])
+        rows, warns = bmk.read_sqp(p)
+        self.assertEqual(warns, [])
+        self.assertEqual((rows[0]["clicks"], rows[0]["purchases"], rows[0]["brand_clicks"]), (100, 12, 10))
+
+    def test_build_market_and_own_history(self):
+        bm = bmk.build("pet_water_fountain", self.ops, "10L", CFG["benchmark"], brand_terms=CFG["brand_terms"])
+        self.assertEqual(len(bm.own_weekly), 5)
+        self.assertEqual(bm.sqp_weeks, ["2026-W46"])
+        self.assertAlmostEqual(bm.market["cat water fountain"].cvr, 0.12)
+        self.assertNotIn("tiny query", [t.term for t in bm.market_terms()])
+        self.assertNotIn("meandu fountain", [t.term for t in bm.market_terms()])         # 自有品牌词不进市场均值
+        self.assertIn("meandu fountain", [t.term for t in bm.market_terms(include_brand=True)])
+        self.assertEqual(bm.own_total.orders, 60)                      # 只计 10L
+        self.assertAlmostEqual(bm.own_distribution()["cpa"]["p50"], 10)
+        self.assertAlmostEqual(bm.implied_market_cpa(), (20 / 30) / (1190 / 10900), places=4)
+
+    def test_threshold_review_suggests_but_never_changes(self):
+        bm = bmk.build("pet_water_fountain", self.ops, "10L", CFG["benchmark"])
+        reviews = "\n".join(bm.threshold_reviews(self.th))
+        self.assertIn("偏松", reviews)                                  # CPA 中位数 $10 < 优质线 $20 × 85%
+        self.assertIn("引擎不会自动改阈值", reviews)
+        self.assertEqual(CFG["models"]["10L"]["cpa"]["good"], 20)
+
+    def test_threshold_review_needs_sample(self):
+        bm = bmk.build("pet_water_fountain", self.ops, "10L", CFG["benchmark"], up_to_week="2026-W44")
+        self.assertIn("样本不足", bm.threshold_reviews(self.th)[0])
+
+    def test_compare_terms_and_new_word_refs(self):
+        bm = bmk.build("pet_water_fountain", self.ops, "10L", CFG["benchmark"])
+        st = load_reports(self.ops / "weekly" / "2026-W46" / "raw").perf["st_summary"]
+        cmp = {x["term"]: x for x in bm.compare_terms([r for r in st if "10L" in r.campaign])}
+        self.assertTrue(any("转化低于市场" in f for f in cmp["cat water fountain"]["flags"]))   # 6.7% < 12% × 70%
+        refs = bm.new_word_refs(25, {"cat water fountain", "dog water fountain"}, ["meandu", "pokpet", "selene"])
+        self.assertEqual([r["term"] for r in refs], ["pet fountain stainless"])
+        self.assertEqual(refs[0]["bid_ref"], 2.5)                        # 25 × 10%
+
+    def test_cli_writes_benchmark_section_and_files(self):
+        raw = self.ops / "weekly" / "2026-W46" / "raw"
+        build_reports(raw)
+        prof = self.root / "profile.json"
+        prof.write_text(json.dumps({"model": "10L", "spu": "WF10"}), encoding="utf-8")
+        out_bm = self.root / "benchmarks"
+        self.assertEqual(main(["--reports", str(raw), "--profile", str(prof), "--maturity", "L2",
+                               "--ops-dir", str(self.ops), "--benchmarks-out", str(out_bm)]), 0)
+        report = (raw.parent / "plan" / "方案报告.md").read_text(encoding="utf-8")
+        self.assertIn("对比行业与自有历史（参考，不触发动作）", report)
+        self.assertIn("【行业基准】", report)
+        self.assertTrue((out_bm / "基准线_10L.md").exists())
+        data = json.loads((out_bm / "latest_10L.json").read_text(encoding="utf-8"))
+        self.assertEqual(data["sqp_weeks"], ["2026-W46"])
+        # 行业基准不产生任何执行动作
+        order = (raw.parent / "plan" / "执行指令单草稿.md").read_text(encoding="utf-8")
+        self.assertNotIn("pet fountain stainless", order)
 
 
 class VersionConsistencyTest(unittest.TestCase):

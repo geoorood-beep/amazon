@@ -20,9 +20,11 @@ Grok 每次任务 A 结束前更新本文件。补齐后把 `[ ]` 改成 `[x]`�
 - [ ] 第一份 `Campaign / Ad Group 设置表`（含当前预算、竞价策略、默认竞价、广告位溢价）
 - [ ] 确认领星或亚马逊广告后台是否支持“批量上传表格”修改广告（写进 `lingxing-ui-map.md`）
 
+- [ ] 卖家后台品牌分析「搜索查询表现」是否有权限、导出路径（V1.5 行业基准数据源；写进 `lingxing-ui-map.md` 卖家后台一节）
+
 ## 规则 / 配置缺口（分析方或用户处理）
 
-- [ ] 喂水器 CTR 标准未提供（`agents/category data thresholds.md`）
+- [ ] 喂水器 CTR 标准未提供（`agents/category data thresholds.md`）；V1.5 起方案报告给出市场 CTR 和自有 CTR 作参考，累积后可据此定标准
 - [ ] 喂水器高流量核心隔离阈值未配置（不得套用 Rug 阈值）
 - [ ] 喂水器新品选词代码未实现（`new_product_module/` 目前只支持 Rug）
 

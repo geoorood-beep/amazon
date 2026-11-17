@@ -19,6 +19,7 @@ py cli.py --category pet_water_fountain --reports ../categories/pet_water_founta
   - `方案报告.md`：产品策略摘要、报表缺失影响、活动概览、可执行动作、判断依据与设计逻辑、被拦截动作、观察清单
   - `执行指令单草稿.md`：按 `categories/<品类>/ops/templates/execution-order-template.md` 格式，审批后交 Grok 执行
   - `actions.csv`：全部动作明细
+- 同时刷新 `categories/<品类>/benchmarks/基准线_<型号>.md` 和 `latest_<型号>.json`（行业基准与自有历史，V1.5）；`--no-benchmarks` 关闭，`--ops-dir` / `--benchmarks-out` 覆盖目录（测试用）。
 
 macOS / Linux 用 `python3` 代替 `py`。
 
@@ -40,6 +41,19 @@ macOS / Linux 用 `python3` 代替 `py`。
 | 成熟度门控 | L2 只解锁否定、降竞价、降溢价、暂停；L3 起解锁提竞价、提溢价、加预算、加关键词 | categories/pet_water_fountain/ops/README.md |
 
 缺当前竞价、预算或溢价的动作不进入指令单，只在报告里列为“被拦截”。
+
+## 行业基准与自有历史（V1.5，`engine/benchmarks.py`）
+
+| 项 | 计算 | 用途 |
+|---|---|---|
+| 市场 CTR / CVR | SQP（`搜索查询表现_*.csv`）每个词的全市场 展示 → 点击 → 购买；市场点击 ≥50 才计入；自有品牌词不计入均值 | 诊断方向（R-DIAG-07） |
+| 自有历史 | `ops/weekly/*/raw` 的 SP 搜索词汇总，按活动 / 广告组名中的型号过滤，滚动 12 周 | 周序列、关键词 CPA / CVR 分布 |
+| 推算市场 CPA | 自有 CPC ÷ 市场 CVR | 参考 |
+| 本周搜索词对比市场 | 我们点击 ≥20 的词：CVR 或 CTR < 市场 × 70% 标“低于市场”；CVR ≥ 市场 × 1.2 标“有放量基础” | 只给方向 |
+| 未投放市场词起始竞价参考 | 目标 CPA × 市场 CVR；排除已投放、自有品牌词、竞品品牌词 | 新建广告参考 |
+| 阈值复核建议 | 自有 ≥4 周且 ≥30 单时，有单词 CPA / CVR 中位数偏离现行阈值 15% 以上提示复核 | 负责人审批后才改阈值 |
+
+参数在 `engine.json` 的 `benchmark`（【建议】S-15）。这一节**不产生任何执行动作**，也不写阈值文件（R-DIAG-08）。
 
 ## 调整上限校准（L4 起，分析方执行）
 

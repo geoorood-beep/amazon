@@ -21,5 +21,10 @@
     "L2": ["加否定-精准", "加否定-商品", "降竞价", "降广告位溢价", "暂停"],
     "L3": ["加否定-精准", "加否定-商品", "降竞价", "降广告位溢价", "暂停", "提竞价", "提广告位溢价", "加预算", "加关键词"],
     "L4": ["加否定-精准", "加否定-商品", "降竞价", "降广告位溢价", "暂停", "提竞价", "提广告位溢价", "加预算", "加关键词"]
+  },
+  "benchmark": {
+    "_说明": "V1.5 行业基准与自有历史；数字均为【建议】默认值，可按品类调整，见 categories/<品类>/benchmarks/README.md",
+    "window_weeks": 12, "sqp_min_market_clicks": 50, "own_min_weeks": 4, "own_min_orders": 30,
+    "keyword_min_orders": 2, "keyword_min_clicks": 20, "diag_ratio_low": 0.70, "threshold_review_gap": 0.15, "new_word_top_n": 15
   }
 }

@@ -28,8 +28,14 @@ MISSING_IMPACT = {
 }
 
 
+# 行业 / 市场数据（不属于 6 类广告报表，由 engine/benchmarks.py 读取）
+SQP_NAME_KEYS = ("搜索查询表现", "searchqueryperformance", "sqp")
+
+
 def classify_file(name: str) -> str | None:
     n = name.lower().replace(" ", "")
+    if any(k in n for k in SQP_NAME_KEYS):
+        return "sqp"
     if "搜索词" in n or "searchterm" in n:
         if "每日" in n or "daily" in n:
             return "st_daily"
@@ -192,6 +198,7 @@ class LoadedReports:
     settings: Settings | None = None
     files: dict[str, str] = field(default_factory=dict)
     unclassified: list[str] = field(default_factory=list)
+    market_files: list[str] = field(default_factory=list)   # SQP 等市场数据文件名
     warnings: list[str] = field(default_factory=list)
 
 
@@ -259,6 +266,9 @@ def load_reports(report_dir: Path) -> LoadedReports:
         kind = classify_file(path.name)
         if kind is None:
             out.unclassified.append(path.name)
+            continue
+        if kind == "sqp":
+            out.market_files.append(path.name)
             continue
         if kind in out.files:
             out.warnings.append(f"{REPORT_NAMES[kind]} 有多个文件，只使用 {out.files[kind]}，忽略 {path.name}")

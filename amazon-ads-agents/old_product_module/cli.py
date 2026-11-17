@@ -16,7 +16,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-from engine.loaders import load_reports  # noqa: E402
+from engine import benchmarks as bmk  # noqa: E402
+from engine.loaders import load_reports, norm_text  # noqa: E402
 from engine.render import render_order, render_report, write_csv  # noqa: E402
 from engine.rules import CategoryEngine  # noqa: E402
 
@@ -53,13 +54,17 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--out", type=Path, help="输出目录，默认 <reports>/../plan")
     p.add_argument("--maturity", choices=["L0", "L1", "L2", "L3", "L4"], help="数据成熟度，默认读品类 ops/README.md")
     p.add_argument("--config", type=Path, help="覆盖品类 engine.json 路径（一般不用）")
+    p.add_argument("--ops-dir", type=Path, help="覆盖运营数据仓目录，默认 categories/<品类>/ops（测试用）")
+    p.add_argument("--benchmarks-out", type=Path, help="基准线输出目录，默认 categories/<品类>/benchmarks")
+    p.add_argument("--no-benchmarks", action="store_true", help="不计算行业基准 / 自有历史（默认计算并刷新 categories/<品类>/benchmarks/）")
     args = p.parse_args(argv)
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
     cfg = load_category_config(args.category, args.config)
     profile = json.loads(args.profile.read_text(encoding="utf-8"))
-    maturity = args.maturity or read_maturity(CATEGORIES / args.category / "ops")
+    ops_dir = args.ops_dir or CATEGORIES / args.category / "ops"
+    maturity = args.maturity or read_maturity(ops_dir)
     out = args.out or args.reports.parent / "plan"
     out.mkdir(parents=True, exist_ok=True)
 
@@ -67,12 +72,24 @@ def main(argv: list[str] | None = None) -> int:
     engine = CategoryEngine(cfg, profile, maturity)
     res = engine.run(rep)
 
-    (out / "方案报告.md").write_text(render_report(res, rep, profile, maturity, engine), encoding="utf-8")
+    report = render_report(res, rep, profile, maturity, engine)
+    bm_note = "行业基准：未计算"
+    if not args.no_benchmarks:
+        week = args.reports.resolve().parent.name
+        bm = bmk.build(args.category, ops_dir, engine.model, cfg.get("benchmark"),
+                       up_to_week=week if bmk.WEEK_RE.match(week) else None, brand_terms=engine.protected)
+        st_rows = rep.perf.get("st_daily") or rep.perf.get("st_summary") or []
+        targeted = set((rep.settings.keywords if rep.settings else set())) | {norm_text(r.targeting) for r in rep.perf.get("targeting", [])}
+        report += "\n" + "\n".join(bmk.render_section(bm, engine.th, engine.target_cpa, st_rows, targeted,
+                                                        engine.protected + engine.competitors))
+        files = bmk.write_outputs(bm, engine.th, args.benchmarks_out or CATEGORIES / args.category / "benchmarks")
+        bm_note = f"行业基准：SQP {len(bm.sqp_weeks)} 周、自有 {len(bm.own_weekly)} 周 → {files[0].name}"
+    (out / "方案报告.md").write_text(report, encoding="utf-8")
     (out / "执行指令单草稿.md").write_text(render_order(res, profile, maturity, str(out / "方案报告.md"), category=cfg.get("category", args.category)), encoding="utf-8")
     write_csv(res, out / "actions.csv")
 
     exe = sum(1 for a in res.actions if a.executable)
-    print(f"品类 {args.category}；成熟度 {maturity}；已识别报表 {len(rep.files)}/6；可执行动作 {exe} 条；输出目录 {out}")
+    print(f"品类 {args.category}；成熟度 {maturity}；已识别报表 {len(rep.files)}/6；可执行动作 {exe} 条；输出目录 {out}；{bm_note}")
     for w in rep.warnings:
         print("警告：", w)
     return 0
