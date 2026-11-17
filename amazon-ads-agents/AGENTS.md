@@ -27,8 +27,17 @@ V1.1 固定内容：广告组统一命名、CPA 正常线上限预算、Rug 输�
 5. 类目历史出单词数据管理：读 `agents/category-history-data.md`
 6. 品类阈值标准，包括喂水器和地毯：读 `agents/category data thresholds.md`
 7. 输出表格、老广告优化、新广告设置：读 `agents/promo-output-templates.md`
+8. Grok 云端电脑取数、补数、照执行指令单在领星操作：读 `agents/grok-operator.md`
 
 如果任务同时涉及多个模块，按上面顺序合并判断。新品推广和老品推广先判断数据阶段，再选择对应 AGENT。搜索词再投放规则是老品推广 SOP 的子模块，不是总入口。只用 ABA 判断类目流量结构或打法时，先读 `agents/category-traffic-strategy.md`；如果要进一步判断某个具体产品如何投放，再进入新品推广或搜索词模块。
+
+## 运营数据仓（GitHub 累积）
+
+Grok 每周把领星报表、产品档案、缺失项、执行日志累积到 `ops/<类目>/`，GitHub 提交历史即数据历史。当前已开通：
+
+- 宠物喂水器：`ops/pet_water_fountain/`
+
+分析方处理某类目老品方案时，先读 `ops/<类目>/README.md` 的 `当前成熟度` 和最新一条 `handoff.md`，只输出当前成熟度允许的动作；方案报告和执行指令单草稿放进 `ops/<类目>/weekly/<周>/plan/`，执行指令单格式按 `ops/<类目>/templates/execution-order-template.md`。`ops/` 下的数据是当前链接真实报表，可作为老品诊断数据源；`reference/category-history/` 仍只做选词参考。
 
 ## 默认数据源
 
