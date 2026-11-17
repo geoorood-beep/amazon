@@ -2,7 +2,7 @@
 
 每周任务 A 完成后在最上方追加一条，旧记录保留。
 
-分析方（Claude / Codex）收到后：读取本条记录 → 运行 `cd old_product_module && py cli.py --reports ../categories/<key>/ops/weekly/<周>/raw --profile <产品档案JSON>` 生成方案草稿 → 读对应 `weekly/<周>/raw/` 报表复核 → 按 `AGENTS.md` 路由到老品 / 搜索词模块 → 按当前成熟度允许的动作出方案 → 方案报告和执行指令单草稿放进 `weekly/<周>/plan/`，由用户审批后另存为 `execution/<YYYYMMDD>_执行指令单.md`。
+分析方（Claude / Codex）收到后：读取本条记录 → 运行 `cd old_product_module && py cli.py --category <key> --reports ../categories/<key>/ops/weekly/<周>/raw --profile <产品档案JSON>` 生成方案草稿 → 读对应 `weekly/<周>/raw/` 报表复核 → 按 `AGENTS.md` 路由到老品 / 搜索词模块 → 按当前成熟度允许的动作出方案 → 方案报告和执行指令单草稿放进 `weekly/<周>/plan/`，由用户审批后另存为 `execution/<YYYYMMDD>_执行指令单.md`。
 
 ## 模板
 

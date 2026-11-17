@@ -6,9 +6,7 @@
 
 本目录由 Grok 云端电脑按 `agents/grok-operator.md` 持续累积，分析方（Claude / Codex）按 `AGENTS.md` 的规则读取并出方案。历史版本靠 GitHub 提交记录保存，不要覆盖或删除旧周目录。
 
-阈值来源：`agents/category data thresholds.md` <品类> <型号> 不锈钢。
-历史出单词参考：`reference/category-history/<key>/`（只做选词参考，不做老品诊断）。
-ABA：`reference/ABA<品类>.xlsx`。
+阈值来源：`categories/<key>/thresholds.md`。品类卡：`categories/<key>/category.md`。品类知识：`categories/<key>/knowledge/`。
 
 ## 目录结构
 

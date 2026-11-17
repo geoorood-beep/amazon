@@ -1,20 +1,23 @@
-# 喂水器老品广告规则引擎
+# 老品广告规则引擎（多品类通用）
 
-把 `agents/old-product-promotion.md`、`agents/search-term-reinvestment.md`、`agents/category data thresholds.md` 里能量化的规则写成确定性代码：**数字由代码算，大模型只做解释和补充判断**。只用 Python 标准库，不需要安装任何依赖。
+把 `agents/old-product-promotion.md`、`agents/search-term-reinvestment.md` 和 `knowledge/ads-framework/standards/` 里能量化的规则写成确定性代码：**数字由代码算，大模型只做解释和补充判断**。只用 Python 标准库，不需要安装任何依赖。
+
+一套代码服务所有品类：品类的阈值、品牌词、竞品词、预算倍数都在 `categories/<品类>/engine.json`，换品类只换配置。
 
 ## 运行
 
 ```bash
 cd old_product_module
-py cli.py --reports ../categories/pet_water_fountain/ops/weekly/2026-W47/raw --profile profile.json
+py cli.py --category pet_water_fountain --reports ../categories/pet_water_fountain/ops/weekly/2026-W47/raw --profile profile.json
 ```
 
+- `--category`：品类 key（见 `categories/README.md`），默认 `pet_water_fountain`。品类没有 `engine.json` 或没配阈值时直接报错，不借用其他品类。
 - `--reports`：Grok 从领星导出的报表目录（文件名按 `agents/grok-operator.md` 的标准命名）。
-- `--profile`：产品档案，复制 `profile.example.json` 改。`model` 必须是 `10L` 或 `5L`。
-- `--maturity`：不填时读 `categories/pet_water_fountain/ops/README.md` 的 `当前成熟度`。
+- `--profile`：产品档案，复制 `profile.example.json` 改。`model` 必须是该品类 `engine.json` 里 `models` 的一个（喂水器：`10L` / `5L`）。
+- `--maturity`：不填时读 `categories/<品类>/ops/README.md` 的 `当前成熟度`。
 - 输出默认写到报表目录同级的 `plan/`：
   - `方案报告.md`：产品策略摘要、报表缺失影响、活动概览、可执行动作、判断依据与设计逻辑、被拦截动作、观察清单
-  - `执行指令单草稿.md`：按 `categories/pet_water_fountain/ops/templates/execution-order-template.md` 格式，审批后交 Grok 执行
+  - `执行指令单草稿.md`：按 `categories/<品类>/ops/templates/execution-order-template.md` 格式，审批后交 Grok 执行
   - `actions.csv`：全部动作明细
 
 macOS / Linux 用 `python3` 代替 `py`。
@@ -40,7 +43,7 @@ macOS / Linux 用 `python3` 代替 `py`。
 
 ## 调整上限校准（L4 起，分析方执行）
 
-`change-history.csv` 有 ≥30 条改竞价记录回填了 14 天效果后，按下面的口径校准 `auto_bid_cap_default`（在 `config/pet_water_fountain.json`）：
+`change-history.csv` 有 ≥30 条改竞价记录回填了 14 天效果后，按下面的口径校准 `auto_bid_cap_default`（在 `categories/<品类>/engine.json`，按品类分别校准）：
 
 - 降竞价后 14 天订单下降超过 50% 的占比 > 30%：降得太猛，上限下调到 15%，再不行到 10%。
 - 降竞价后 14 天 CPA 没有改善（未下降）的占比 > 50%：降得不够，上限上调到 25%。

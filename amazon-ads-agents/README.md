@@ -1,8 +1,10 @@
-# UTA-amazon-ads V1.2
+# UTA-amazon-ads V1.3
 
 `UTA-amazon-ads` 是本仓库的亚马逊广告智能体系统，用于管理 AGENTS 规则、固定参考数据、类目历史选词数据、运营数据仓和新品 / 老品推广模块。系统名称统一为 `UTA-amazon-ads`；`lulu` 只是广告组命名里的运营名。
 
-当前版本：`V1.2`（版本说明见 `VERSION.md`）
+当前版本：`V1.3`（版本说明见 `VERSION.md`）
+
+V1.3 重点升级：多品类架构 `categories/`（喂水器已开通，喂食器、智能猫厕所占位）；课程知识分解为通用方法论 `knowledge/ads-framework/`（标准 49 条、建议 14 条、待补 30 条）；宠物用品知识库并入；引擎按 `--category` 读取品类配置。
 
 V1.2 重点升级：系统名称统一、Grok 云端电脑操作员 SOP、喂水器 GitHub 运营数据仓（`categories/pet_water_fountain/ops/`）、喂水器老品规则引擎（`old_product_module/`）、目标 CPA 与竞价上限按历史数据自动推导、品牌词 meandu / pokpet 保护。
 
@@ -19,9 +21,10 @@ GROK.md               Grok 唯一入口
 AGENTS.md
 agents/
 reference/
-ops/                  运营数据仓（Grok 每周累积）
+knowledge/ads-framework/  通用广告方法论（标准 / 建议 / 待补 / 负责人口径）
+categories/           品类层：注册表、模板、每个品类的阈值 / 知识 / 运营数据仓 / 引擎配置
 new_product_module/
-old_product_module/   喂水器老品规则引擎
+old_product_module/   老品规则引擎（多品类，--category）
 aba_stage_aggregation/
 scripts/
 ```
@@ -37,6 +40,7 @@ scripts/
 - `agents/category data thresholds.md`：品类阈值标准。
 - `agents/promo-output-templates.md`：输出表格模板。
 - `agents/grok-operator.md`：Grok 云端电脑取数、补数、照执行指令单在领星操作。
+- `agents/knowledge-base.md`：三层知识的优先级、冲突裁决和每周综合判断流程。
 
 ## 固定参考数据
 

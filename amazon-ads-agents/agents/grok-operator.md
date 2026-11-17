@@ -7,13 +7,7 @@
 
 Grok 不做广告判断。诊断、否词、竞价、预算的判断由规则 AGENTS（`old-product-promotion.md`、`search-term-reinvestment.md` 等）和分析方（Claude / Codex）完成。Grok 只负责“取数、补数、照单执行、记录结果”。
 
-当前已开通类目：
-
-| 类目 | 数据目录 | 阈值来源 |
-|---|---|---|
-| 宠物喂水器 `pet_water_fountain` | `categories/pet_water_fountain/ops/` | `agents/category data thresholds.md` 喂水器 10L / 5L |
-
-新增类目时，复制 `categories/pet_water_fountain/ops/` 的目录结构，并在上表登记。
+品类以 `categories/README.md`（品类注册表）为准：只有状态为“已开通”的品类才能做任务 B（执行）；“待建 / 知识中”的品类可以做任务 A 的取数，帮助积累开通所需数据。每个品类的数据目录是 `categories/<品类>/ops/`，阈值在 `categories/<品类>/thresholds.md`。新增品类按 `categories/README.md` 的开通步骤复制 `categories/_template/`。
 
 ## 数据存放：GitHub 仓库
 
@@ -42,7 +36,7 @@ Grok 不做广告判断。诊断、否词、竞价、预算的判断由规则 AG
 
 - GitHub 网页单个文件上限 25 MB。超过时按日期拆成两份导出，不要压缩成 zip（`.gitignore` 已忽略 zip）。
 - 只上传本文件规定的报表和 Markdown / CSV / 截图，不上传含账号、密码、Cookie、发票、银行信息的任何文件。
-- 不修改 `agents/`、`AGENTS.md`、`reference/`、`scripts/` 下的规则和代码；规则变更由用户或分析方负责。
+- 不修改 `agents/`、`AGENTS.md`、`knowledge/`、`reference/`、`scripts/`、`old_product_module/`、各品类 `thresholds.md` 和 `engine.json`；规则变更由用户或分析方负责。可以写的只有 `categories/<品类>/ops/` 和 `categories/<品类>/knowledge/keyword-weekly/`。
 
 ## 一、每次开始前必读
 
@@ -53,11 +47,11 @@ Grok 不做广告判断。诊断、否词、竞价、预算的判断由规则 AG
 3. `categories/<类目>/ops/README.md`（目录结构和数据成熟度）
 4. `categories/<类目>/ops/data-gaps.md`（当前缺什么，决定本次优先补什么）
 5. `categories/<类目>/ops/lingxing-ui-map.md`（领星菜单路径和导出步骤，Grok 自己累积）
-6. 需要做分析或出方案时，再读 `agents/knowledge-base.md`，并打开私有知识库 `https://github.com/geoorood-beep/pet-supplies-amazon-ads` 的 `docs/02`（口径）、`docs/07`（竞品品牌词）、`docs/09`（领星方法论）。知识库打不开（未登录 GitHub）时停下，请用户登录，不要跳过知识库直接出方案。
+6. 需要做分析或出方案时，再读 `agents/knowledge-base.md`、`knowledge/ads-framework/README.md` 和相关 `standards/` 文件、`knowledge/ads-framework/decisions/`（口径、竞品品牌词、领星方法论）。全部在本仓库内，不需要登录其他仓库。
 
 ## 分析结果怎么呈现
 
-按知识库 `docs/09` §1：Grok 或分析方从领星报表得出的分析和方案，**先在聊天窗口用中文表格呈现**（关键词保留英文），用户点头后，才写进 `categories/<类目>/ops/weekly/<周>/plan/` 和执行指令单。原始报表上传（任务 A）不受此限制。
+按 `knowledge/ads-framework/decisions/运营方法论_领星西柚.md` §1：Grok 或分析方从领星报表得出的分析和方案，**先在聊天窗口用中文表格呈现**（关键词保留英文），用户点头后，才写进 `categories/<类目>/ops/weekly/<周>/plan/` 和执行指令单。原始报表上传（任务 A）不受此限制。
 
 ## 二、硬性禁区（任何情况都不得违反）
 

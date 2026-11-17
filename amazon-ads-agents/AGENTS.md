@@ -1,12 +1,24 @@
-# UTA-amazon-ads V1.2
+# UTA-amazon-ads V1.3
 
 系统名称：`UTA-amazon-ads`。对外说明、输出方案、版本记录统一使用此名称；`lulu` 只是广告组命名中的运营名，不得当作系统名。
 
-**Grok 的唯一入口是 `GROK.md`**（任务判断、必读顺序、复述校验、三类任务步骤、禁区）。修改本文件或任何子 AGENT 后，如影响 Grok 的流程或版本号，必须同步更新 `GROK.md`。
+**Grok 的唯一入口是 `GROK.md`**（定品类、任务判断、必读顺序、复述校验、三类任务步骤、禁区）。修改本文件或任何子 AGENT 后，如影响 Grok 的流程或版本号，必须同步更新 `GROK.md`。
 
 本项目使用“一个总入口 + 多个子 AGENTS”的结构。总入口只负责路由；具体判断规则放在 `agents/` 子文件，避免单个 AGENTS 过长导致读取不完整。
 
-当前版本：`V1.2`（见 `VERSION.md`）
+当前版本：`V1.3`（见 `VERSION.md`）
+
+## 三层架构（V1.3 起）
+
+| 层 | 位置 | 内容 | 换品类时 |
+|---|---|---|---|
+| 通用规则 | `agents/` | 老品诊断、新品架构、搜索词复投、输出模板、Grok 操作、知识融合规则 | 不动 |
+| 通用知识 | `knowledge/ads-framework/` | 广告方法论：【标准】`standards/`、【建议】`suggestions.md`、【待补】`pending.md`、负责人口径 `decisions/` | 不动 |
+| 品类层 | `categories/<品类>/` | 品类卡、阈值、引擎配置、品类知识、运营数据仓 | 每个品类一份 |
+
+品类注册表：`categories/README.md`（已开通 / 知识中 / 待建）。任何任务先确定品类；品类状态不是“已开通”时只给通用规则建议，不出执行指令单。不同品类的阈值、品牌词、准词表不得互相借用。
+
+V1.3 新增内容：多品类架构 `categories/`（喂水器已开通，喂食器、智能猫厕所占位）；课程知识分解为通用方法论 `knowledge/ads-framework/`；宠物用品知识库并入；引擎按 `--category` 读取品类配置。
 
 V1.2 新增内容：Grok 云端电脑操作员、`ops/` 运营数据仓与数据成熟度、喂水器老品规则引擎 `old_product_module/`、目标 CPA 与竞价上限按历史数据自动推导、品牌词 meandu / pokpet 保护。
 
@@ -31,20 +43,19 @@ V1.1 固定内容：广告组统一命名、CPA 正常线上限预算、Rug 输�
 3. 搜索词再投放 / 词根聚合 / ABA 匹配：读 `agents/search-term-reinvestment.md`
 4. ABA 类目流量结构与打法判断：读 `agents/category-traffic-strategy.md`
 5. 类目历史出单词数据管理：读 `agents/category-history-data.md`
-6. 品类阈值标准，包括喂水器和地毯：读 `agents/category data thresholds.md`
+6. 品类阈值标准：已注册品类读 `categories/<品类>/thresholds.md`；通用用法和地毯阈值读 `agents/category data thresholds.md`
 7. 输出表格、老广告优化、新广告设置：读 `agents/promo-output-templates.md`
 8. Grok 云端电脑取数、补数、照执行指令单在领星操作：读 `agents/grok-operator.md`
-9. 宠物用品广告知识库（口径、总纲框架、准词表、西柚周扫描）的接入、优先级和冲突裁决：读 `agents/knowledge-base.md`。**宠物喂水器的任何诊断、选词、架构或方案任务都必须同时读它。**
+9. 三层知识的优先级、冲突裁决和每周综合判断流程：读 `agents/knowledge-base.md`。**任何品类的诊断、选词、架构或方案任务都必须同时读它**，并按需读 `knowledge/ads-framework/standards/` 中相关规则。
+10. 品类信息（品牌词、竞品词、型号、负责人口径、开通状态）：读 `categories/README.md` 和 `categories/<品类>/category.md`。
 
 如果任务同时涉及多个模块，按上面顺序合并判断。新品推广和老品推广先判断数据阶段，再选择对应 AGENT。搜索词再投放规则是老品推广 SOP 的子模块，不是总入口。只用 ABA 判断类目流量结构或打法时，先读 `agents/category-traffic-strategy.md`；如果要进一步判断某个具体产品如何投放，再进入新品推广或搜索词模块。
 
 ## 运营数据仓（GitHub 累积）
 
-Grok 每周把领星报表、产品档案、缺失项、执行日志累积到 `categories/<类目>/ops/`，GitHub 提交历史即数据历史。当前已开通：
+Grok 每周把领星报表、产品档案、缺失项、执行日志累积到 `categories/<类目>/ops/`，GitHub 提交历史即数据历史。已开通品类见 `categories/README.md`。
 
-- 宠物喂水器：`categories/pet_water_fountain/ops/`
-
-分析方处理某类目老品方案时，先读 `categories/<类目>/ops/README.md` 的 `当前成熟度` 和最新一条 `handoff.md`，只输出当前成熟度允许的动作。喂水器先运行 `old_product_module/cli.py` 生成方案草稿（否词、竞价、广告位、预算、加词的数字以引擎结果为准，不得自行改数），分析方再复核搜索词相关性、补充引擎未覆盖的广告商品层和跨广告产品判断；方案报告和执行指令单草稿放进 `categories/<类目>/ops/weekly/<周>/plan/`，执行指令单格式按 `categories/<类目>/ops/templates/execution-order-template.md`。`ops/` 下的数据是当前链接真实报表，可作为老品诊断数据源；`reference/category-history/` 仍只做选词参考。
+分析方处理某类目老品方案时，先读 `categories/<类目>/ops/README.md` 的 `当前成熟度` 和最新一条 `handoff.md`，只输出当前成熟度允许的动作。先运行 `old_product_module/cli.py --category <类目>` 生成方案草稿（否词、竞价、广告位、预算、加词的数字以引擎结果为准，不得自行改数），分析方再复核搜索词相关性、补充引擎未覆盖的广告商品层和跨广告产品判断；方案报告和执行指令单草稿放进 `categories/<类目>/ops/weekly/<周>/plan/`，执行指令单格式按 `categories/<类目>/ops/templates/execution-order-template.md`。`ops/` 下的数据是当前链接真实报表，可作为老品诊断数据源；`reference/category-history/` 仍只做选词参考。
 
 ## 默认数据源
 
