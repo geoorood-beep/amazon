@@ -13,7 +13,7 @@ ABA：`reference/ABA喂水器.xlsx`。
 ## 目录结构
 
 ```text
-ops/pet_water_fountain/
+categories/pet_water_fountain/ops/
 ├── README.md                 本文件：结构 + 数据成熟度
 ├── product-profile.md        产品档案（逐步补齐）
 ├── data-gaps.md              缺失项清单（Grok 维护；需用户确认的单独列出）

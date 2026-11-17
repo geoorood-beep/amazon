@@ -6,15 +6,15 @@
 
 ```bash
 cd old_product_module
-py cli.py --reports ../ops/pet_water_fountain/weekly/2026-W47/raw --profile profile.json
+py cli.py --reports ../categories/pet_water_fountain/ops/weekly/2026-W47/raw --profile profile.json
 ```
 
 - `--reports`：Grok 从领星导出的报表目录（文件名按 `agents/grok-operator.md` 的标准命名）。
 - `--profile`：产品档案，复制 `profile.example.json` 改。`model` 必须是 `10L` 或 `5L`。
-- `--maturity`：不填时读 `ops/pet_water_fountain/README.md` 的 `当前成熟度`。
+- `--maturity`：不填时读 `categories/pet_water_fountain/ops/README.md` 的 `当前成熟度`。
 - 输出默认写到报表目录同级的 `plan/`：
   - `方案报告.md`：产品策略摘要、报表缺失影响、活动概览、可执行动作、判断依据与设计逻辑、被拦截动作、观察清单
-  - `执行指令单草稿.md`：按 `ops/pet_water_fountain/templates/execution-order-template.md` 格式，审批后交 Grok 执行
+  - `执行指令单草稿.md`：按 `categories/pet_water_fountain/ops/templates/execution-order-template.md` 格式，审批后交 Grok 执行
   - `actions.csv`：全部动作明细
 
 macOS / Linux 用 `python3` 代替 `py`。
@@ -34,7 +34,7 @@ macOS / Linux 用 `python3` 代替 `py`。
 | 广告位 | 活动整体 CPA 优质/正常时不分析；整体不达标时给方向（差位置减半/降 0，好位置 +10pp）。**全部只做人工复核，不进指令单**（`placement_manual_review`），其中 30% / 20% / 15 次点击是引擎默认参考值，不是已确认规则 | old-product-promotion.md + 知识库第十四章第 17、18 条待补充 |
 | 预算 | 日均花费 ≥ 预算 90% 且 CPA 优质/正常 → +20%（需二次确认） | old-product-promotion.md 整体效果 |
 | 出单词拓量 | 点击 ≥20、订单 ≥2、CPA ≤ 链接平均且未单独投放 → 新建词组组；点击 >20 且订单 ≥4 → 精准；竞价不超过实际 CPC×(1+上限)；预算 = CPA 正常线上限 × `new_group_budget_cpa_multiple`（默认 1），同时列出知识库测试期 3–5 个目标 CPA 的参考区间；标注放量方式 S2 / S3 | search-term-reinvestment.md + 知识库总纲 §10 |
-| 成熟度门控 | L2 只解锁否定、降竞价、降溢价、暂停；L3 起解锁提竞价、提溢价、加预算、加关键词 | ops/pet_water_fountain/README.md |
+| 成熟度门控 | L2 只解锁否定、降竞价、降溢价、暂停；L3 起解锁提竞价、提溢价、加预算、加关键词 | categories/pet_water_fountain/ops/README.md |
 
 缺当前竞价、预算或溢价的动作不进入指令单，只在报告里列为“被拦截”。
 
@@ -45,7 +45,7 @@ macOS / Linux 用 `python3` 代替 `py`。
 - 降竞价后 14 天订单下降超过 50% 的占比 > 30%：降得太猛，上限下调到 15%，再不行到 10%。
 - 降竞价后 14 天 CPA 没有改善（未下降）的占比 > 50%：降得不够，上限上调到 25%。
 - 提竞价后 14 天 CPA 进入警戒线的占比 > 30%：提价太猛，提价单独用更低上限。
-- 校准结果和依据写进 `ops/pet_water_fountain/handoff.md`，改配置时提交说明写 `config(pet_water_fountain): 校准竞价上限`。
+- 校准结果和依据写进 `categories/pet_water_fountain/ops/handoff.md`，改配置时提交说明写 `config(pet_water_fountain): 校准竞价上限`。
 
 ## 未实现（需分析方人工补充）
 

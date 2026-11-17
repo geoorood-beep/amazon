@@ -1,0 +1,24 @@
+{
+  "category": "<key>",
+  "category_cn": "<品类中文名>",
+  "source": "categories/<key>/thresholds.md",
+  "min_orders_for_judgement": 2,
+  "brand_terms": ["meandu", "pokpet"],
+  "competitor_brand_terms": [],
+  "placement_manual_review": true,
+  "new_group_budget_cpa_multiple": 1,
+  "kb_test_budget_cpa_multiple": [3, 5],
+  "auto_target_min_orders": 10,
+  "auto_bid_cap_default": 0.20,
+  "models": {},
+  "search_term_negative": {"min_clicks_no_order": 15},
+  "harvest": {"min_clicks": 20, "min_orders": 2, "exact_min_clicks": 21, "exact_min_orders": 4},
+  "placement": {"min_clicks": 15, "bad_share": 0.30, "good_share": 0.20, "raise_step_pct": 10},
+  "budget": {"limited_ratio": 0.90, "raise_pct": 0.20},
+  "maturity_unlocks": {
+    "L0": [], "L1": [],
+    "L2": ["加否定-精准", "加否定-商品", "降竞价", "降广告位溢价", "暂停"],
+    "L3": ["加否定-精准", "加否定-商品", "降竞价", "降广告位溢价", "暂停", "提竞价", "提广告位溢价", "加预算", "加关键词"],
+    "L4": ["加否定-精准", "加否定-商品", "降竞价", "降广告位溢价", "暂停", "提竞价", "提广告位溢价", "加预算", "加关键词"]
+  }
+}

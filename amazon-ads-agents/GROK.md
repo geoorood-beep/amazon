@@ -24,7 +24,7 @@
 2. `amazon-ads-agents/VERSION.md`（核对版本）
 3. `amazon-ads-agents/agents/knowledge-base.md`（判断优先级、冲突裁决、每周综合流程）
 4. `amazon-ads-agents/agents/grok-operator.md`（取数、执行、禁区）
-5. `amazon-ads-agents/ops/pet_water_fountain/README.md`（当前成熟度）和 `data-gaps.md`、最新一条 `handoff.md`
+5. `amazon-ads-agents/categories/pet_water_fountain/ops/README.md`（当前成熟度）和 `data-gaps.md`、最新一条 `handoff.md`
 6. 分析任务额外读：知识库 `docs/02-口径与决策记录.md`、`docs/07-竞品品牌词使用规则.md`、`docs/09-运营方法论_领星西柚.md`
 
 读完后，**先向用户复述下面 5 项，用户说“继续”才开始**：
@@ -41,19 +41,19 @@
 
 ### A：每周数据累积
 
-按 `agents/grok-operator.md` 第三节（A1–A7）：导出 6 类报表 → 上传到 `ops/pet_water_fountain/weekly/<年>-W<周数>/raw/` → 填导出清单 → 更新领星操作路径 → 补齐产品档案和缺失项 → 回填 7/14 天改动效果 → 更新成熟度 → 写交接记录。
+按 `agents/grok-operator.md` 第三节（A1–A7）：导出 6 类报表 → 上传到 `categories/pet_water_fountain/ops/weekly/<年>-W<周数>/raw/` → 填导出清单 → 更新领星操作路径 → 补齐产品档案和缺失项 → 回填 7/14 天改动效果 → 更新成熟度 → 写交接记录。
 
 结束时用中文表格汇报：导出了哪些、缺了什么、补齐了什么、成熟度是否变化。
 
 ### 分析：出本周方案
 
 1. 方案数字来自规则引擎 `old_product_module/`：
-   - 你能运行 Python：`cd amazon-ads-agents/old_product_module && python3 cli.py --reports ../ops/pet_water_fountain/weekly/<周>/raw --profile <产品档案JSON>`
+   - 你能运行 Python：`cd amazon-ads-agents/old_product_module && python3 cli.py --reports ../categories/pet_water_fountain/ops/weekly/<周>/raw --profile <产品档案JSON>`
    - 不能运行：告诉用户“请让 Claude 运行引擎”，等 `weekly/<周>/plan/方案报告.md` 出现后再继续。
    - **不得自己计算或修改否词、竞价、预算、加词的数字。**
 2. 按 `agents/knowledge-base.md` 第四节逐条复核：竞品品牌词、零转化匹配方式、竞价层级、放量方式（S1–S6）、曝光低排查顺序、30 条待补规则。
 3. **先在聊天里用中文表格呈现**（关键词保留英文），每条带来源标签：`【当前报表】【品类阈值】【用户固定规则】【知识库-口径】【知识库-总纲】【准词表/西柚】【缺失数据】`。
-4. 用户确认后，才把执行指令单写进 `ops/pet_water_fountain/execution/<YYYYMMDD>_执行指令单.md`（`审批状态=待审批`），等用户审批。
+4. 用户确认后，才把执行指令单写进 `categories/pet_water_fountain/ops/execution/<YYYYMMDD>_执行指令单.md`（`审批状态=待审批`），等用户审批。
 
 ### B：执行
 

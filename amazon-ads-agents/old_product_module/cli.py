@@ -1,8 +1,8 @@
 """喂水器老品广告方案生成。
 
 用法（在 old_product_module 目录下）：
-    py cli.py --reports ../ops/pet_water_fountain/weekly/2026-W47/raw --profile profile.json
-默认输出到报表目录同级的 plan/，成熟度默认读取 ops/pet_water_fountain/README.md。
+    py cli.py --reports ../categories/pet_water_fountain/ops/weekly/2026-W47/raw --profile profile.json
+默认输出到报表目录同级的 plan/，成熟度默认读取 categories/pet_water_fountain/ops/README.md。
 """
 from __future__ import annotations
 

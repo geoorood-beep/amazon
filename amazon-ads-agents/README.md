@@ -4,7 +4,7 @@
 
 当前版本：`V1.2`（版本说明见 `VERSION.md`）
 
-V1.2 重点升级：系统名称统一、Grok 云端电脑操作员 SOP、喂水器 GitHub 运营数据仓（`ops/pet_water_fountain/`）、喂水器老品规则引擎（`old_product_module/`）、目标 CPA 与竞价上限按历史数据自动推导、品牌词 meandu / pokpet 保护。
+V1.2 重点升级：系统名称统一、Grok 云端电脑操作员 SOP、喂水器 GitHub 运营数据仓（`categories/pet_water_fountain/ops/`）、喂水器老品规则引擎（`old_product_module/`）、目标 CPA 与竞价上限按历史数据自动推导、品牌词 meandu / pokpet 保护。
 
 V1.1 重点升级：广告命名和 CPA 预算统一、Rug 输入字段收敛、动物图案关键词强匹配、Rug 历史出单词库入库、高流量核心否词隔离、老品优质出单词跨 SPV / SB / SBV 拓量。
 

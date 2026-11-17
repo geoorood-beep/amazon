@@ -2,7 +2,7 @@
 
 本 AGENT 给 **Grok 云端电脑** 使用。领星当前没有开放接口，所以 Grok 通过网页操作领星，承担两件事：
 
-1. **数据累积**：每周从领星导出报表、补齐产品信息和缺失配置，把数据逐步完善到 `ops/<类目>/`。
+1. **数据累积**：每周从领星导出报表、补齐产品信息和缺失配置，把数据逐步完善到 `categories/<类目>/ops/`。
 2. **方案执行**：只照已审批的 `执行指令单` 在领星里操作，并回写执行日志。
 
 Grok 不做广告判断。诊断、否词、竞价、预算的判断由规则 AGENTS（`old-product-promotion.md`、`search-term-reinvestment.md` 等）和分析方（Claude / Codex）完成。Grok 只负责“取数、补数、照单执行、记录结果”。
@@ -11,19 +11,19 @@ Grok 不做广告判断。诊断、否词、竞价、预算的判断由规则 AG
 
 | 类目 | 数据目录 | 阈值来源 |
 |---|---|---|
-| 宠物喂水器 `pet_water_fountain` | `ops/pet_water_fountain/` | `agents/category data thresholds.md` 喂水器 10L / 5L |
+| 宠物喂水器 `pet_water_fountain` | `categories/pet_water_fountain/ops/` | `agents/category data thresholds.md` 喂水器 10L / 5L |
 
-新增类目时，复制 `ops/pet_water_fountain/` 的目录结构，并在上表登记。
+新增类目时，复制 `categories/pet_water_fountain/ops/` 的目录结构，并在上表登记。
 
 ## 数据存放：GitHub 仓库
 
-所有累积数据都存进 GitHub 仓库 `geoorood-beep/amazon` 的 `amazon-ads-agents/ops/<类目>/` 下，GitHub 的提交历史就是数据的历史记录。Grok 在云端电脑的浏览器里用 GitHub 网页操作，不需要命令行。
+所有累积数据都存进 GitHub 仓库 `geoorood-beep/amazon` 的 `amazon-ads-agents/categories/<类目>/ops/` 下，GitHub 的提交历史就是数据的历史记录。Grok 在云端电脑的浏览器里用 GitHub 网页操作，不需要命令行。
 
 **仓库可见性：公开（Public），用户已确认（2026-11-17）报表数据可以公开。** Grok 可以直接上传报表；但账号、密码、Cookie、验证码、发票、银行或支付信息、客户个人信息（姓名、地址、电话、邮箱）任何情况下都不得上传。
 
 上传方式（GitHub 网页）：
 
-1. 打开 `https://github.com/geoorood-beep/amazon/tree/main/amazon-ads-agents/ops/<类目>/weekly/`。
+1. 打开 `https://github.com/geoorood-beep/amazon/tree/main/amazon-ads-agents/categories/<类目>/ops/weekly/`。
 2. 点 `Add file → Upload files`；在上传页面把目标路径写成 `<年>-W<周数>/raw/`（GitHub 网页上传会按拖入的文件夹建目录；也可以先进入目标目录再上传）。
 3. 提交说明按固定格式：
 
@@ -50,14 +50,14 @@ Grok 不做广告判断。诊断、否词、竞价、预算的判断由规则 AG
 
 1. `AGENTS.md`（总原则）
 2. 本文件
-3. `ops/<类目>/README.md`（目录结构和数据成熟度）
-4. `ops/<类目>/data-gaps.md`（当前缺什么，决定本次优先补什么）
-5. `ops/<类目>/lingxing-ui-map.md`（领星菜单路径和导出步骤，Grok 自己累积）
+3. `categories/<类目>/ops/README.md`（目录结构和数据成熟度）
+4. `categories/<类目>/ops/data-gaps.md`（当前缺什么，决定本次优先补什么）
+5. `categories/<类目>/ops/lingxing-ui-map.md`（领星菜单路径和导出步骤，Grok 自己累积）
 6. 需要做分析或出方案时，再读 `agents/knowledge-base.md`，并打开私有知识库 `https://github.com/geoorood-beep/pet-supplies-amazon-ads` 的 `docs/02`（口径）、`docs/07`（竞品品牌词）、`docs/09`（领星方法论）。知识库打不开（未登录 GitHub）时停下，请用户登录，不要跳过知识库直接出方案。
 
 ## 分析结果怎么呈现
 
-按知识库 `docs/09` §1：Grok 或分析方从领星报表得出的分析和方案，**先在聊天窗口用中文表格呈现**（关键词保留英文），用户点头后，才写进 `ops/<类目>/weekly/<周>/plan/` 和执行指令单。原始报表上传（任务 A）不受此限制。
+按知识库 `docs/09` §1：Grok 或分析方从领星报表得出的分析和方案，**先在聊天窗口用中文表格呈现**（关键词保留英文），用户点头后，才写进 `categories/<类目>/ops/weekly/<周>/plan/` 和执行指令单。原始报表上传（任务 A）不受此限制。
 
 ## 二、硬性禁区（任何情况都不得违反）
 
@@ -87,21 +87,21 @@ Grok 不做广告判断。诊断、否词、竞价、预算的判断由规则 AG
 
 建议导出（能导就导，导不出写进 `data-gaps.md`）：`SP广告位-每日明细`、`SP关键词-每日明细`、`小时预算 / 小时花费报告`、`商品业务数据`（售价、库存、Review、Coupon）。
 
-保存到：`ops/<类目>/weekly/<年>-W<周数>/raw/`，例如 `ops/pet_water_fountain/weekly/2026-W47/raw/`。
+保存到：`categories/<类目>/ops/weekly/<年>-W<周数>/raw/`，例如 `categories/pet_water_fountain/ops/weekly/2026-W47/raw/`。
 
 日期格式统一 `YYYYMMDD`。文件名不要加空格以外的特殊符号，不要重命名成英文泛化名。
 
 ### A2. 填写本周导出清单
 
-在同一周目录下复制 `ops/<类目>/templates/weekly-checklist.md` 为 `checklist.md` 并逐项填写：每份报表是否导出、统计周期、站点、币种、归因窗口、行数、导出时遇到的问题。
+在同一周目录下复制 `categories/<类目>/ops/templates/weekly-checklist.md` 为 `checklist.md` 并逐项填写：每份报表是否导出、统计周期、站点、币种、归因窗口、行数、导出时遇到的问题。
 
 ### A3. 累积领星操作路径
 
-第一次找到某个报表或某个操作入口时，把 **菜单路径、筛选条件、导出按钮位置、注意事项** 写进 `ops/<类目>/lingxing-ui-map.md`。之后每次照它操作；领星界面变了就更新它并写更新日期。
+第一次找到某个报表或某个操作入口时，把 **菜单路径、筛选条件、导出按钮位置、注意事项** 写进 `categories/<类目>/ops/lingxing-ui-map.md`。之后每次照它操作；领星界面变了就更新它并写更新日期。
 
 ### A4. 补齐产品信息和缺失项
 
-每次导出后，打开 `ops/<类目>/data-gaps.md`：
+每次导出后，打开 `categories/<类目>/ops/data-gaps.md`：
 
 - 能在领星页面上直接查到的（售价、库存、Review 数和星级、在投 ASIN、广告活动结构、当前预算、竞价策略、广告位溢价），查到就填进 `product-profile.md`，并在 `data-gaps.md` 勾掉，注明来源页面和日期。
 - 需要老板 / 运营决定的（目标 ACOS、目标 CPA、日预算总额、竞价调整上限、毛利），**不得自行填写**，保留在 `data-gaps.md` 的“需用户确认”区。
@@ -109,21 +109,21 @@ Grok 不做广告判断。诊断、否词、竞价、预算的判断由规则 AG
 
 ### A5. 回填改动效果
 
-对 `ops/<类目>/execution/change-history.csv` 中执行日期满 7 天、14 天的行，用最新报表回填 `7天后_*`、`14天后_*` 列（点击、花费、订单、ACOS、CPA）。这是后续校准竞价公式和调整上限的唯一依据，不得估算，查不到写 `待补`。
+对 `categories/<类目>/ops/execution/change-history.csv` 中执行日期满 7 天、14 天的行，用最新报表回填 `7天后_*`、`14天后_*` 列（点击、花费、订单、ACOS、CPA）。这是后续校准竞价公式和调整上限的唯一依据，不得估算，查不到写 `待补`。
 
 ### A6. 更新数据成熟度
 
-按 `ops/<类目>/README.md` 的“数据成熟度”标准，更新该文件顶部的 `当前成熟度` 和更新日期。
+按 `categories/<类目>/ops/README.md` 的“数据成熟度”标准，更新该文件顶部的 `当前成熟度` 和更新日期。
 
 ### A7. 交接给分析方
 
-本周数据整理完成后，在 `ops/<类目>/handoff.md` 追加一条记录：周次、导出完整度、成熟度、本周新增补齐项、仍缺项、需要分析方重点看的问题。分析方据此出本周方案。
+本周数据整理完成后，在 `categories/<类目>/ops/handoff.md` 追加一条记录：周次、导出完整度、成熟度、本周新增补齐项、仍缺项、需要分析方重点看的问题。分析方据此出本周方案。
 
 ## 四、任务 B：照执行指令单在领星操作
 
 ### B1. 只执行已审批的指令单
 
-指令单位置：`ops/<类目>/execution/<YYYYMMDD>_执行指令单.md`（格式见 `ops/<类目>/templates/execution-order-template.md`）。
+指令单位置：`categories/<类目>/ops/execution/<YYYYMMDD>_执行指令单.md`（格式见 `categories/<类目>/ops/templates/execution-order-template.md`）。
 
 开始前确认：
 
@@ -138,7 +138,7 @@ Grok 不做广告判断。诊断、否词、竞价、预算的判断由规则 AG
 1. 在领星找到对应 `店铺 / 站点 / 广告活动 / 广告组 / 投放对象`。名称必须 **完全一致**；找到多个或找不到 → 跳过，结果写 `跳过-对象不唯一` 或 `跳过-未找到`。
 2. **先核对当前值**：页面上的当前竞价 / 预算 / 状态必须等于指令单的 `当前值`。不一致 → 跳过，结果写 `跳过-当前值不一致（页面=xx）`。这一步防止报表过期导致误改。
 3. 修改为 `新值`，保存。
-4. 刷新页面，确认新值已生效；截图，文件名 `<行号>_<动作>.png`，存到 `ops/<类目>/execution/<YYYYMMDD>_screenshots/`。
+4. 刷新页面，确认新值已生效；截图，文件名 `<行号>_<动作>.png`，存到 `categories/<类目>/ops/execution/<YYYYMMDD>_screenshots/`。
 5. 在执行日志写结果。
 
 ### B3. 批量限制
@@ -149,9 +149,9 @@ Grok 不做广告判断。诊断、否词、竞价、预算的判断由规则 AG
 
 ### B4. 回写执行日志
 
-在 `ops/<类目>/execution/<YYYYMMDD>_执行日志.md` 记录每行：行号、动作、对象、当前值（页面实际）、新值、结果（成功 / 跳过-原因 / 失败-原因）、截图文件名、执行时间。
+在 `categories/<类目>/ops/execution/<YYYYMMDD>_执行日志.md` 记录每行：行号、动作、对象、当前值（页面实际）、新值、结果（成功 / 跳过-原因 / 失败-原因）、截图文件名、执行时间。
 
-成功的行同时追加到 `ops/<类目>/execution/change-history.csv`（7 天、14 天效果列先留空，由任务 A5 回填）。
+成功的行同时追加到 `categories/<类目>/ops/execution/change-history.csv`（7 天、14 天效果列先留空，由任务 A5 回填）。
 
 ### B5. 执行中的发现
 
@@ -163,7 +163,7 @@ Grok 不做广告判断。诊断、否词、竞价、预算的判断由规则 AG
 
 ```text
 你是亚马逊广告操作员。请先读取仓库 amazon-ads-agents 的 AGENTS.md 和 agents/grok-operator.md，严格按其中的禁区和流程工作。
-本次任务：<任务A 每周数据累积 / 任务B 执行 ops/pet_water_fountain/execution/<日期>_执行指令单.md>
+本次任务：<任务A 每周数据累积 / 任务B 执行 categories/pet_water_fountain/ops/execution/<日期>_执行指令单.md>
 类目：pet_water_fountain
 需要登录时停下等我，不要输入任何密码。
 ```
