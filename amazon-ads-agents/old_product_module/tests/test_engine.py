@@ -15,7 +15,7 @@ from engine.loaders import load_reports  # noqa: E402
 from engine.rules import FountainEngine  # noqa: E402
 from engine.xlsx_reader import read_table  # noqa: E402
 
-CFG = json.loads((HERE / "config" / "pet_water_fountain.json").read_text(encoding="utf-8"))
+CFG = json.loads((HERE.parent / "categories" / "pet_water_fountain" / "engine.json").read_text(encoding="utf-8"))
 END = dt.date(2026, 11, 15)
 CAMP_A = "WF10-SP-自动-喂水器-10L-lulu"
 CAMP_B = "WF10-SP-cat water fountain-精准-喂水器-10L-lulu"
@@ -242,6 +242,35 @@ class EngineTest(unittest.TestCase):
         self.assertIn("`SP广告商品报告` | 缺失", report)
         self.assertIn("| 1 | US |", order)
         self.assertIn("审批状态：`待审批`", order)
+        self.assertIn("# 喂水器 10L 老品广告方案", report)
+        self.assertIn("categories/pet_water_fountain/thresholds.md", report)
+        self.assertIn("- 类目：pet_water_fountain", order)
+
+    def test_cli_category_flag_and_unopened_category(self):
+        tmp = Path(tempfile.mkdtemp())
+        raw = tmp / "raw"
+        raw.mkdir()
+        build_reports(raw)
+        prof = tmp / "p.json"
+        prof.write_text(json.dumps({"model": "10L"}), encoding="utf-8")
+        self.assertEqual(main(["--category", "pet_water_fountain", "--reports", str(raw), "--profile", str(prof), "--maturity", "L2"]), 0)
+        # 待建品类没有 engine.json：明确报错，不借用其他品类阈值
+        with self.assertRaises(SystemExit) as cm:
+            main(["--category", "pet_feeder", "--reports", str(raw), "--profile", str(prof)])
+        self.assertIn("pet_feeder", str(cm.exception.code))
+
+    def test_template_engine_json_has_no_thresholds(self):
+        from cli import load_category_config
+        with self.assertRaises(SystemExit) as cm:
+            load_category_config("_template")
+        self.assertIn("models 为空", str(cm.exception.code))
+
+    def test_fountain_engine_json_matches_thresholds_md(self):
+        md = (HERE.parent / "categories" / "pet_water_fountain" / "thresholds.md").read_text(encoding="utf-8")
+        for model in ("10L", "5L"):
+            cpa = CFG["models"][model]["cpa"]
+            self.assertIn(f"$" + format(cpa["normal_high"], "g"), md)
+            self.assertIn(f"$" + format(cpa["high_risk"], "g"), md)
 
     def test_xlsx_reader(self):
         tmp = Path(tempfile.mkdtemp()) / "t.xlsx"

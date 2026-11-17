@@ -1,4 +1,4 @@
-"""喂水器老品规则引擎：把 agents/old-product-promotion.md 与 search-term-reinvestment.md
+"""老品规则引擎（多品类通用）：把 agents/old-product-promotion.md 与 search-term-reinvestment.md
 里能量化的规则写成确定性代码。数字全部由这里算，大模型只负责解释和补充判断。"""
 from __future__ import annotations
 
@@ -121,7 +121,7 @@ def no_order_level(m: Metrics, th: dict) -> str | None:
 
 # ---------- 主流程 ----------
 
-class FountainEngine:
+class CategoryEngine:
     def __init__(self, cfg: dict, profile: dict, maturity: str):
         model = str(profile.get("model", "")).upper()
         if model not in cfg["models"]:
@@ -129,6 +129,9 @@ class FountainEngine:
         self.cfg = cfg
         self.th = cfg["models"][model]
         self.model = model
+        self.category = cfg.get("category", "")
+        self.category_cn = cfg.get("category_cn", self.category)
+        self.scene = cfg.get("scene_name", self.category_cn)  # 广告组命名里的“场景分类”
         self.profile = profile
         self.maturity = maturity
         self.unlocked = set(cfg["maturity_unlocks"].get(maturity, []))
@@ -468,10 +471,14 @@ class FountainEngine:
             cpc = m.spend / m.clicks if m.clicks else None
             formula = self.target_cpa * (m.cvr or 0)
             bid = round(max(min(formula, cpc * (1 + self.cap)) if cpc else formula, self.floor), 2)
-            name = f"{spu}-SP-{term}-{mt}-喂水器-{self.model}-{op}"
+            name = f"{spu}-SP-{term}-{mt}-{self.scene}-{self.model}-{op}"
             self._emit(res, Action("新增", name, name, term, mt, "加关键词", "未投放", f"Bid ${bid:.2f}，日预算 ${budget:g}",
                                    f"【当前报表】搜索词累计 {m.brief()}，CPA ≤ 链接平均 CPA "
                                    f"{'$' + format(avg_cpa, '.2f') if avg_cpa is not None else '（无）'}，且未单独投放；"
                                    f"来源 {', '.join(sorted(src[term]))}；预算=品类 CPA 正常线上限（{self.model}）×{mult:g}{kb_note}；"
                                    f"【知识库-总纲】属于放量方式 {'S3 精准' if exact else 'S2 长尾/词组承接'}",
                                    m.brief()))
+
+
+# 兼容旧名称
+FountainEngine = CategoryEngine

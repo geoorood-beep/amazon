@@ -29,7 +29,7 @@ def render_report(res: EngineResult, rep: LoadedReports, profile: dict, maturity
     conf = "高" if not missing and maturity in ("L3", "L4") else ("中" if "targeting" in rep.files and "settings" in rep.files else "低")
 
     L: list[str] = []
-    L.append(f"# 喂水器 {engine.model} 老品广告方案（引擎草稿）\n")
+    L.append(f"# {engine.category_cn} {engine.model} 老品广告方案（引擎草稿）\n")
     L.append(f"生成时间：{dt.datetime.now():%Y-%m-%d %H:%M}　数据成熟度：`{maturity}`　{res.window_note}\n")
     L.append("> 本报告由 `old_product_module` 按 AGENTS 规则确定性计算。分析方（Claude / Codex）应在此基础上复核搜索词相关性、补充判断依据，再交用户审批。\n")
 
@@ -79,7 +79,7 @@ def render_report(res: EngineResult, rep: LoadedReports, profile: dict, maturity
     up = sum(1 for a in exe if a.action == "提竞价")
     L.append(
         f"【当前报表】本次只使用当前链接的真实报表（{', '.join(rep.files.values()) or '无'}），{res.window_note}。"
-        f"【品类阈值/用户固定规则】阈值取 `agents/category data thresholds.md` 喂水器 {engine.model}：CPA 正常线上限 ${engine.th['cpa']['normal_high']}，"
+        f"【品类阈值/用户固定规则】阈值取 `categories/{engine.category}/thresholds.md` {engine.category_cn} {engine.model}：CPA 正常线上限 ${engine.th['cpa']['normal_high']}，"
         f"高风险 ${engine.th['cpa']['high_risk']}，点击<2单高风险 {engine.th['clicks_no_order']['high_risk']} 次，花费<2单高风险 ${engine.th['spend_no_order']['high_risk']}；"
         f"搜索词点击≥15 且 0 单默认 Negative Exact。本次生成否定 {neg} 条、降竞价 {down} 条、提竞价 {up} 条。"
         f"先否定和降价（止损）再考虑放量，订单不足 2 单的对象一律只观察，不用短期 ACOS 直接暂停。"
@@ -112,12 +112,12 @@ ORDER_ACTION = {"加否定-精准": "加否定-精准", "加否定-商品": "加
                 "降广告位溢价": "改广告位溢价", "提广告位溢价": "改广告位溢价", "加预算": "改预算", "加关键词": "新建广告组", "暂停": "暂停"}
 
 
-def render_order(res: EngineResult, profile: dict, maturity: str, plan_ref: str, max_rows: int = 30) -> str:
+def render_order(res: EngineResult, profile: dict, maturity: str, plan_ref: str, max_rows: int = 30, category: str = "pet_water_fountain") -> str:
     exe = _sort([a for a in res.actions if a.executable])
     site = profile.get("site", "US")
     L = [
         f"# {dt.date.today():%Y%m%d} 执行指令单（草稿）\n",
-        "- 类目：pet_water_fountain",
+        f"- 类目：{category}",
         f"- 方案来源：`{plan_ref}`",
         f"- 数据截止日期：{getattr(res, 'last_date', '') or '见方案报告'}",
         f"- 当前成熟度：{maturity}",

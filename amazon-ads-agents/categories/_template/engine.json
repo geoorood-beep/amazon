@@ -1,6 +1,7 @@
 {
   "category": "<key>",
   "category_cn": "<品类中文名>",
+  "scene_name": "<广告组命名里的场景分类，如 喂食器>",
   "source": "categories/<key>/thresholds.md",
   "min_orders_for_judgement": 2,
   "brand_terms": ["meandu", "pokpet"],

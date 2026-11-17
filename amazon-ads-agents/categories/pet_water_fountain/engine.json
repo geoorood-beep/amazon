@@ -1,7 +1,8 @@
 {
   "category": "pet_water_fountain",
   "category_cn": "喂水器",
-  "source": "agents/category data thresholds.md 喂水器 10L / 5L 不锈钢",
+  "scene_name": "喂水器",
+  "source": "categories/pet_water_fountain/thresholds.md",
   "min_orders_for_judgement": 2,
   "brand_terms": ["meandu", "pokpet"],
   "competitor_brand_terms": ["selene", "doggy spout", "fresh flow"],
