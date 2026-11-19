@@ -25,6 +25,33 @@ Amazon AGENTS 入口：
 - `rug`
 - `chair`
 - `pet_water_fountain`
+- `pet_hardware_goods_v3`（仅 Amazon US cat/dog non-food / non-supplement / non-drug hardware/goods，文档分发标签，优先走 `pet-listing-agent/AGENTS.md`，不是旧 app 实现的类目）
+
+### Amazon US pet hardware/goods V3
+
+当 Amazon US 任务是 cat 或 dog 的 non-food / non-supplement / non-drug hardware/goods 时，优先使用 V3：
+
+- `pet-listing-agent/AGENTS.md`
+- `pet-listing-agent/CHANGES.md`
+- `pet-listing-agent/references/category-pet.md`
+- `pet-listing-agent/references/intake-template.md`
+- `pet-listing-agent/references/limits.md`
+- 确定性验证：`pet-listing-agent/scripts/validate.py` 必须检查每一份实际生成的 draft；`tests/run_tests.py` 只运行测试套件，不能替代 draft 校验。按 package 文档中的确切 CLI 运行，不要自行发明 validator flags
+
+V3 输出固定顺序：`主标题 -> 亮点 -> 五点描述 -> 详情文案 -> 简要总结`；核心关键词 3-5 个。
+
+长度 gate：
+
+- 主标题 <= 75 characters
+- 亮点 <= 125 characters
+- 五点描述每条 <= 256 characters，合计 <= 1000 characters
+- 详情文案 <= 2000 characters
+
+V3 命中后，旧 Amazon `Title` / `Item Highlights` / `Bullet Points` / `Product Description` / `Search Terms` 通用输出规则不得覆盖 V3。
+
+未命中 V3 的 Amazon 任务继续使用旧 Amazon 类目流程。其他 Amazon 类目（`rug`、`chair` 等）不变。
+
+包内若引用 `keyword-data-contract.md` 或 `knowledge-bases/pet`，这些不是当前仓库随包提供的源文件；关键词契约以 `agents/keyword-library-contract.md` 为准，`knowledge-bases/pet` 仅作为外部可选 knowledge-base 路径，未显式提供时不得声称存在。
 
 Amazon Listing 生成器已经按 AGENTS 拆分为：
 
@@ -68,7 +95,7 @@ Wayfair 规则固定输出 `Title1`、`Title2`、`Title3`、`Marketing Copy`、`
 
 ## 仓库边界
 
-本仓库只保存 AGENTS 规则文档，不保存：
+本仓库只保存 AGENTS 规则文档和确定性验证/helper scripts，不保存：
 
 - `.env.local`
 - OpenAI API Key

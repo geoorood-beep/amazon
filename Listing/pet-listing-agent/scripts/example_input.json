@@ -1,0 +1,20 @@
+{
+  "_note": "示例数据，品牌与规格均为虚构，仅用于演示输入格式，不是真实产品事实。",
+  "brand": "ExampleBrand",
+  "species": "cat",
+  "title": "ExampleBrand **Cat Water Fountain**, 2L **Stainless Steel Bowl**",
+  "highlights": "**Stainless steel bowl**; two flow modes; removable parts for rinsing; plug-in adapter power",
+  "bullets": [
+    "2L Tank Capacity: The tank holds 2 liters, so one **cat water fountain** can serve a small household between refills.",
+    "Bowl and Body Materials: The **stainless steel bowl** holds the water, and the lid and tank are plastic.",
+    "Two Flow Modes: Switch between a stream and a bubbling flow to suit how your cat likes to drink.",
+    "Rinse at the Sink: The lid, bowl and pump cover lift off by hand for cleaning.",
+    "Included in the Box: One fountain, one power adapter and one spare filter."
+  ],
+  "description": "This **cat water fountain** pairs a 2L tank with a stainless steel drinking bowl. A clear window on the tank shows how much water is left.\n\nThe pump runs from the included adapter. Lift off the lid, bowl and pump cover to rinse them at the sink, and refill the tank when the window shows low water.",
+  "keywords": [
+    {"phrase": "cat water fountain", "variants": ["cat water fountains"], "core": true},
+    {"phrase": "stainless steel bowl"},
+    {"phrase": "pet water dispenser"}
+  ]
+}

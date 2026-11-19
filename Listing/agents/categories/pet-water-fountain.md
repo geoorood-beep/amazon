@@ -2,6 +2,35 @@
 
 仅当当前类目是 `pet_water_fountain` 时使用本文件。
 
+## V3 优先
+
+对于 Amazon US cat/dog non-food / non-supplement / non-drug hardware/goods，包括符合这些条件的 pet water fountain，必须先走 `../../pet-listing-agent/AGENTS.md` V3。
+
+命中 V3 时：
+
+- 路由入口：`../../pet-listing-agent/AGENTS.md`
+- 参考：`../../pet-listing-agent/CHANGES.md`、`../../pet-listing-agent/references/category-pet.md`、`../../pet-listing-agent/references/intake-template.md`、`../../pet-listing-agent/references/limits.md`
+- 确定性验证：`../../pet-listing-agent/scripts/validate.py` 必须检查每一份实际生成的 draft；`tests/run_tests.py` 只运行测试套件，不能替代 draft 校验。按 package 文档中的确切 CLI 运行，不要自行发明 validator flags
+- 输出固定顺序：`主标题 -> 亮点 -> 五点描述 -> 详情文案 -> 简要总结`
+- 长度 gate：主标题 <= 75，亮点 <= 125，五点每条 <= 256 且合计 <= 1000，详情文案 <= 2000
+- 只选 3-5 个 core keywords
+- 旧的 `Title`、`Item Highlights`、`Bullet Points`、`Product Description`、`Search Terms` 输出格式不得覆盖 V3
+
+以下情况不要自动 V3，也不要 fallback 到 `rug`：
+
+- 非 Amazon US
+- 非 cat / dog 物种
+- food / supplement / drug / medicinal
+- 无法确认商品性质
+
+这些必须进入澄清 / `Needs manual confirmation`。
+
+`pet-listing-agent` 包内若引用 `keyword-data-contract.md` 或 `knowledge-bases/pet`，未随包提供时不是数据源；实际关键词契约是 `../keyword-library-contract.md`，`knowledge-bases/pet` 仅在外部提供并显式挂载时可用。
+
+## 旧 pet_water_fountain 兼容规则
+
+以下内容作为 legacy `pet_water_fountain` 安全基线；只有 V3 不命中且已经用户澄清后，才允许进入本 legacy 流程。任何旧标题 / 输出规则与 V3 冲突时，V3 优先。
+
 ## 词库
 
 使用：
