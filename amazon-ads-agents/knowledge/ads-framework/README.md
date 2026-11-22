@@ -31,7 +31,7 @@
 
 做宠物类广告选词或推广方案时，先查[最新版 H10 六品类准词表](../../reference/category-traffic/pet_supplies/H10%E7%AB%9E%E5%93%81%E5%85%B3%E9%94%AE%E8%AF%8D%E5%8F%8D%E6%9F%A5_%E5%87%86%E8%AF%8D%E8%A1%A8_2026-11-22_%E6%90%9C%E7%B4%A2%E5%8D%A0%E6%AF%94%E5%88%86%E7%BA%A7_%E9%99%84%E6%89%93%E6%B3%95.xlsx)的对应品类工作表，参考准词等级、搜索占比和表头打法。只作选词和方案参考，不直接当作执行清单、预算比例或老品调整依据。方法参见[准词／范词推广打法](decisions/h10-keyword-mix-promotion.md)。
 
-同时打开[六品类违禁词库](../../reference/category-traffic/pet_supplies/%E4%BA%9A%E9%A9%AC%E9%80%8A%E7%BE%8E%E5%9B%BD%E7%AB%99_%E5%AE%A0%E7%89%A9%E5%85%AD%E5%93%81%E7%B1%BB%E8%BF%9D%E7%A6%81%E8%AF%8D%E5%BA%93_%E9%80%90%E7%B1%BB%E5%AE%8C%E6%95%B4%E5%AE%A1%E6%A0%B8%E7%A8%BF_2026-11-22.xlsx)的同品类工作表：先用 H10 选候选，再按适用位置和条件核对广告标题、文案、图文、视频及相关商品页。后台 Generic Keywords 的禁项不直接套到广告关键词或 ASIN 定向；定向单独核对相应广告政策，不自动设否词。未读取时标为未核验。
+同时打开[六品类违禁词库](../../reference/category-traffic/pet_supplies/%E4%BA%9A%E9%A9%AC%E9%80%8A%E7%BE%8E%E5%9B%BD%E7%AB%99_%E5%AE%A0%E7%89%A9%E5%85%AD%E5%93%81%E7%B1%BB%E8%BF%9D%E7%A6%81%E8%AF%8D%E5%BA%93_%E9%80%90%E7%B1%BB%E5%AE%8C%E6%95%B4%E5%AE%A1%E6%A0%B8%E7%A8%BF_2026-11-22.xlsx)的同品类工作表：先用 H10 选候选，再按适用位置和条件核对广告标题、文案、图文、视频及相关商品页。后台 Generic Keywords 的禁项不直接套到广告关键词或 ASIN 定向；相关竞品品牌词在美国站适用的广告类型和政策允许时可用于关键词定向，不因此写进对客广告文案；Sponsored Brands／Display 创意不写竞品名。不自动设否词或开投。未读取时标为未核验。
 
 ## 每条规则的格式
 
