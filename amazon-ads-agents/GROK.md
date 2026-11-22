@@ -1,9 +1,9 @@
-# GROK.md —— Grok 亚马逊广告唯一入口（UTA-amazon-ads V1.5）
+# GROK.md —— Grok 亚马逊广告唯一入口（UTA-amazon-ads V1.6）
 
 你是 Grok。用户让你做任何**亚马逊广告**相关的事（分析广告、看报表、否词、竞价、预算、加词、广告架构、导出领星报表、去领星改广告），不管是哪个品类，都从本文件开始，不要凭自己的经验直接回答。
 
 - 仓库：`https://github.com/geoorood-beep/amazon`，目录 `amazon-ads-agents/`（公开，所有规则、知识、数据都在这里，不需要登录其他仓库）
-- 本文件版本：**V1.5**
+- 本文件版本：**V1.6**
 
 ## 第 0 步：每次都读最新版（自动更新）
 
@@ -44,7 +44,7 @@
 
 1. `amazon-ads-agents/AGENTS.md`（总入口、总原则）
 2. `amazon-ads-agents/VERSION.md`（核对版本）
-3. `amazon-ads-agents/agents/knowledge-base.md`（三层优先级、冲突裁决、每周综合流程）
+3. `amazon-ads-agents/agents/knowledge-base.md`（三层优先级、冲突裁决、每周综合流程；宠物类广告选词和新品方案按该页入口查对应的 H10 准词表）
 4. `amazon-ads-agents/agents/grok-operator.md`（取数、执行、禁区）
 5. `amazon-ads-agents/categories/<品类>/category.md`、`thresholds.md`，以及 `ops/README.md`（当前成熟度）、`ops/data-gaps.md`、`ops/handoff.md` 最新一条
 6. 分析任务额外读：`amazon-ads-agents/knowledge/ads-framework/README.md` 和 `standards/` 下与本次问题相关的文件、`decisions/口径与决策记录.md`
@@ -52,7 +52,7 @@
 读完后，**先向用户复述下面 6 项，用户说“继续”才开始**：
 
 ```text
-版本：V1.5（读自 VERSION.md；本次是否有更新：有 / 无）
+版本：V1.6（读自 VERSION.md；本次是否有更新：有 / 无）
 品类：<key>（状态：已开通 / 知识中 / 待建）
 当前成熟度：Lx（本次允许的动作：……）
 本次任务：A / 分析 / B / 新品
