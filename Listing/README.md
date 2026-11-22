@@ -1,4 +1,4 @@
-# Amz Listing
+# UTA-amazon Listing
 
 Listing 智能体规则仓库。
 
