@@ -14,3 +14,4 @@
 | 类目 | 目录 | 说明 |
 |---|---|---|
 | 办公椅 / 人体工程学办公椅 | `office_chair/` | ABA 词库 + 5 个竞品 ASIN 关键词表，用于判断办公椅流量入口和 L1-L5 流量层 |
+| 美国站宠物六品类 | [pet_supplies/](pet_supplies/README.md) | H10 准词表、搜索占比分级及品类打法；Listing 和广告共用 |
