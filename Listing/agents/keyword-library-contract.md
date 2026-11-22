@@ -33,6 +33,8 @@ AGENTS 完整包中的 `knowledge-bases/amazon/` 是数据层；`agents/` 是规
 
 制作美国站宠物 Listing 时，先查[最新版 H10 六品类准词表](../../amazon-ads-agents/reference/category-traffic/pet_supplies/H10%E7%AB%9E%E5%93%81%E5%85%B3%E9%94%AE%E8%AF%8D%E5%8F%8D%E6%9F%A5_%E5%87%86%E8%AF%8D%E8%A1%A8_2026-11-22_%E6%90%9C%E7%B4%A2%E5%8D%A0%E6%AF%94%E5%88%86%E7%BA%A7_%E9%99%84%E6%89%93%E6%B3%95.xlsx)的对应品类工作表，参考关键词等级、搜索占比与商品相关性。表头打法用于理解推广方向；使用前按本契约进行相关性、竞品词、禁用词和产品事实审核。本表不替代运行时 JSON，也不启用尚未开通的类目。
 
+同一品类同时打开[六品类违禁词库](../../amazon-ads-agents/reference/category-traffic/pet_supplies/%E4%BA%9A%E9%A9%AC%E9%80%8A%E7%BE%8E%E5%9B%BD%E7%AB%99_%E5%AE%A0%E7%89%A9%E5%85%AD%E5%93%81%E7%B1%BB%E8%BF%9D%E7%A6%81%E8%AF%8D%E5%BA%93_%E9%80%90%E7%B1%BB%E5%AE%8C%E6%95%B4%E5%AE%A1%E6%A0%B8%E7%A8%BF_2026-11-22.xlsx)的对应工作表。用 H10 选候选词，再逐项审核标题、Item Highlights、五点、描述、图文、A+ 和后台 Generic Keywords。按表中适用位置与拦截条件执行；命中才拦，不按子串误删，也不替代现有风险审核。资料未能读取时标为未核验，不作通过结论。
+
 ## 预期数据结构
 
 每个类目应类似：
