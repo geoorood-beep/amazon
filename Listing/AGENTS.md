@@ -2,13 +2,53 @@
 
 本仓库保存 Amazon、Walmart 与 Wayfair Listing 智能体的 AGENTS 规则。后续 Codex 在这个仓库工作时，必须先判断平台，再读取对应平台的规则文件。
 
-本仓库只保存规则文档，不保存 `.env.local`、API Key、`node_modules`、Next.js build 产物，也不保存完整生产词库数据。
+本仓库只保存规则文档和确定性验证/helper scripts，不保存 `.env.local`、API Key、`node_modules`、Next.js build 产物，也不保存完整生产词库数据。
 
 ## 平台路由
 
 ### Amazon Listing
 
-当任务涉及 Amazon、亚马逊、Amazon US、Title / Bullet Points / Product Description / Search Terms / CDQ / `$listing` 时，读取：
+当任务涉及 Amazon、亚马逊、Amazon US、Title / Bullet Points / Product Description / Search Terms / CDQ / `$listing` 时，先判断是否命中 **Amazon US cat/dog non-food / non-supplement / non-drug hardware/goods V3**。
+
+#### Amazon US pet hardware/goods V3 优先路由
+
+命中以下全部条件时，必须先走 `pet-listing-agent/`：
+
+- 平台：Amazon US
+- 物种：cat 或 dog
+- 商品性质：non-food、non-supplement、non-drug 的 hardware/goods
+
+命中 V3 时，先读取：
+
+1. `pet-listing-agent/AGENTS.md`
+2. `pet-listing-agent/CHANGES.md`
+3. `pet-listing-agent/references/category-pet.md`
+4. `pet-listing-agent/references/intake-template.md`
+5. `pet-listing-agent/references/limits.md`
+
+V3 输出固定顺序为：`主标题 -> 亮点 -> 五点描述 -> 详情文案 -> 简要总结`。
+
+关键词只选 3-5 个 core keywords。
+
+硬性长度 gate：
+
+- 主标题 <= 75 characters
+- 亮点 <= 125 characters
+- 五点描述每条 <= 256 characters，五点合计 <= 1000 characters
+- 详情文案 <= 2000 characters
+
+确定性验证是必须项：`pet-listing-agent/scripts/validate.py` 必须检查每一份实际生成的 draft；`tests/run_tests.py` 只运行测试套件，不能替代 draft 校验。从 `Listing/pet-listing-agent/` 目录按 package 文档中的确切 CLI 运行，不要自行发明 validator flags。
+
+对于已经识别或疑似 pet 商品的 scoped task，以下情况不要自动 V3，也不要自动 fallback 到 `rug`：
+
+- 非 Amazon US 站点
+- 非 cat / dog 物种，例如 small animal / bird / reptile / fish 等
+- food / supplement / drug / medicinal pet products
+- 无法确认商品性质是否属于 non-food hardware/goods
+
+这些情况必须进入澄清 / `Needs manual confirmation`。非 pet 的 legacy `rug` / `chair` 等任务保持原有流程不变。
+
+未命中 V3 的 Amazon 任务，继续读取旧 Amazon 流程：
 
 1. `AGENTS.md`
 2. `agents/listing-generator-architecture.md`
@@ -29,6 +69,7 @@ Amazon 当前支持类目：
 - `rug`
 - `chair`
 - `pet_water_fountain`
+- `pet_hardware_goods_v3`（仅 Amazon US cat/dog non-food / non-supplement / non-drug hardware/goods，文档分发标签，路由到 `pet-listing-agent/`，不是旧 app 实现的类目）
 
 Amazon 的核心数据源设计：
 
@@ -76,6 +117,7 @@ Wayfair 的核心设计是：使用仓库内置 workbook 作为 Pattern、Color�
 7. 最终 pass/fail 由确定性审核决定，不能只靠模型判断。
 8. 面向客户的 Listing 正文里不要复述被拦截的风险原词。
 9. 需要证明的卖点必须写进确认项或阻塞项。
+10. 对于 Amazon US cat/dog non-food / non-supplement / non-drug hardware/goods 的 scoped task，`pet-listing-agent` V3 输出顺序、长度 gate、3-5 核心关键词选择和 `scripts/validate.py` 确定性验证优先于旧 Amazon `Title` / `Item Highlights` / `Bullet Points` / `Product Description` / `Search Terms` 通用生成规则。
 
 ## 修改规则
 
@@ -85,3 +127,5 @@ Wayfair 的核心设计是：使用仓库内置 workbook 作为 Pattern、Color�
 - 如果要新增 Amazon 类目，按 `agents/categories/new-category-template.md` 增加类目说明，并按 `agents/keyword-library-contract.md` 准备关键词库和风险库。
 - 如果要新增 Walmart 类目，按 `agents/walmart/categories/new-category-template.md` 增加类目说明，并按 `agents/walmart/knowledge-base-contract.md` 准备关键词表。
 - 如果未来引入代码实现，必须保留 prepare -> draft JSON -> audit 的确定性发布链路。
+- `pet-listing-agent/` 内文件本次更新保持包内原样，当前改动不改动该 package；需要适配时只改上层 routing / summary 文档，不做 seller backend 改动或部署。
+- `pet-listing-agent` 文本若引用 `keyword-data-contract.md` 或 `knowledge-bases/pet`，这些文件不在当前包内，也不是本仓库 shipped sources。实际关键词契约是 `agents/keyword-library-contract.md`；`knowledge-bases/pet` 只在外部提供并显式挂载时可用。不得伪造词库文件或声称缺失数据已存在。
